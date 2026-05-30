@@ -56,7 +56,6 @@
             font-size: 0.9rem;
         }
 
-        /* شريط تتبع حالة الطلب المباشر */
         .tracking-bar {
             background: white;
             margin: 15px;
@@ -75,32 +74,11 @@
             justify-content: space-between;
         }
 
-        .steps {
-            display: flex;
-            justify-content: space-between;
-        }
+        .steps { display: flex; justify-content: space-between; }
+        .step { font-size: 0.75rem; color: var(--text-muted); flex: 1; text-align: center; }
+        .step.active { color: var(--primary-color); font-weight: bold; }
 
-        .step {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            flex: 1;
-            text-align: center;
-        }
-
-        .step.active {
-            color: var(--primary-color);
-            font-weight: bold;
-        }
-
-        /* أزرار الأقسام التفاعلية للتبديل السلس */
-        .categories {
-            display: flex;
-            overflow-x: auto;
-            white-space: nowrap;
-            padding: 15px;
-            gap: 10px;
-        }
-
+        .categories { display: flex; overflow-x: auto; white-space: nowrap; padding: 15px; gap: 10px; }
         .categories::-webkit-scrollbar { display: none; }
 
         .category-btn {
@@ -114,207 +92,68 @@
             cursor: pointer;
         }
 
-        .category-btn.active {
-            background-color: var(--primary-color);
-            color: white;
-            border-color: var(--primary-color);
-        }
+        .category-btn.active { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
 
-        /* حاويات المنيو للأقسام الشرقي والغربي والمشروبات */
         .menu-container { padding: 0 15px; }
         .menu-section { display: none; }
         .menu-section.active { display: block; }
 
+        /* كرت الصنف الجديد مع دعم تصميم الصور الهاتفي */
         .menu-item {
             background: var(--card-bg);
             border-radius: 15px;
-            padding: 15px;
+            padding: 12px;
             margin-bottom: 15px;
             display: flex;
             box-shadow: 0 4px 12px rgba(0,0,0,0.03);
             align-items: center;
-            justify-content: space-between;
+            gap: 15px;
             cursor: pointer;
-            position: relative;
+        }
+
+        /* تنسيق صور الأكل الدائري السريع */
+        .item-image {
+            width: 75px;
+            height: 75px;
+            border-radius: 12px;
+            object-fit: cover;
+            background-color: #eee;
         }
 
         .item-details { flex: 1; }
-        .item-title { font-size: 1rem; font-weight: 700; color: var(--secondary-color); }
-        .item-price { font-weight: 700; color: var(--primary-color); font-size: 1.1rem; margin-top: 5px; }
+        .item-title { font-size: 0.95rem; font-weight: 700; color: var(--secondary-color); }
+        .item-price { font-weight: 700; color: var(--primary-color); font-size: 1rem; margin-top: 3px; }
 
-        /* أزرار التحكم بالكمية الزيادة والنقصان للفحص والتجربة (+ و -) */
-        .quantity-control {
-            display: flex;
-            align-items: center;
-            background: #f1f2f6;
-            border-radius: 20px;
-            padding: 3px;
-        }
+        .quantity-control { display: flex; align-items: center; background: #f1f2f6; border-radius: 20px; padding: 3px; }
+        .qty-btn { width: 26px; height: 26px; background: white; border: none; border-radius: 50%; font-size: 1rem; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .qty-number { margin: 0 8px; font-weight: 700; font-size: 0.9rem; }
 
-        .qty-btn {
-            width: 28px;
-            height: 28px;
-            background: white;
-            border: none;
-            border-radius: 50%;
-            font-size: 1.1rem;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-
-        .qty-number { margin: 0 10px; font-weight: 700; }
-
-        /* شريط التنقل السفلي */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0; left: 0; right: 0;
-            background: white;
-            box-shadow: 0 -4px 15px rgba(0,0,0,0.08);
-            padding: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 99;
-        }
-
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; box-shadow: 0 -4px 15px rgba(0,0,0,0.08); padding: 15px; display: flex; justify-content: space-between; align-items: center; z-index: 99; }
         .total-amount { font-size: 1.3rem; font-weight: 700; color: var(--secondary-color); }
+        .order-btn { background: var(--primary-color); color: white; border: none; padding: 12px 28px; border-radius: 25px; font-weight: 700; cursor: pointer; }
 
-        .order-btn {
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 12px 28px;
-            border-radius: 25px;
-            font-weight: 700;
-            cursor: pointer;
-        }
+        .floating-actions { position: fixed; bottom: 95px; left: 15px; z-index: 98; }
+        .call-waiter-btn { width: 50px; height: 50px; background: var(--danger); color: white; border: none; border-radius: 50%; font-size: 0.75rem; font-weight: bold; cursor: pointer; }
 
-        /* زر نداء النادل العائم */
-        .floating-actions {
-            position: fixed;
-            bottom: 95px; left: 15px;
-            z-index: 98;
-        }
+        .popup-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; align-items: flex-end; z-index: 1000; }
+        .popup-content { background: white; width: 100%; border-top-left-radius: 25px; border-top-right-radius: 25px; padding: 22px; max-height: 85vh; overflow-y: auto; animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
-        .call-waiter-btn {
-            width: 50px; height: 50px;
-            background: var(--danger);
-            color: white; border: none; border-radius: 50%;
-            font-size: 0.75rem; font-weight: bold; cursor: pointer;
-        }
-
-        /* نافذة تخصيص المكونات المنبثقة التلقائية */
-        .popup-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.5);
-            display: none;
-            align-items: flex-end;
-            z-index: 1000;
-        }
-
-        .popup-content {
-            background: white;
-            width: 100%;
-            border-top-left-radius: 25px;
-            border-top-right-radius: 25px;
-            padding: 22px;
-            max-height: 85vh;
-            overflow-y: auto;
-            animation: slideUp 0.3s ease-out;
-        }
-
-        @keyframes slideUp {
-            from { transform: translateY(100%); }
-            to { transform: translateY(0); }
-        }
-
-        .popup-title {
-            font-size: 1.2rem;
-            font-weight: 700;
-            margin-bottom: 15px;
-            color: var(--secondary-color);
-            border-bottom: 2px solid #f1f2f6;
-            padding-bottom: 10px;
-        }
-
-        .option-group {
-            background: #f8f9fa;
-            padding: 12px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-        }
-        
-        .option-group-title {
-            font-weight: 700;
-            font-size: 0.95rem;
-            color: var(--secondary-color);
-            margin-bottom: 10px;
-            border-right: 3px solid var(--primary-color);
-            padding-right: 8px;
-        }
-
-        .option-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 0;
-        }
-
-        .option-item label {
-            font-size: 0.95rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-            width: 100%;
-        }
-
+        .popup-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 15px; color: var(--secondary-color); border-bottom: 2px solid #f1f2f6; padding-bottom: 10px; }
+        .option-group { background: #f8f9fa; padding: 12px; border-radius: 12px; margin-bottom: 15px; }
+        .option-group-title { font-weight: 700; font-size: 0.95rem; color: var(--secondary-color); margin-bottom: 10px; border-right: 3px solid var(--primary-color); padding-right: 8px; }
+        .option-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; }
         .option-item input { width: 18px; height: 18px; accent-color: var(--primary-color); }
 
-        .cart-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .delete-btn {
-            background: none; border: none;
-            color: var(--danger); font-weight: bold; cursor: pointer;
-        }
+        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; }
+        .delete-btn { background: none; border: none; color: var(--danger); font-weight: bold; cursor: pointer; }
 
-        /* حقل (فراغ) كتابة الملاحظات العام أسفل الطلبات والأسعار */
-        .notes-section {
-            margin-top: 20px;
-            background: #f8f9fa;
-            padding: 12px;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
-        }
-
+        .notes-section { margin-top: 20px; background: #f8f9fa; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; }
         .notes-label { font-weight: 700; font-size: 0.9rem; color: var(--secondary-color); margin-bottom: 8px; display: block; }
         .notes-textarea { width: 100%; height: 70px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; font-size: 0.9rem; resize: none; outline: none; }
 
-        .confirm-order-action {
-            background: var(--success);
-            color: white; width: 100%; padding: 14px;
-            border: none; border-radius: 25px;
-            font-weight: bold; font-size: 1.1rem;
-            margin-top: 15px; cursor: pointer;
-        }
-
-        footer {
-            background: white; margin-top: 30px;
-            padding: 20px 15px; text-align: center;
-            border-top: 1px solid #eee;
-        }
-        .share-btn { background: #f1f2f6; border: none; padding: 8px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; margin-bottom: 15px; cursor: pointer; }
-        .social-links a { color: var(--text-muted); text-decoration: none; margin: 0 10px; font-weight: bold; }
+        .confirm-order-action { background: var(--success); color: white; width: 100%; padding: 14px; border: none; border-radius: 25px; font-weight: bold; font-size: 1.1rem; margin-top: 15px; cursor: pointer; }
+        footer { background: white; margin-top: 30px; padding: 20px 15px; text-align: center; border-top: 1px solid #eee; }
     </style>
 </head>
 <body>
@@ -322,7 +161,7 @@
     <header>
         <div>
             <h2>مـطـعـم وكـافـيـه الـكـرم</h2>
-            <span class="table-badge">طاولة: 05</span>
+            <span class="table-badge">طاولة: <span id="tableNumberDisplay">--</span></span>
         </div>
     </header>
 
@@ -338,7 +177,6 @@
         </div>
     </div>
 
-    <!-- الأقسام تفاعلية -->
     <div class="categories">
         <button class="category-btn active" onclick="switchCategory('oriental')">أكلات شرقية</button>
         <button class="category-btn" onclick="switchCategory('western')">أكلات غربية</button>
@@ -346,9 +184,9 @@
     </div>
 
     <div class="menu-container">
-        <!-- أكلات شرقية -->
         <div id="oriental" class="menu-section active">
             <div class="menu-item" onclick="openCustomization('food', 'قوزي لحم عراقي', 18000)">
+                <img class="item-image" src="https://images.unsplash.com/photo-1544025162-d76694265947?w=200" alt="قوزي لحم">
                 <div class="item-details">
                     <div class="item-title">قوزي لحم عراقي فاخر</div>
                     <div class="item-price">18,000 د.ع</div>
@@ -361,9 +199,9 @@
             </div>
         </div>
 
-        <!-- أكلات غربية -->
         <div id="western" class="menu-section">
             <div class="menu-item" onclick="openCustomization('food', 'برجر لحم كلاسيك', 8500)">
+                <img class="item-image" src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=200" alt="برجر">
                 <div class="item-details">
                     <div class="item-title">برجر لحم كلاسيك فاخر</div>
                     <div class="item-price">8,500 د.ع</div>
@@ -376,9 +214,9 @@
             </div>
         </div>
 
-        <!-- المشروبات -->
         <div id="drinks" class="menu-section">
             <div class="menu-item" onclick="openCustomization('drink', 'شاي أحمر خادر', 2000)">
+                <img class="item-image" src="https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=200" alt="شاي">
                 <div class="item-details">
                     <div class="item-title">شاي أحمر خادر (استكانه)</div>
                     <div class="item-price">2,000 د.ع</div>
@@ -404,7 +242,6 @@
         <button class="order-btn" onclick="openCartPopup()">استعراض وتأكيد الطلب</button>
     </div>
 
-    <!-- نافذة تخصيص المكونات التلقائية المباشرة -->
     <div id="customPopup" class="popup-overlay" onclick="closePopup('customPopup')">
         <div class="popup-content" onclick="event.stopPropagation()">
             <div class="popup-title" id="customItemTitle">تخصيص الخيارات المباشرة</div>
@@ -413,13 +250,11 @@
         </div>
     </div>
 
-    <!-- نافذة مراجعة السلة مع فراغ الملاحظات العام -->
     <div id="cartPopup" class="popup-overlay" onclick="closePopup('cartPopup')">
         <div class="popup-content" onclick="event.stopPropagation()">
-            <div class="popup-title">مراجعة طلبات الطاولة 05</div>
+            <div class="popup-title" id="cartPopupTitle">مراجعة طلبات الطاولة</div>
             <div id="cartItemsList"></div>
 
-            <!-- فراغ إضافة الملاحظات تحت الطلب والأسعار مباشرة -->
             <div class="notes-section" id="notesWrapper" style="display:none;">
                 <label class="notes-label" for="generalNotes">ملاحظات عامة على الطلب (مثل: الاكل بدون بصل والشاي بدون سكر):</label>
                 <textarea class="notes-textarea" id="generalNotes" placeholder="اكتب تعليماتك الخاصة للمطبخ هنا..."></textarea>
@@ -429,10 +264,7 @@
         </div>
     </div>
 
-    <footer>
-        <button class="share-btn" onclick="alert('تم نسخ الرابط لمشاركته!')">📢 شارك حساب المطعم</button>
-    </footer>
-
     <script src="app.js"></script>
 </body>
 </html>
+
