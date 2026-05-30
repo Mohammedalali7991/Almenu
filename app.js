@@ -1,9 +1,23 @@
 let cart = {};
 let totalCartPrice = 0;
-
 let currentItemType = ''; 
 let currentItemName = '';
 let currentBasePrice = 0;
+let currentTable = "00";
+
+window.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tableParam = urlParams.get('table');
+    
+    if (tableParam) {
+        currentTable = tableParam;
+    } else {
+        currentTable = "عام";
+    }
+    
+    document.getElementById('tableNumberDisplay').innerText = currentTable;
+    document.getElementById('cartPopupTitle').innerText = `مراجعة طلبات الطاولة ${currentTable}`;
+});
 
 function switchCategory(categoryId) {
     document.querySelectorAll('.menu-section').forEach(sec => sec.classList.remove('active'));
@@ -12,7 +26,6 @@ function switchCategory(categoryId) {
     event.currentTarget.classList.add('active');
 }
 
-// التحكم المباشر من أزرار + و - في الواجهة الرئيسية
 function updateQtyDirect(name, price, change) {
     if (!cart[name]) {
         cart[name] = { qty: 0, price: price, baseName: name };
@@ -27,7 +40,6 @@ function updateQtyDirect(name, price, change) {
     recalculateTotal();
 }
 
-// فتح نافذة التخصيص التلقائي عند الضغط على كرت الصنف
 function openCustomization(type, name, price) {
     currentItemType = type;
     currentItemName = name;
@@ -88,7 +100,6 @@ function saveCustomization() {
     }
     cart[uniqueCartKey].qty += 1;
 
-    // تحديث رقم العداد على الواجهة للاسم الأساسي
     if(document.getElementById(`qty-${currentItemName}`)) {
         let currentQty = parseInt(document.getElementById(`qty-${currentItemName}`).innerText);
         document.getElementById(`qty-${currentItemName}`).innerText = currentQty + 1;
@@ -117,7 +128,7 @@ function openCartPopup() {
         notesWrapper.style.display = 'none';
     } else {
         document.getElementById('finalConfirmBtn').style.display = 'block';
-        notesWrapper.style.display = 'block'; // إظهار الملاحظات تحت الطلب والأسعار مباشرة
+        notesWrapper.style.display = 'block';
         
         for (let item in cart) {
             let itemTotal = cart[item].qty * cart[item].price;
@@ -155,7 +166,7 @@ function submitFinalOrder() {
     trackingBar.style.display = 'block';
     
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    alert(`تم تأكيد الطلب الفعلي بنجاح!\nالملاحظات المرسلة: "${notes || 'لا يوجد'}"`);
+    alert(`تم تأكيد الطلب الفعلي بنجاح للطاولة رقم (${currentTable})!\nالملاحظات المرسلة: "${notes || 'لا يوجد'}"`);
     
     setTimeout(() => {
         document.getElementById('step2').classList.add('active');
@@ -164,4 +175,3 @@ function submitFinalOrder() {
 }
 
 function closePopup(popupId) { document.getElementById(popupId).style.display = 'none'; }
-
