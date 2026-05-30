@@ -33,6 +33,51 @@
             padding-bottom: 100px;
         }
 
+        /* واجهة الترحيب الفاخرة المعتمدة على الصورة والشعار الذهبي */
+        #splashScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #111111;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .splash-img {
+            max-width: 85%;
+            max-height: 55vh;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            object-fit: contain;
+            margin-bottom: 30px;
+        }
+
+        .enter-btn {
+            background: linear-gradient(135deg, #d4af37, #aa7c11);
+            color: #111111;
+            border: none;
+            padding: 14px 45px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 5px 25px rgba(212, 175, 55, 0.7); }
+            100% { transform: scale(1); box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4); }
+        }
+
         header {
             background-color: var(--secondary-color);
             color: white;
@@ -98,7 +143,6 @@
         .menu-section { display: none; }
         .menu-section.active { display: block; }
 
-        /* كرت الصنف الجديد مع دعم تصميم الصور الهاتفي */
         .menu-item {
             background: var(--card-bg);
             border-radius: 15px;
@@ -111,7 +155,6 @@
             cursor: pointer;
         }
 
-        /* تنسيق صور الأكل الدائري السريع */
         .item-image {
             width: 75px;
             height: 75px;
@@ -153,10 +196,14 @@
         .notes-textarea { width: 100%; height: 70px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; font-size: 0.9rem; resize: none; outline: none; }
 
         .confirm-order-action { background: var(--success); color: white; width: 100%; padding: 14px; border: none; border-radius: 25px; font-weight: bold; font-size: 1.1rem; margin-top: 15px; cursor: pointer; }
-        footer { background: white; margin-top: 30px; padding: 20px 15px; text-align: center; border-top: 1px solid #eee; }
     </style>
 </head>
 <body>
+
+    <div id="splashScreen">
+        <img class="splash-img" src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500" alt="شعار المنيو">
+        <button class="enter-btn" onclick="hideSplash()">افتح القائمة</button>
+    </div>
 
     <header>
         <div>
@@ -254,17 +301,22 @@
         <div class="popup-content" onclick="event.stopPropagation()">
             <div class="popup-title" id="cartPopupTitle">مراجعة طلبات الطاولة</div>
             <div id="cartItemsList"></div>
-
             <div class="notes-section" id="notesWrapper" style="display:none;">
-                <label class="notes-label" for="generalNotes">ملاحظات عامة على الطلب (مثل: الاكل بدون بصل والشاي بدون سكر):</label>
+                <label class="notes-label" for="generalNotes">ملاحظات عامة على الطلب:</label>
                 <textarea class="notes-textarea" id="generalNotes" placeholder="اكتب تعليماتك الخاصة للمطبخ هنا..."></textarea>
             </div>
-
             <button class="confirm-order-action" id="finalConfirmBtn" style="background:var(--success)" onclick="submitFinalOrder()">تأكيد الطلب الفعلي</button>
         </div>
     </div>
 
+    <script>
+        function hideSplash() {
+            const splash = document.getElementById('splashScreen');
+            splash.style.transition = "opacity 0.5s ease";
+            splash.style.opacity = 0;
+            setTimeout(() => splash.style.display = 'none', 500);
+        }
+    </script>
     <script src="app.js"></script>
 </body>
 </html>
-
