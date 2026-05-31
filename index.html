@@ -2,11 +2,11 @@
 <html lang="ar" dir="rtl" id="html-tag">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title id="app-title">المنيو الذكي - Smart Menu</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #121212; color: #e0e0e0; padding-bottom: 100px; transition: background 0.3s; }
+        body { background-color: #121212; color: #e0e0e0; padding-bottom: 100px; }
         
         /* شاشة الترحيب والبدء */
         #welcome-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #121212; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
@@ -19,18 +19,18 @@
         header { text-align: center; padding: 30px 20px 15px; background: linear-gradient(to bottom, #1a1a1a, #121212); position: relative; }
         .logo-text { font-size: 28px; font-weight: bold; color: #fff; margin-bottom: 5px; }
         
-        /* زر تبديل اللغة العائم الاحترافي */
-        .lang-switch-btn { position: absolute; top: 20px; left: 20px; background: #222; border: 1px solid #d4af37; color: #d4af37; padding: 6px 12px; border-radius: 15px; font-size: 13px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        /* زر تبديل اللغة العائم */
+        .lang-switch-btn { position: absolute; top: 20px; left: 20px; background: #222; border: 1px solid #d4af37; color: #d4af37; padding: 6px 12px; border-radius: 15px; font-size: 13px; font-weight: bold; cursor: pointer; z-index: 100; }
         html[dir="ltr"] .lang-switch-btn { left: auto; right: 20px; }
 
         /* شريط قائمة الأقسام العلوية */
         .categories-nav { position: sticky; top: 0; background: #161616; padding: 12px; display: flex; gap: 10px; overflow-x: auto; z-index: 99; border-bottom: 1px solid #2d2d2d; scrollbar-width: none; }
         .categories-nav::-webkit-scrollbar { display: none; }
-        .cat-btn { background: #222; color: #aaa; border: 1px solid #333; padding: 8px 16px; border-radius: 20px; white-space: nowrap; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .cat-btn { background: #222; color: #aaa; border: 1px solid #333; padding: 8px 16px; border-radius: 20px; white-space: nowrap; font-size: 14px; font-weight: 600; cursor: pointer; }
         .cat-btn.active { background: #d4af37; color: #111; border-color: #d4af37; }
 
         .category-section { display: block; padding-top: 10px; }
-        .category-title { color: #d4af37; font-size: 20px; margin: 20px 20px 10px; padding-right: 10px; border-right: 4px solid #d4af37; transition: all 0.2s; }
+        .category-title { color: #d4af37; font-size: 20px; margin: 20px 20px 10px; padding-right: 10px; border-right: 4px solid #d4af37; }
         html[dir="ltr"] .category-title { padding-right: 0; padding-left: 10px; border-right: none; border-left: 4px solid #d4af37; }
         
         .menu-grid { padding: 0 20px; display: flex; flex-direction: column; gap: 15px; }
@@ -40,10 +40,10 @@
         .item-price { color: #d4af37; font-weight: bold; font-size: 15px; margin-bottom: 12px; }
         .item-img { width: 95px; height: 95px; object-fit: cover; border-radius: 12px; border: 1px solid #333; }
         
-        /* أزرار التحكم بالعدّاد معزولة لضمان دقة اللمس على الموبايل */
+        /* تحسين الأزرار اللمسية لمنع التجمد على الموبايل */
         .item-controls { display: flex; align-items: center; gap: 14px; background: #262626; padding: 6px 12px; border-radius: 8px; width: max-content; border: 1px solid #333; }
-        .btn-action { background: #d4af37; color: #111; border: none; width: 34px; height: 34px; font-size: 22px; font-weight: bold; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; user-select: none; -webkit-tap-highlight-color: transparent; }
-        .item-qty-val { color: #fff; font-weight: bold; min-width: 24px; text-align: center; font-size: 17px; }
+        .btn-action { background: #d4af37; color: #111; border: none; width: 36px; height: 36px; font-size: 24px; font-weight: bold; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; user-select: none; -webkit-tap-highlight-color: transparent; }
+        .item-qty-val { color: #fff; font-weight: bold; min-width: 24px; text-align: center; font-size: 18px; }
         
         /* شريط السلة السفلي */
         .cart-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #1a1a1a; border-top: 2px solid #d4af37; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 999; box-shadow: 0 -5px 25px rgba(0,0,0,0.6); }
@@ -72,13 +72,14 @@
 </head>
 <body>
 
-    <!-- شاشة البدء الترحيبية المعدلة بالكامل باللغتين -->
+    <!-- شاشة البدء الترحيبية المعدلة - تم حذف جملة تم الدخول نهائياً -->
     <div id="welcome-screen">
         <h2 class="logo-welcome">ALMENU</h2>
         <div class="welcome-msg">أهلاً وسهلاً بكم</div>
-        <div class="welcome-msg-en">Welcome to our restaurant</div>
+        <div class="welcome-msg-en">Welcome</div>
         <p class="sub-text" id="welcome-sub-ar">نكهات أصيلة وتجربة لا تُنسى ✨</p>
         <p class="sub-text" id="welcome-sub-en" style="font-family:sans-serif;">Authentic flavors and an unforgettable experience</p>
+        <!-- هذا الحقل يعرض رقم الطاولة فقط إذا وجد في الرابط، وبخلاف ذلك يظل مخفياً تماماً -->
         <h4 id="table-display" style="color: #d4af37; margin-top: 15px; font-size: 16px;"></h4>
         <button class="btn-start" id="start-btn-text" onclick="enterMenu()">تصفح قائمة الطعام 🍽️</button>
     </div>
@@ -89,7 +90,7 @@
         <div class="sub-text" id="header-sub-title">أهلاً وسهلاً بكم .. نكهات أصيلة وتجربة لا تُنسى</div>
     </header>
 
-    <!-- أزرار التنقل بين الأقسام المترجمة -->
+    <!-- شريط الأقسام السلس -->
     <div class="categories-nav" id="categories-nav-container">
         <button class="cat-btn active" id="btn-western" onclick="scrollToCategory('western')">مأكولات غربية</button>
         <button class="cat-btn" id="btn-eastern" onclick="scrollToCategory('eastern')">مأكولات شرقية</button>
@@ -225,7 +226,7 @@
         </div>
     </section>
 
-    <!-- شريط السلة السفلي العائم -->
+    <!-- شريط السلة السفلي المرن -->
     <div class="cart-bar">
         <div class="cart-info">
             <span class="cart-count" id="cart-bar-count">عدد العناصر: 0</span>
