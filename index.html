@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>منيو مطعمنا الفاخر</title>
     <style>
-        /* التنسيقات الفاخرة السابقة باللون الأسود والذهبي */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -19,7 +18,6 @@
             padding-bottom: 60px;
         }
 
-        /* الهيدر الفاخر والشعار الذهبي */
         header {
             background: linear-gradient(145deg, #1e1e1e, #111111);
             padding: 30px 20px;
@@ -59,7 +57,6 @@
             100% { box-shadow: 0 0 15px rgba(212,175,55,0.3); }
         }
 
-        /* شبكة عرض المأكولات */
         .menu-container {
             max-width: 800px;
             margin: 0 auto;
@@ -134,7 +131,6 @@
             background: #f7d070;
         }
 
-        /* شريط السلة السفلي العائم */
         .cart-bar {
             position: fixed;
             bottom: 0;
@@ -176,7 +172,6 @@
             font-size: 15px;
         }
 
-        /* النافذة المنبثقة لمراجعة السلة وإرسال الطلب */
         .modal {
             position: fixed;
             top: 0;
@@ -320,8 +315,7 @@
                 <h2>سلة الطلبات الخاصة بك</h2>
                 <span class="close-btn" onclick="toggleModal(false)">&times;</span>
             </div>
-            <div id="modalItemsContainer">
-                </div>
+            <div id="modalItemsContainer"></div>
             <div style="margin-top:20px; display:flex; justify-content:between; font-weight:bold; font-size:18px; border-top:1px solid #333; padding-top:15px;">
                 <span>المجموع الكلي:</span>
                 <span id="modalTotal" style="color:#d4af37; margin-right:auto;">0 د.ع</span>
@@ -332,163 +326,6 @@
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
-    <script>
-        // 📆 ضبط تاريخ انتهاء الفترة التجريبية للمطعم (السنة-الشهر-اليوم)
-        const EXPIRATION_DATE = "2026-06-07"; 
-
-        // 🔥 مفاتيح الربط الفورية الخاصة بمحمد العلي المستخرجة من حسابك في Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyCEk80-ag9mv5JP9LRBZTq1_qiVKcwUQKQ",
-            authDomain: "almenu-system.firebaseapp.com",
-            databaseURL: "https://almenu-system-default-rtdb.firebaseio.com",
-            projectId: "almenu-system",
-            storageBucket: "almenu-system.firebasestorage.app",
-            messagingSenderId: "259548428040",
-            appId: "1:259548428040:web:8d156f73ed55cec3cadebd",
-            measurementId: "G-EL9GDKQ0KV"
-        };
-
-        // تهيئة السيرفر
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        const database = firebase.database();
-
-        // 🛡️ دالة فحص حماية وصلاحية الفترة التجريبية للموقع
-        function checkValidity() {
-            const today = new Date();
-            const expDate = new Date(EXPIRATION_DATE);
-            
-            if (today > expDate) {
-                document.body.innerHTML = `
-                    <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; background:#111; color:#fff; font-family:sans-serif; text-align:center; padding:20px; direction:rtl;">
-                        <div style="font-size:70px; color:#d4af37; margin-bottom:20px;">🔒</div>
-                        <h2 style="color:#d4af37; margin-bottom:10px;">انتهت الفترة التجريبية للمنيو</h2>
-                        <p style="color:#aaa; max-width:400px; line-height:1.6; font-size:15px;">عذراً، انتهت المدة المحددة لتجربة النظام البرمجي. يرجى التواصل مع مطور ومصمم النظام لتفعيل الاشتراك السنوي وإعادة تشغيل المنيو فوراً.</p>
-                        <a href="https://wa.me/964XXXXXXXXXX" style="margin-top:25px; background:#d4af37; color:#111; padding:12px 30px; border-radius:25px; text-decoration:none; font-weight:bold; box-shadow:0 4px 15px rgba(212,175,55,0.3);">تفعيل النظام الآن</a>
-                    </div>
-                `;
-                return false;
-            }
-            return true;
-        }
-
-        // قراءة رقم الطاولة تلقائياً من رابط الـ URL (مثال: ?table=5)
-        const urlParams = new URLSearchParams(window.location.search);
-        const tableNumber = urlParams.get('table') || "5";
-
-        // مصفوفة السلة لحفظ العناصر مؤقتاً في هاتف الزبون
-        let cart = [];
-
-        // دالة إضافة عنصر للسلة
-        function addToCart(name, price) {
-            if (!checkValidity()) return;
-
-            const existingItem = cart.find(item => item.name === name);
-            if (existingItem) {
-                existingItem.quantity += 1;
-            } else {
-                cart.push({ name: name, price: price, quantity: 1 });
-            }
-            updateCartUI();
-        }
-
-        // دالة تحديث كميات العناصر من داخل نافذة السلة
-        function updateQuantity(name, amount) {
-            const item = cart.find(item => item.name === name);
-            if (item) {
-                item.quantity += amount;
-                if (item.quantity <= 0) {
-                    cart = cart.filter(i => i.name !== name);
-                }
-            }
-            updateCartUI();
-        }
-
-        // تحديث المظهر الخارجي وحساب حسابات السلة والأشرطة العائمة
-        function updateCartUI() {
-            const cartBar = document.getElementById('cartBar');
-            const cartCount = document.getElementById('cartCount');
-            const cartTotal = document.getElementById('cartTotal');
-            const container = document.getElementById('modalItemsContainer');
-            const modalTotal = document.getElementById('modalTotal');
-
-            let totalItems = 0;
-            let totalPrice = 0;
-            container.innerHTML = '';
-
-            cart.forEach(item => {
-                totalItems += item.quantity;
-                totalPrice += (item.price * item.quantity);
-
-                container.innerHTML += `
-                    <div class="cart-item-row">
-                        <div>
-                            <div style="font-weight:600; color:#fff;">${item.name}</div>
-                            <div style="color:#888; font-size:13px;">${item.price.toLocaleString()} د.ع</div>
-                        </div>
-                        <div class="qty-controls">
-                            <button class="qty-btn" onclick="updateQuantity('${item.name}', -1)">-</button>
-                            <span style="font-weight:bold; min-width:20px; text-align:center;">${item.quantity}</span>
-                            <button class="qty-btn" onclick="updateQuantity('${item.name}', 1)">+</button>
-                        </div>
-                    </div>
-                `;
-            });
-
-            cartCount.innerText = totalItems;
-            cartTotal.innerText = totalPrice.toLocaleString() + " د.ع";
-            modalTotal.innerText = totalPrice.toLocaleString() + " د.ع";
-
-            if (totalItems > 0) {
-                cartBar.style.display = 'flex';
-            } else {
-                cartBar.style.display = 'none';
-                toggleModal(false);
-            }
-        }
-
-        // فتح وإغلاق نافذة مراجعة السلة
-        function toggleModal(show) {
-            document.getElementById('cartModal').style.display = show ? 'flex' : 'none';
-        }
-
-        // 🚀 إرسال وتأكيد الطلب الفعلي لقاعدة بيانات المطبخ الفورية
-        function submitFinalOrder() {
-            if (!checkValidity()) return;
-            if (cart.length === 0) return;
-
-            // حساب المجموع الإجمالي
-            let totalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
-            // توليد كود فرعي ومميز للطلب على السيرفر
-            const orderId = database.ref().child('orders').push().key;
-
-            // تجهيز البيانات بالكامل
-            const orderData = {
-                orderId: orderId,
-                table: tableNumber,
-                items: cart,
-                total: totalPrice.toLocaleString(),
-                time: new Date().toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit' }),
-                status: "جديد"
-            };
-
-            // رفع فوري لقاعدة بيانات Firebase الخاصة بمحمد العلي
-            database.ref('orders/' + orderId).set(orderData)
-                .then(() => {
-                    alert("🏆 تم إرسال طلبك بنجاح وجاري تحضيره في المطبخ الآن! رقم الطاولة: " + tableNumber);
-                    cart = []; // تصفير السلة فوراً
-                    updateCartUI();
-                })
-                .catch((error) => {
-                    alert("عذراً، فشل الاتصال بالسيرفر. يرجى المحاولة مرة أخرى.");
-                });
-        }
-
-        // تشغيل الفحص الأمني التلقائي فور فتح الصفحة
-        checkValidity();
-    </script>
+    <script src="app.js"></script>
 </body>
 </html>
