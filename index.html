@@ -5,105 +5,217 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>مطعمنا الفاخر - المنيو الذكي</title>
     <style>
-        /* التنسيقات الفاخرة المعتمدة بناءً على التصميم الفعلي للمطعم */
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #121212; color: #e0e0e0; padding-bottom: 90px; }
+        body { background-color: #121212; color: #e0e0e0; padding-bottom: 100px; }
         
-        /* شاشة الترحيب والبدء لتثبيت رقم الطاولة */
+        /* شاشة الترحيب بدون النجوم المضيئة */
         #welcome-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #121212; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
-        .gold-glow { text-shadow: 0 0 10px rgba(212, 175, 55, 0.5); color: #d4af37; margin-bottom: 10px; }
-        .btn-start { background: linear-gradient(135deg, #d4af37, #aa841b); color: #111; border: none; padding: 12px 40px; font-size: 18px; font-weight: bold; border-radius: 30px; cursor: pointer; margin-top: 25px; width: 80%; max-width: 300px; box-shadow: 0 4px 15px rgba(212,175,55,0.3); }
+        .logo-welcome { color: #d4af37; margin-bottom: 10px; font-size: 32px; font-weight: bold; letter-spacing: 1px; }
+        .btn-start { background: linear-gradient(135deg, #d4af37, #aa841b); color: #111; border: none; padding: 14px 40px; font-size: 18px; font-weight: bold; border-radius: 30px; cursor: pointer; margin-top: 25px; width: 80%; max-width: 300px; box-shadow: 0 4px 15px rgba(212,175,55,0.3); }
 
-        /* الهيدر وقائمة الأطعمة */
-        header { text-align: center; padding: 30px 20px 20px; background: linear-gradient(to bottom, #1a1a1a, #121212); }
+        header { text-align: center; padding: 30px 20px 15px; background: linear-gradient(to bottom, #1a1a1a, #121212); }
         .logo-text { font-size: 28px; font-weight: bold; color: #fff; margin-bottom: 5px; }
         .sub-text { font-size: 14px; color: #888; }
         
-        .category-title { color: #d4af37; font-size: 22px; margin: 25px 20px 15px; padding-right: 10px; border-right: 4px solid #d4af37; }
+        /* شريط قائمة الأقسام العلوية الثابتة والمرنة */
+        .categories-nav { position: sticky; top: 0; background: #161616; padding: 12px; display: flex; gap: 10px; overflow-x: auto; z-index: 99; border-bottom: 1px solid #2d2d2d; scrollbar-width: none; }
+        .categories-nav::-webkit-scrollbar { display: none; }
+        .cat-btn { background: #222; color: #aaa; border: 1px solid #333; padding: 8px 16px; border-radius: 20px; white-space: nowrap; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .cat-btn.active { background: #d4af37; color: #111; border-color: #d4af37; }
+
+        .category-section { display: block; padding-top: 10px; }
+        .category-title { color: #d4af37; font-size: 20px; margin: 20px 20px 10px; padding-right: 10px; border-right: 4px solid #d4af37; }
         
         .menu-grid { padding: 0 20px; display: flex; flex-direction: column; gap: 15px; }
-        .menu-item { background: #1e1e1e; border: 1px solid #2d2d2d; border-radius: 15px; display: flex; padding: 12px; align-items: center; justify-content: space-between; gap: 10px; transition: 0.2s; }
+        .menu-item { background: #1e1e1e; border: 1px solid #2d2d2d; border-radius: 15px; display: flex; padding: 12px; align-items: center; justify-content: space-between; gap: 10px; }
         .item-details { flex: 1; }
-        .item-name { font-size: 17px; font-weight: bold; color: #fff; margin-bottom: 8px; }
-        .item-price { color: #d4af37; font-weight: bold; font-size: 16px; }
+        .item-name { font-size: 16px; font-weight: bold; color: #fff; margin-bottom: 6px; }
+        .item-price { color: #d4af37; font-weight: bold; font-size: 15px; margin-bottom: 12px; }
         .item-img { width: 95px; height: 95px; object-fit: cover; border-radius: 12px; border: 1px solid #333; }
         
-        .btn-add { background-color: #d4af37; color: #111; border: none; padding: 8px 16px; font-weight: bold; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 14px; }
+        /* أزرار زيادة ونقصان الكمية المباشرة بجانب الطبق */
+        .item-controls { display: flex; align-items: center; gap: 10px; background: #262626; padding: 4px 8px; border-radius: 8px; width: max-content; border: 1px solid #333; }
+        .btn-action { background: #d4af37; color: #111; border: none; width: 28px; height: 28px; font-size: 18px; font-weight: bold; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .item-qty-val { color: #fff; font-weight: bold; min-width: 20px; text-align: center; font-size: 15px; }
         
-        /* شريط السلة السفلي العائم */
+        /* شريط السلة السفلي */
         .cart-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #1a1a1a; border-top: 2px solid #d4af37; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 999; box-shadow: 0 -5px 25px rgba(0,0,0,0.6); }
         .cart-info { display: flex; flex-direction: column; }
         .cart-count { font-size: 13px; color: #aaa; }
         .cart-total { font-size: 18px; font-weight: bold; color: #d4af37; }
         .btn-view-cart { background: linear-gradient(135deg, #d4af37, #aa841b); color: #111; border: none; padding: 10px 24px; font-weight: bold; border-radius: 20px; cursor: pointer; font-size: 15px; }
 
-        /* نافذة السلة المنبثقة (Modal) */
+        /* نافذة السلة وحقل الملاحظات */
         .cart-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; display: none; align-items: center; justify-content: center; padding: 20px; }
-        .modal-content { background: #1e1e1e; border: 1px solid #d4af37; border-radius: 20px; width: 100%; max-width: 450px; max-height: 80vh; display: flex; flex-direction: column; padding: 20px; }
+        .modal-content { background: #1e1e1e; border: 1px solid #d4af37; border-radius: 20px; width: 100%; max-width: 450px; max-height: 85vh; display: flex; flex-direction: column; padding: 20px; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 15px; }
         .modal-title { color: #d4af37; font-size: 20px; }
         .close-modal { color: #fff; font-size: 24px; cursor: pointer; }
         
-        .cart-items-list { overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; padding-left: 5px; }
+        .cart-items-list { overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; }
         .cart-item-row { display: flex; justify-content: space-between; align-items: center; background: #252525; padding: 10px; border-radius: 10px; }
-        .qty-controls { display: flex; align-items: center; gap: 12px; }
-        .btn-qty { background: #333; color: #fff; border: none; width: 28px; height: 28px; border-radius: 50%; font-weight: bold; cursor: pointer; }
-        .qty-num { color: #d4af37; font-weight: bold; min-width: 15px; text-align: center; }
         
-        .btn-submit-order { background: linear-gradient(135deg, #27ae60, #1e8449); color: white; border: none; padding: 12px; font-size: 16px; font-weight: bold; border-radius: 12px; cursor: pointer; width: 100%; transition: 0.2s; box-shadow: 0 4px 15px rgba(39,174,96,0.3); }
+        /* حقل كتابة الملاحظات الخاص بالزبون */
+        .notes-container { margin-bottom: 15px; }
+        .notes-label { display: block; color: #aaa; font-size: 13px; margin-bottom: 6px; font-weight: 600; }
+        .notes-input { width: 100%; background: #262626; border: 1px solid #444; border-radius: 8px; padding: 10px; color: #fff; font-size: 14px; resize: none; outline: none; }
+        .notes-input:focus { border-color: #d4af37; }
+        
+        .btn-submit-order { background: linear-gradient(135deg, #27ae60, #1e8449); color: white; border: none; padding: 12px; font-size: 16px; font-weight: bold; border-radius: 12px; cursor: pointer; width: 100%; box-shadow: 0 4px 15px rgba(39,174,96,0.3); }
     </style>
 </head>
 <body>
 
-    <!-- شاشة معالجة رقم الطاولة المبتكرة تفتح أولاً لتأكيد رقم الطاولة حيوياً -->
+    <!-- شاشة بدء التثبيت بدون نجوم -->
     <div id="welcome-screen">
-        <h2 class="gold-glow" style="font-size: 32px;">ALMENU ✨</h2>
-        <h3 id="table-display" style="color: #fff; margin-bottom: 10px; font-size: 20px;">جاري قراءة رقم الطاولة...</h3>
+        <h2 class="logo-welcome">ALMENU</h2>
+        <h3 id="table-display" style="color: #fff; margin-bottom: 10px; font-size: 19px;">جاري التعرف على الطاولة...</h3>
         <p class="sub-text">مرحباً بكم.. نكهات أصيلة وتجربة لا تُنسى</p>
         <button class="btn-start" onclick="enterMenu()">تصفح قائمة الطعام 🍽️</button>
     </div>
 
-    <!-- الهيدر الرئيسي للمنيو -->
     <header>
         <div class="logo-text">مطعمنا الفاخر</div>
         <div class="sub-text">مرحباً بكم.. نكهات أصيلة وتجربة لا تُنسى</div>
     </header>
 
-    <!-- الأطباق الرئيسية -->
-    <div class="category-title">الأطباق الرئيسية</div>
-    <div class="menu-grid">
-        <div class="menu-item">
-            <div class="item-details">
-                <div class="item-name">قوزي لحم عراقي فاخر</div>
-                <div class="item-price">18,000 د.ع</div>
-                <button class="btn-add" onclick="addToCart('قوزي لحم عراقي فاخر', 18000)" style="margin-top: 15px;">إضافة +</button>
-            </div>
-            <img src="https://images.unsplash.com/photo-1544025162-d76694265947?w=300" class="item-img" alt="قوزي لحم">
-        </div>
-        <div class="menu-item">
-            <div class="item-details">
-                <div class="item-name">كباب لحم مشوي على الفحم</div>
-                <div class="item-price">12,000 د.ع</div>
-                <button class="btn-add" onclick="addToCart('كباب لحم مشوي على الفحم', 12000)" style="margin-top: 15px;">إضافة +</button>
-            </div>
-            <img src="https://images.unsplash.com/photo-1603360946369-dc9bb6258143?w=300" class="item-img" alt="كباب لحم">
-        </div>
+    <!-- شريط الأقسام العلوي الكامل -->
+    <div class="categories-nav">
+        <button class="cat-btn active" onclick="scrollToCategory('western')">مأكولات غربية</button>
+        <button class="cat-btn" onclick="scrollToCategory('eastern')">مأكولات شرقية</button>
+        <button class="cat-btn" onclick="scrollToCategory('appetizers')">مقبلات</button>
+        <button class="cat-btn" onclick="scrollToCategory('fastfood')">وجبات سريعة</button>
+        <button class="cat-btn" onclick="scrollToCategory('hot-drinks')">مشروبات ساخنة</button>
+        <button class="cat-btn" onclick="scrollToCategory('juices')">عصائر</button>
     </div>
 
-    <!-- المشروبات -->
-    <div class="category-title">المشروبات</div>
-    <div class="menu-grid">
-        <div class="menu-item">
-            <div class="item-details">
-                <div class="item-name">شاي عراقي مخدر بالهيل</div>
-                <div class="item-price">1,000 د.ع</div>
-                <button class="btn-add" onclick="addToCart('شاي عراقي مخدر بالهيل', 1000)" style="margin-top: 15px;">إضافة +</button>
+    <!-- مأكولات غربية -->
+    <section id="western" class="category-section">
+        <div class="category-title">مأكولات غربية</div>
+        <div class="menu-grid">
+            <div class="menu-item">
+                <div class="item-details">
+                    <div class="item-name">ستيك لحم بصلصة المشروم</div>
+                    <div class="item-price">22,000 د.ع</div>
+                    <div class="item-controls">
+                        <button class="btn-action" onclick="changeMenuQty('ستيك لحم بصلصة المشروم', 22000, -1)">-</button>
+                        <span class="item-qty-val" id="qty-ستيك لحم بصلصة المشروم">0</span>
+                        <button class="btn-action" onclick="changeMenuQty('ستيك لحم بصلصة المشروم', 22000, 1)">+</button>
+                    </div>
+                </div>
+                <img src="https://images.unsplash.com/photo-1544025162-d76694265947?w=300" class="item-img">
             </div>
-            <img src="https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=300" class="item-img" alt="شاي عراقي">
         </div>
-    </div>
+    </section>
 
-    <!-- شريط السلة السفلي العائم -->
+    <!-- مأكولات شرقية -->
+    <section id="eastern" class="category-section">
+        <div class="category-title">مأكولات شرقية</div>
+        <div class="menu-grid">
+            <div class="menu-item">
+                <div class="item-details">
+                    <div class="item-name">قوزي لحم عراقي فاخر</div>
+                    <div class="item-price">18,000 د.ع</div>
+                    <div class="item-controls">
+                        <button class="btn-action" onclick="changeMenuQty('قوزي لحم عراقي فاخر', 18000, -1)">-</button>
+                        <span class="item-qty-val" id="qty-قوزي لحم عراقي فاخر">0</span>
+                        <button class="btn-action" onclick="changeMenuQty('قوزي لحم عراقي فاخر', 18000, 1)">+</button>
+                    </div>
+                </div>
+                <img src="https://images.unsplash.com/photo-1544025162-d76694265947?w=300" class="item-img">
+            </div>
+            <div class="menu-item">
+                <div class="item-details">
+                    <div class="item-name">كباب لحم مشوي على الفحم</div>
+                    <div class="item-price">12,000 د.ع</div>
+                    <div class="item-controls">
+                        <button class="btn-action" onclick="changeMenuQty('كباب لحم مشوي على الفحم', 12000, -1)">-</button>
+                        <span class="item-qty-val" id="qty-كباب لحم مشوي على الفحم">0</span>
+                        <button class="btn-action" onclick="changeMenuQty('كباب لحم مشوي على الفحم', 12000, 1)">+</button>
+                    </div>
+                </div>
+                <img src="https://images.unsplash.com/photo-1603360946369-dc9bb6258143?w=300" class="item-img">
+            </div>
+        </div>
+    </section>
+
+    <!-- مقبلات -->
+    <section id="appetizers" class="category-section">
+        <div class="category-title">مقبلات</div>
+        <div class="menu-grid">
+            <div class="menu-item">
+                <div class="item-details">
+                    <div class="item-name">صحن مقبلات مشكل فاخر</div>
+                    <div class="item-price">5,000 د.ع</div>
+                    <div class="item-controls">
+                        <button class="btn-action" onclick="changeMenuQty('صحن مقبلات مشكل فاخر', 5000, -1)">-</button>
+                        <span class="item-qty-val" id="qty-صحن مقبلات مشكل فاخر">0</span>
+                        <button class="btn-action" onclick="changeMenuQty('صحن مقبلات مشكل فاخر', 5000, 1)">+</button>
+                    </div>
+                </div>
+                <img src="https://images.unsplash.com/photo-1541532713592-79a0317b6b77?w=300" class="item-img">
+            </div>
+        </div>
+    </section>
+
+    <!-- وجبات سريعة -->
+    <section id="fastfood" class="category-section">
+        <div class="category-title">وجبات سريعة</div>
+        <div class="menu-grid">
+            <div class="menu-item">
+                <div class="item-details">
+                    <div class="item-name">برجر لحم جبن مضاعف</div>
+                    <div class="item-price">7,000 د.ع</div>
+                    <div class="item-controls">
+                        <button class="btn-action" onclick="changeMenuQty('برجر لحم جبن مضاعف', 7000, -1)">-</button>
+                        <span class="item-qty-val" id="qty-برجر لحم جبن مضاعف">0</span>
+                        <button class="btn-action" onclick="changeMenuQty('برجر لحم جبن مضاعف', 7000, 1)">+</button>
+                    </div>
+                </div>
+                <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=300" class="item-img">
+            </div>
+        </div>
+    </section>
+
+    <!-- مشروبات ساخنة -->
+    <section id="hot-drinks" class="category-section">
+        <div class="category-title">مشروبات ساخنة</div>
+        <div class="menu-grid">
+            <div class="menu-item">
+                <div class="item-details">
+                    <div class="item-name">شاي عراقي مخدر بالهيل</div>
+                    <div class="item-price">1,000 د.ع</div>
+                    <div class="item-controls">
+                        <button class="btn-action" onclick="changeMenuQty('شاي عراقي مخدر بالهيل', 1000, -1)">-</button>
+                        <span class="item-qty-val" id="qty-شاي عراقي مخدر بالهيل">0</span>
+                        <button class="btn-action" onclick="changeMenuQty('شاي عراقي مخدر بالهيل', 1000, 1)">+</button>
+                    </div>
+                </div>
+                <img src="https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=300" class="item-img">
+            </div>
+        </div>
+    </section>
+
+    <!-- عصائر -->
+    <section id="juices" class="category-section">
+        <div class="category-title">عصائر</div>
+        <div class="menu-grid">
+            <div class="menu-item">
+                <div class="item-details">
+                    <div class="item-name">عصير برتقال طبيعي طازج</div>
+                    <div class="item-price">3,000 د.ع</div>
+                    <div class="item-controls">
+                        <button class="btn-action" onclick="changeMenuQty('عصير برتقال طبيعي طازج', 3000, -1)">-</button>
+                        <span class="item-qty-val" id="qty-عصير برتقال طبيعي طازج">0</span>
+                        <button class="btn-action" onclick="changeMenuQty('عصير برتقال طبيعي طازج', 3000, 1)">+</button>
+                    </div>
+                </div>
+                <img src="https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?w=300" class="item-img">
+            </div>
+        </div>
+    </section>
+
+    <!-- شريط السلة العائم السفلي -->
     <div class="cart-bar">
         <div class="cart-info">
             <span class="cart-count" id="cart-bar-count">عدد العناصر: 0</span>
@@ -112,17 +224,22 @@
         <button class="btn-view-cart" onclick="toggleCartModal(true)">عرض السلة 🛒</button>
     </div>
 
-    <!-- نافذة تفاصيل السلة وتأكيد الطلب الفوري -->
+    <!-- نافذة السلة وحقل الملاحظات الفراغي -->
     <div class="cart-modal" id="cartModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">سلة التسوق الذكية 🛒</h3>
+                <h3 class="modal-title">سلة التسوق 🛒</h3>
                 <span class="close-modal" onclick="toggleCartModal(false)">&times;</span>
             </div>
-            <div class="cart-items-list" id="cartItemsContainer">
-                <!-- العناصر المضافة ستظهر هنا ديناميكياً -->
+            <div class="cart-items-list" id="cartItemsContainer"></div>
+            
+            <!-- مكان فارغ مخصص لكتابة الملاحظات قبل تأكيد الإرسال للمطبخ -->
+            <div class="notes-container">
+                <label class="notes-label">أضف ملاحظاتك على الطلب (اختياري):</label>
+                <textarea class="notes-input" id="customerNotes" rows="2" placeholder="مثال: شاي بدون سكر، الأكل بدون بصل..."></textarea>
             </div>
-            <div style="display:flex; justify-content:space-between; margin-bottom:15px; font-weight:bold; font-size:18px; border-top:1px solid #333; padding-top:10px;">
+
+            <div style="display:flex; justify-content:space-between; margin-bottom:15px; font-weight:bold; font-size:17px; border-top:1px solid #333; padding-top:10px;">
                 <span>إجمالي الحساب:</span>
                 <span id="modal-total-price" style="color:#d4af37;">0 د.ع</span>
             </div>
@@ -130,7 +247,6 @@
         </div>
     </div>
 
-    <!-- استدعاء مكتبات البناء السحابي المتوافقة للملف بأكمله -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="app.js"></script>
