@@ -32,7 +32,7 @@
 
     <header>
         <h1>👨‍🍳 شاشة طلبات المطبخ الحية <span style="height: 10px; width: 10px; background-color: #27ae60; border-radius: 50%; display: inline-block;"></span></h1>
-        <div class="stats">عدد الطلبات الجديدة حالياً: <span id="order-count" style="color:#d4af37; font-weight:bold;">0</span></div>
+        <div class="stats">الطلبات النشطة حالياً: <span id="order-count" style="color:#d4af37; font-weight:bold;">0</span></div>
     </header>
 
     <div class="orders-grid" id="ordersContainer">
@@ -70,7 +70,7 @@
                 
                 // تشغيل صوت الجرس فوراً للمطبخ إذا جاء طلب جديد بعد فتح الشاشة
                 if (!initialLoad) {
-                    document.getElementById('notifSound').play().catch(e => console.log("تنبيه: يجب التفاعل مع الشاشة أولاً لتفعيل الصوت"));
+                    document.getElementById('notifSound').play().catch(e => console.log("تنبيه: الصوت يتطلب تفاعلاً أولياً مع الشاشة"));
                 }
 
                 Object.keys(data).forEach(key => {
@@ -120,3 +120,4 @@
     </script>
 </body>
 </html>
+
