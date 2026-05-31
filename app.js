@@ -1,177 +1,155 @@
-let cart = {};
-let totalCartPrice = 0;
-let currentItemType = ''; 
-let currentItemName = '';
-let currentBasePrice = 0;
-let currentTable = "00";
+// 📆 ضبط تاريخ حماية وانتهاء الفترة التجريبية للمنيو بدقة (السنة-الشهر-اليوم)
+const EXPIRATION_DATE = "2026-06-07"; 
 
-window.addEventListener('DOMContentLoaded', () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const tableParam = urlParams.get('table');
+// 🔥 معلومات ومفاتيح الربط الفورية المستخرجة من منصة Firebase الخاصة بك لربط نظام المنيو بالكامل
+const firebaseConfig = {
+    apiKey: "AIzaSyCEk80-ag9mv5JP9LRBZTq1_qiVKcwUQKQ",
+    authDomain: "almenu-system.firebaseapp.com",
+    databaseURL: "https://almenu-system-default-rtdb.firebaseio.com",
+    projectId: "almenu-system",
+    storageBucket: "almenu-system.firebasestorage.app",
+    messagingSenderId: "259548428040",
+    appId: "1:259548428040:web:8d156f73ed55cec3cadebd",
+    measurementId: "G-EL9GDKQ0KV"
+};
+
+// تهيئة المشروع وربطه بالسيرفر الفوري لقاعدة البيانات
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+const database = firebase.database();
+
+// 🛡️ دالة الحماية الرقمية والتحقق الفوري من صلاحية العقد والاشتراك التجريبي للموقع
+function checkValidity() {
+    const today = new Date();
+    const expDate = new Date(EXPIRATION_DATE);
     
-    if (tableParam) {
-        currentTable = tableParam;
-    } else {
-        currentTable = "عام";
+    if (today > expDate) {
+        document.body.innerHTML = `
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; background:#111; color:#fff; font-family:sans-serif; text-align:center; padding:20px; direction:rtl;">
+                <div style="font-size:70px; color:#d4af37; margin-bottom:20px;">🔒</div>
+                <h2 style="color:#d4af37; margin-bottom:10px;">انتهت الفترة التجريبية للمنيو</h2>
+                <p style="color:#aaa; max-width:400px; line-height:1.6; font-size:15px;">عذراً، انتهت المدة المحددة لتجربة النظام البرمجي. يرجى التواصل مع مطور ومصمم النظام لتفعيل الاشتراك السنوي وإعادة تشغيل المنيو فوراً.</p>
+                <a href="https://wa.me/964XXXXXXXXXX" style="margin-top:25px; background:#d4af37; color:#111; padding:12px 30px; border-radius:25px; text-decoration:none; font-weight:bold; box-shadow:0 4px 15px rgba(212,175,55,0.3);">تفعيل النظام الآن</a>
+            </div>
+        `;
+        return false;
     }
-    
-    document.getElementById('tableNumberDisplay').innerText = currentTable;
-    document.getElementById('cartPopupTitle').innerText = `مراجعة طلبات الطاولة ${currentTable}`;
-});
-
-function switchCategory(categoryId) {
-    document.querySelectorAll('.menu-section').forEach(sec => sec.classList.remove('active'));
-    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
-    document.getElementById(categoryId).classList.add('active');
-    event.currentTarget.classList.add('active');
+    return true;
 }
 
-function updateQtyDirect(name, price, change) {
-    if (!cart[name]) {
-        cart[name] = { qty: 0, price: price, baseName: name };
-    }
-    cart[name].qty += change;
-    if (cart[name].qty <= 0) {
-        delete cart[name];
-        if(document.getElementById(`qty-${name}`)) document.getElementById(`qty-${name}`).innerText = 0;
+// التقاط معطى رقم الطاولة تلقائياً وبشكل مرن من شريط الرابط URL (مثال: ?table=7)
+const urlParams = new URLSearchParams(window.location.search);
+const tableNumber = urlParams.get('table') || "5"; // الرقم الافتراضي "5" في حال لم يكتب في الرابط
+
+// مصفوفة الحفظ المؤقت لعناصر السلة داخل جهاز العميل
+let cart = [];
+
+// دالة إضافة طبق محدد إلى السلة
+function addToCart(name, price) {
+    if (!checkValidity()) return;
+
+    const existingItem = cart.find(item => item.name === name);
+    if (existingItem) {
+        existingItem.quantity += 1;
     } else {
-        if(document.getElementById(`qty-${name}`)) document.getElementById(`qty-${name}`).innerText = cart[name].qty;
+        cart.push({ name: name, price: price, quantity: 1 });
     }
-    recalculateTotal();
+    updateCartUI();
 }
 
-function openCustomization(type, name, price) {
-    currentItemType = type;
-    currentItemName = name;
-    currentBasePrice = price;
+// دالة تعديل الكميات بـ (+) أو (-) من داخل مودال المراجعة
+function updateQuantity(name, amount) {
+    const item = cart.find(item => item.name === name);
+    if (item) {
+        item.quantity += amount;
+        if (item.quantity <= 0) {
+            cart = cart.filter(i => i.name !== name);
+        }
+    }
+    updateCartUI();
+}
 
-    document.getElementById('customItemTitle').innerText = `تخصيص سريع: ${name}`;
-    const container = document.getElementById('dynamicOptionsContainer');
+// تحديث واجهات السلة الحسابية والأشرطة العائمة
+function updateCartUI() {
+    const cartBar = document.getElementById('cartBar');
+    const cartCount = document.getElementById('cartCount');
+    const cartTotal = document.getElementById('cartTotal');
+    const container = document.getElementById('modalItemsContainer');
+    const modalTotal = document.getElementById('modalTotal');
+
+    let totalItems = 0;
+    let totalPrice = 0;
     container.innerHTML = '';
 
-    if (type === 'food') {
-        container.innerHTML = `
-            <div class="option-group">
-                <div class="option-group-title">تعديلات المكونات السريعة</div>
-                <div class="option-item"><label><input type="checkbox" id="optNoOnion"> بدون بصل 🧅</label></div>
-                <div class="option-item"><label><input type="checkbox" id="optNoTomato"> بدون طماطم 🍅</label></div>
-            </div>
-            <div class="option-group">
-                <div class="option-group-title">إضافات مدفوعة</div>
-                <div class="option-item">
-                    <label><input type="checkbox" id="optExtraCheese" data-price="1500"> زيادة جبنة 🧀</label>
-                    <span style="color:var(--primary-color)">+ 1,500 د.ع</span>
+    cart.forEach(item => {
+        totalItems += item.quantity;
+        totalPrice += (item.price * item.quantity);
+
+        container.innerHTML += `
+            <div class="cart-item-row">
+                <div>
+                    <div style="font-weight:600; color:#fff;">${item.name}</div>
+                    <div style="color:#888; font-size:13px;">${item.price.toLocaleString()} د.ع</div>
+                </div>
+                <div class="qty-controls">
+                    <button class="qty-btn" onclick="updateQuantity('${item.name}', -1)">-</button>
+                    <span style="font-weight:bold; min-width:20px; text-align:center;">${item.quantity}</span>
+                    <button class="qty-btn" onclick="updateQuantity('${item.name}', 1)">+</button>
                 </div>
             </div>
         `;
-    } else if (type === 'drink') {
-        container.innerHTML = `
-            <div class="option-group">
-                <div class="option-group-title">مستوى السكر الأساسي</div>
-                <div class="option-item"><label><input type="radio" name="sugarLevel" value="بدون سكر" checked> بدون سكر ❌</label></div>
-                <div class="option-item"><label><input type="radio" name="sugarLevel" value="سكر وسط"> سكر وسط 🍬</label></div>
-            </div>
-        `;
-    }
-    document.getElementById('customPopup').style.display = 'flex';
-}
+    });
 
-function saveCustomization() {
-    let modifications = [];
-    let calculatedPrice = currentBasePrice;
+    cartCount.innerText = totalItems;
+    cartTotal.innerText = totalPrice.toLocaleString() + " د.ع";
+    modalTotal.innerText = totalPrice.toLocaleString() + " د.ع";
 
-    if (currentItemType === 'food') {
-        if (document.getElementById('optNoOnion').checked) modifications.push("بدون بصل");
-        if (document.getElementById('optNoTomato').checked) modifications.push("بدون طماطم");
-        let extraCheese = document.getElementById('optExtraCheese');
-        if (extraCheese.checked) {
-            modifications.push("زيادة جبنة");
-            calculatedPrice += parseInt(extraCheese.getAttribute('data-price'));
-        }
-    } else if (currentItemType === 'drink') {
-        let sugar = document.querySelector('input[name="sugarLevel"]:checked').value;
-        modifications.push(sugar);
-    }
-
-    let uniqueCartKey = currentItemName + (modifications.length ? ` [${modifications.join(' - ')}]` : '');
-
-    if (!cart[uniqueCartKey]) {
-        cart[uniqueCartKey] = { qty: 0, price: calculatedPrice, baseName: currentItemName };
-    }
-    cart[uniqueCartKey].qty += 1;
-
-    if(document.getElementById(`qty-${currentItemName}`)) {
-        let currentQty = parseInt(document.getElementById(`qty-${currentItemName}`).innerText);
-        document.getElementById(`qty-${currentItemName}`).innerText = currentQty + 1;
-    }
-
-    closePopup('customPopup');
-    recalculateTotal();
-}
-
-function recalculateTotal() {
-    totalCartPrice = 0;
-    for (let item in cart) {
-        totalCartPrice += cart[item].qty * cart[item].price;
-    }
-    document.getElementById('footerTotal').innerText = totalCartPrice.toLocaleString() + " د.ع";
-}
-
-function openCartPopup() {
-    const listContainer = document.getElementById('cartItemsList');
-    const notesWrapper = document.getElementById('notesWrapper');
-    listContainer.innerHTML = '';
-    
-    if (Object.keys(cart).length === 0) {
-        listContainer.innerHTML = '<p style="text-align:center; padding:20px; color:var(--text-muted);">السلة فارغة حالياً.</p>';
-        document.getElementById('finalConfirmBtn').style.display = 'none';
-        notesWrapper.style.display = 'none';
+    if (totalItems > 0) {
+        cartBar.style.display = 'flex';
     } else {
-        document.getElementById('finalConfirmBtn').style.display = 'block';
-        notesWrapper.style.display = 'block';
-        
-        for (let item in cart) {
-            let itemTotal = cart[item].qty * cart[item].price;
-            listContainer.innerHTML += `
-                <div class="cart-item">
-                    <div>
-                        <h4>${item}</h4>
-                        <p>${cart[item].qty} × ${cart[item].price.toLocaleString()} د.ع</p>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:15px;">
-                        <span style="font-weight:700;">${itemTotal.toLocaleString()} د.ع</span>
-                        <button class="delete-btn" onclick="deleteCartItem('${item}')">حذف 🗑️</button>
-                    </div>
-                </div>
-            `;
-        }
+        cartBar.style.display = 'none';
+        toggleModal(false);
     }
-    document.getElementById('cartPopup').style.display = 'flex';
 }
 
-function deleteCartItem(itemKey) {
-    let baseName = cart[itemKey].baseName;
-    delete cart[itemKey];
-    if(document.getElementById(`qty-${baseName}`)) {
-        document.getElementById(`qty-${baseName}`).innerText = 0;
-    }
-    recalculateTotal();
-    openCartPopup();
+// دالة إظهار أو إخفاء مودال السلة
+function toggleModal(show) {
+    document.getElementById('cartModal').style.display = show ? 'flex' : 'none';
 }
 
+// 🚀 الدالة الكبرى: شحن وإرسال الطلب الفعلي لقاعدة بيانات المطبخ الفورية بضغطة زر واحدة
 function submitFinalOrder() {
-    const notes = document.getElementById('generalNotes').value;
-    closePopup('cartPopup');
-    const trackingBar = document.getElementById('trackingBar');
-    trackingBar.style.display = 'block';
-    
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    alert(`تم تأكيد الطلب الفعلي بنجاح للطاولة رقم (${currentTable})!\nالملاحظات المرسلة: "${notes || 'لا يوجد'}"`);
-    
-    setTimeout(() => {
-        document.getElementById('step2').classList.add('active');
-        document.getElementById('trackingStatus').innerText = "قيد التحضير في المطبخ";
-    }, 3000);
+    if (!checkValidity()) return;
+    if (cart.length === 0) return;
+
+    // حساب المجموع النهائي للأكلات المراد طلبها
+    let totalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+    // إنشاء معرّف فرعي ومميز غير قابل للتكرار للطلب على السيرفر
+    const orderId = database.ref().child('orders').push().key;
+
+    // تجميع مصفوفة البيانات لإرسالها دفعة واحدة للمطعم
+    const orderData = {
+        orderId: orderId,
+        table: tableNumber,
+        items: cart,
+        total: totalPrice.toLocaleString(),
+        time: new Date().toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit' }),
+        status: "جديد"
+    };
+
+    // رفع الداتا فورياً إلى عقدة Firebase
+    database.ref('orders/' + orderId).set(orderData)
+        .then(() => {
+            alert("🏆 تم إرسال طلبك بنجاح وجاري تحضيره في المطبخ الآن! رقم الطاولة: " + tableNumber);
+            cart = []; // تصفير السلة فوراً منعاً للتكرار
+            updateCartUI();
+        })
+        .catch((error) => {
+            alert("عذراً، فشل الاتصال بالسيرفر. يرجى المحاولة مرة أخرى.");
+        });
 }
 
-function closePopup(popupId) { document.getElementById(popupId).style.display = 'none'; }
+// فحص أمني استباقي ومباشر بمجرد إقلاع وتشغيل السكريبت في المتصفح
+checkValidity();
