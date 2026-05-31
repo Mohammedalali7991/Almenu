@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم طلبات المطبخ الفورية</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #121212; color: #e0e0e0; padding: 20px; }
+        header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #d4af37; padding-bottom: 15px; margin-bottom: 25px; }
+        h1 { color: #d4af37; font-size: 24px; display: flex; align-items: center; gap: 10px; }
+        .stats { background: #1e1e1e; padding: 6px 16px; border-radius: 20px; color: #fff; font-size: 14px; border: 1px solid #333; }
+        .orders-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .order-card { background: #1e1e1e; border-radius: 12px; border: 1px solid #2d2d2d; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); position: relative; animation: popIn 0.3s ease-in-out; }
+        .order-header { display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px dashed #333; }
+        .table-badge { background: #d4af37; color: #111; font-weight: bold; padding: 4px 12px; border-radius: 6px; font-size: 14px; }
+        .order-time { color: #888; font-size: 13px; }
+        .item-row { display: flex; justify-content: space-between; font-size: 15px; margin-bottom: 6px; background: #242424; padding: 6px 10px; border-radius: 6px; }
+        .item-count { color: #d4af37; font-weight: bold; }
+        .order-footer { margin-top: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .total-price { font-weight: bold; color: #fff; font-size: 16px; }
+        .btn-done { background: #27ae60; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-done:hover { background: #219653; }
+        .no-orders { text-align: center; color: #666; padding: 50px; grid-column: 1/-1; font-size: 18px; }
+        @keyframes popIn {
+            0% { transform: scale(0.9); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>👨‍🍳 شاشة طلبات المطبخ الحية <span style="height: 10px; width: 10px; background-color: #27ae60; border-radius: 50%; display: inline-block;"></span></h1>
+        <div class="stats">عدد الطلبات الجديدة حالياً: <span id="order-count" style="color:#d4af37; font-weight:bold;">0</span></div>
+    </header>
+
+    <div class="orders-grid" id="ordersContainer">
+        <div class="no-orders">بانتظار استقبال طلبات الزبائن الفورية... ✨</div>
+    </div>
+
+    <audio id="notifSound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-600.wav" preload="auto"></audio>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCEk80-ag9mv5JP9LRBZTq1_qiVKcwUQKQ",
+            authDomain: "almenu-system.firebaseapp.com",
+            databaseURL: "https://almenu-system-default-rtdb.firebaseio.com",
+            projectId: "almenu-system",
+            storageBucket: "almenu-system.firebasestorage.app",
+            messagingSenderId: "259548428040",
+            appId: "1:259548428040:web:8d156f73ed55cec3cadebd",
+            measurementId: "G-EL9GDKQ0KV"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        let initialLoad = true;
+
+        // الاستماع الفوري والحي لأي تعديل على الطلبات بالسيرفر
+        database.ref('orders').on('value', (snapshot) => {
+            const container = document.getElementById('ordersContainer');
+            container.innerHTML = '';
+            let count = 0;
+
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                
+                // تشغيل صوت الجرس فوراً للمطبخ إذا جاء طلب جديد بعد فتح الشاشة
+                if (!initialLoad) {
+                    document.getElementById('notifSound').play().catch(e => console.log("تنبيه: يجب التفاعل مع الشاشة أولاً لتفعيل الصوت"));
+                }
+
+                Object.keys(data).forEach(key => {
+                    const order = data[key];
+                    // إظهار الطلبات التي تحمل حالة "جديد" فقط
+                    if(order.status === "جديد") {
+                        count++;
+                        let itemsHtml = '';
+                        order.items.forEach(item => {
+                            itemsHtml += `
+                                <div class="item-row">
+                                    <span>${item.name}</span>
+                                    <span class="item-count">x${item.quantity}</span>
+                                </div>
+                            `;
+                        });
+
+                        const card = document.createElement('div');
+                        card.className = 'order-card';
+                        card.innerHTML = `
+                            <div class="order-header">
+                                <span class="table-badge">طاولة ${order.table}</span>
+                                <span class="order-time">${order.time}</span>
+                            </div>
+                            <div class="order-body">${itemsHtml}</div>
+                            <div class="order-footer">
+                                <span class="total-price">الحساب: ${order.total} د.ع</span>
+                                <button class="btn-done" onclick="completeOrder('${key}')">تم التجهيز ✓</button>
+                            </div>
+                        `;
+                        container.appendChild(card);
+                    }
+                });
+            }
+
+            document.getElementById('order-count').innerText = count;
+            if (count === 0) {
+                container.innerHTML = '<div class="no-orders">بانتظار استقبال طلبات الزبائن الفورية... ✨</div>';
+            }
+            initialLoad = false;
+        });
+
+        // دالة تحويل الطلب لمكتمل وإخفائه الفوري من شاشة المطبخ
+        function completeOrder(orderId) {
+            database.ref('orders/' + orderId).update({ status: "مكتمل" });
+        }
+    </script>
+</body>
+</html>
