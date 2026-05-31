@@ -3,333 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منيو مطعمنا الفاخر</title>
+    <title>مطعمنا الفاخر - المنيو الذكي</title>
     <style>
-        /* التنسيقات العامة والخطوط */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+        /* التنسيقات الفاخرة المعتمدة بناءً على التصميم الفعلي للمطعم */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #121212; color: #e0e0e0; padding-bottom: 90px; }
+        
+        /* شاشة الترحيب والبدء لتثبيت رقم الطاولة */
+        #welcome-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #121212; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
+        .gold-glow { text-shadow: 0 0 10px rgba(212, 175, 55, 0.5); color: #d4af37; margin-bottom: 10px; }
+        .btn-start { background: linear-gradient(135deg, #d4af37, #aa841b); color: #111; border: none; padding: 12px 40px; font-size: 18px; font-weight: bold; border-radius: 30px; cursor: pointer; margin-top: 25px; width: 80%; max-width: 300px; box-shadow: 0 4px 15px rgba(212,175,55,0.3); }
 
-        body {
-            background-color: #121212;
-            color: #e0e0e0;
-            padding-bottom: 70px;
-        }
+        /* الهيدر وقائمة الأطعمة */
+        header { text-align: center; padding: 30px 20px 20px; background: linear-gradient(to bottom, #1a1a1a, #121212); }
+        .logo-text { font-size: 28px; font-weight: bold; color: #fff; margin-bottom: 5px; }
+        .sub-text { font-size: 14px; color: #888; }
+        
+        .category-title { color: #d4af37; font-size: 22px; margin: 25px 20px 15px; padding-right: 10px; border-right: 4px solid #d4af37; }
+        
+        .menu-grid { padding: 0 20px; display: flex; flex-direction: column; gap: 15px; }
+        .menu-item { background: #1e1e1e; border: 1px solid #2d2d2d; border-radius: 15px; display: flex; padding: 12px; align-items: center; justify-content: space-between; gap: 10px; transition: 0.2s; }
+        .item-details { flex: 1; }
+        .item-name { font-size: 17px; font-weight: bold; color: #fff; margin-bottom: 8px; }
+        .item-price { color: #d4af37; font-weight: bold; font-size: 16px; }
+        .item-img { width: 95px; height: 95px; object-fit: cover; border-radius: 12px; border: 1px solid #333; }
+        
+        .btn-add { background-color: #d4af37; color: #111; border: none; padding: 8px 16px; font-weight: bold; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 14px; }
+        
+        /* شريط السلة السفلي العائم */
+        .cart-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #1a1a1a; border-top: 2px solid #d4af37; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 999; box-shadow: 0 -5px 25px rgba(0,0,0,0.6); }
+        .cart-info { display: flex; flex-direction: column; }
+        .cart-count { font-size: 13px; color: #aaa; }
+        .cart-total { font-size: 18px; font-weight: bold; color: #d4af37; }
+        .btn-view-cart { background: linear-gradient(135deg, #d4af37, #aa841b); color: #111; border: none; padding: 10px 24px; font-weight: bold; border-radius: 20px; cursor: pointer; font-size: 15px; }
 
-        /* الهيدر الفاخر والشعار الذهبي النابض */
-        header {
-            background: linear-gradient(145deg, #1e1e1e, #111111);
-            padding: 30px 20px;
-            text-align: center;
-            border-bottom: 3px solid #d4af37;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.8);
-            margin-bottom: 25px;
-        }
-
-        .logo-container {
-            display: inline-block;
-            background: #1a1a1a;
-            padding: 15px 25px;
-            border-radius: 50%;
-            border: 2px solid #d4af37;
-            box-shadow: 0 0 15px rgba(212,175,55,0.3);
-            margin-bottom: 10px;
-            animation: pulse 2s infinite;
-        }
-
-        .logo-text {
-            color: #d4af37;
-            font-size: 28px;
-            font-weight: bold;
-            letter-spacing: 1px;
-        }
-
-        header p {
-            color: #888;
-            font-size: 14px;
-            margin-top: 5px;
-        }
-
-        @keyframes pulse {
-            0% { box-shadow: 0 0 15px rgba(212,175,55,0.3); }
-            50% { box-shadow: 0 0 25px rgba(212,175,55,0.6); }
-            100% { box-shadow: 0 0 15px rgba(212,175,55,0.3); }
-        }
-
-        /* شبكة المنتجات والأطباق */
-        .menu-container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 0 15px;
-        }
-
-        .category-title {
-            color: #d4af37;
-            font-size: 20px;
-            border-right: 4px solid #d4af37;
-            padding-right: 10px;
-            margin: 25px 0 15px 0;
-        }
-
-        .item-card {
-            background: #1e1e1e;
-            border-radius: 12px;
-            margin-bottom: 15px;
-            overflow: hidden;
-            display: flex;
-            border: 1px solid #2d2d2d;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-            transition: transform 0.2s, border-color 0.2s;
-        }
-
-        .item-card:hover {
-            transform: translateY(-2px);
-            border-color: #d4af37;
-        }
-
-        .item-img {
-            width: 100px;
-            height: 100px;
-            object-fit: cover;
-            background: #252525;
-        }
-
-        .item-details {
-            padding: 12px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .item-name {
-            color: #fff;
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-
-        .item-price {
-            color: #d4af37;
-            font-weight: bold;
-            font-size: 15px;
-        }
-
-        .add-btn {
-            background: #d4af37;
-            color: #111;
-            border: none;
-            padding: 6px 14px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            align-self: flex-end;
-            transition: background 0.2s;
-        }
-
-        .add-btn:hover {
-            background: #f7d070;
-        }
-
-        /* شريط السلة السفلي المرن */
-        .cart-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #1e1e1e;
-            border-top: 2px solid #d4af37;
-            padding: 14px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 -4px 15px rgba(0,0,0,0.6);
-            cursor: pointer;
-            z-index: 999;
-        }
-
-        .cart-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .cart-count {
-            background: #d4af37;
-            color: #111;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 14px;
-        }
-
-        .view-cart-btn {
-            color: #d4af37;
-            font-weight: bold;
-            font-size: 15px;
-        }
-
-        /* النافذة المنبثقة لمراجعة السلة */
-        .modal {
-            position: fixed;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(0,0,0,0.8);
-            display: none;
-            justify-content: center;
-            align-items: flex-end;
-            z-index: 1000;
-        }
-
-        .modal-content {
-            background: #1e1e1e;
-            width: 100%;
-            max-width: 600px;
-            border-top-left-radius: 20px;
-            border-top-right-radius: 20px;
-            padding: 20px;
-            max-height: 80vh;
-            overflow-y: auto;
-            border-top: 3px solid #d4af37;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #333;
-            padding-bottom: 10px;
-        }
-
-        .close-btn {
-            color: #888;
-            font-size: 28px;
-            cursor: pointer;
-        }
-
-        .cart-item-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid #2d2d2d;
-        }
-
-        .qty-controls {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .qty-btn {
-            background: #333;
-            color: #fff;
-            border: 1px solid #444;
-            width: 30px;
-            height: 30px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .submit-btn {
-            background: linear-gradient(145deg, #d4af37, #aa8414);
-            color: #111;
-            width: 100%;
-            padding: 15px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 20px;
-            box-shadow: 0 4px 15px rgba(212,175,55,0.2);
-        }
+        /* نافذة السلة المنبثقة (Modal) */
+        .cart-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .modal-content { background: #1e1e1e; border: 1px solid #d4af37; border-radius: 20px; width: 100%; max-width: 450px; max-height: 80vh; display: flex; flex-direction: column; padding: 20px; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 15px; }
+        .modal-title { color: #d4af37; font-size: 20px; }
+        .close-modal { color: #fff; font-size: 24px; cursor: pointer; }
+        
+        .cart-items-list { overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; padding-left: 5px; }
+        .cart-item-row { display: flex; justify-content: space-between; align-items: center; background: #252525; padding: 10px; border-radius: 10px; }
+        .qty-controls { display: flex; align-items: center; gap: 12px; }
+        .btn-qty { background: #333; color: #fff; border: none; width: 28px; height: 28px; border-radius: 50%; font-weight: bold; cursor: pointer; }
+        .qty-num { color: #d4af37; font-weight: bold; min-width: 15px; text-align: center; }
+        
+        .btn-submit-order { background: linear-gradient(135deg, #27ae60, #1e8449); color: white; border: none; padding: 12px; font-size: 16px; font-weight: bold; border-radius: 12px; cursor: pointer; width: 100%; transition: 0.2s; box-shadow: 0 4px 15px rgba(39,174,96,0.3); }
     </style>
 </head>
 <body>
 
+    <!-- شاشة معالجة رقم الطاولة المبتكرة تفتح أولاً لتأكيد رقم الطاولة حيوياً -->
+    <div id="welcome-screen">
+        <h2 class="gold-glow" style="font-size: 32px;">ALMENU ✨</h2>
+        <h3 id="table-display" style="color: #fff; margin-bottom: 10px; font-size: 20px;">جاري قراءة رقم الطاولة...</h3>
+        <p class="sub-text">مرحباً بكم.. نكهات أصيلة وتجربة لا تُنسى</p>
+        <button class="btn-start" onclick="enterMenu()">تصفح قائمة الطعام 🍽️</button>
+    </div>
+
+    <!-- الهيدر الرئيسي للمنيو -->
     <header>
-        <div class="logo-container">
-            <div class="logo-text">✨ ALMENU</div>
-        </div>
-        <h1>مطعمنا الفاخر</h1>
-        <p>مرحباً بكم.. نكهات أصيلة وتجربة لا تُنسى</p>
+        <div class="logo-text">مطعمنا الفاخر</div>
+        <div class="sub-text">مرحباً بكم.. نكهات أصيلة وتجربة لا تُنسى</div>
     </header>
 
-    <div class="menu-container">
-        <h2 class="category-title">الأطباق الرئيسية</h2>
-        
-        <div class="item-card">
-            <img src="https://images.unsplash.com/photo-1544025162-d76694265947?w=200" class="item-img" alt="قوزي لحم">
+    <!-- الأطباق الرئيسية -->
+    <div class="category-title">الأطباق الرئيسية</div>
+    <div class="menu-grid">
+        <div class="menu-item">
             <div class="item-details">
                 <div class="item-name">قوزي لحم عراقي فاخر</div>
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span class="item-price">18,000 د.ع</span>
-                    <button class="add-btn" onclick="addToCart('قوزي لحم عراقي فاخر', 18000)">إضافة +</button>
-                </div>
+                <div class="item-price">18,000 د.ع</div>
+                <button class="btn-add" onclick="addToCart('قوزي لحم عراقي فاخر', 18000)" style="margin-top: 15px;">إضافة +</button>
             </div>
+            <img src="https://images.unsplash.com/photo-1544025162-d76694265947?w=300" class="item-img" alt="قوزي لحم">
         </div>
-
-        <div class="item-card">
-            <img src="https://images.unsplash.com/photo-1633945274405-b6c8069047b0?w=200" class="item-img" alt="كباب لحم">
+        <div class="menu-item">
             <div class="item-details">
                 <div class="item-name">كباب لحم مشوي على الفحم</div>
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span class="item-price">12,000 د.ع</span>
-                    <button class="add-btn" onclick="addToCart('كباب لحم مشوي', 12000)">إضافة +</button>
-                </div>
+                <div class="item-price">12,000 د.ع</div>
+                <button class="btn-add" onclick="addToCart('كباب لحم مشوي على الفحم', 12000)" style="margin-top: 15px;">إضافة +</button>
             </div>
+            <img src="https://images.unsplash.com/photo-1603360946369-dc9bb6258143?w=300" class="item-img" alt="كباب لحم">
         </div>
+    </div>
 
-        <h2 class="category-title">المشروبات</h2>
-
-        <div class="item-card">
-            <img src="https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=200" class="item-img" alt="شاي مهيل">
+    <!-- المشروبات -->
+    <div class="category-title">المشروبات</div>
+    <div class="menu-grid">
+        <div class="menu-item">
             <div class="item-details">
                 <div class="item-name">شاي عراقي مخدر بالهيل</div>
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span class="item-price">1,000 د.ع</span>
-                    <button class="add-btn" onclick="addToCart('شاي مخدر بالهيل', 1000)">إضافة +</button>
-                </div>
+                <div class="item-price">1,000 د.ع</div>
+                <button class="btn-add" onclick="addToCart('شاي عراقي مخدر بالهيل', 1000)" style="margin-top: 15px;">إضافة +</button>
             </div>
+            <img src="https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=300" class="item-img" alt="شاي عراقي">
         </div>
     </div>
 
-    <div class="cart-bar" id="cartBar" onclick="toggleModal(true)" style="display: none;">
+    <!-- شريط السلة السفلي العائم -->
+    <div class="cart-bar">
         <div class="cart-info">
-            <div class="cart-count" id="cartCount">0</div>
-            <span>عرض السلة ومراجعة الطلب</span>
+            <span class="cart-count" id="cart-bar-count">عدد العناصر: 0</span>
+            <span class="cart-total" id="cart-bar-total">0 د.ع</span>
         </div>
-        <div class="view-cart-btn" id="cartTotal">0 د.ع</div>
+        <button class="btn-view-cart" onclick="toggleCartModal(true)">عرض السلة 🛒</button>
     </div>
 
-    <div class="modal" id="cartModal">
+    <!-- نافذة تفاصيل السلة وتأكيد الطلب الفوري -->
+    <div class="cart-modal" id="cartModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>سلة الطلبات الحالية</h2>
-                <span class="close-btn" onclick="toggleModal(false)">&times;</span>
+                <h3 class="modal-title">سلة التسوق الذكية 🛒</h3>
+                <span class="close-modal" onclick="toggleCartModal(false)">&times;</span>
             </div>
-            <div id="modalItemsContainer">
-                </div>
-            <div style="margin-top:20px; display:flex; justify-content:between; font-weight:bold; font-size:18px; border-top:1px solid #333; padding-top:15px;">
-                <span>المجموع الكلي:</span>
-                <span id="modalTotal" style="color:#d4af37; margin-right:auto;">0 د.ع</span>
+            <div class="cart-items-list" id="cartItemsContainer">
+                <!-- العناصر المضافة ستظهر هنا ديناميكياً -->
             </div>
-            <button class="submit-btn" onclick="submitFinalOrder()">تأكيد وإرسال الطلب الفعلي للمطبخ 👨‍🍳</button>
+            <div style="display:flex; justify-content:space-between; margin-bottom:15px; font-weight:bold; font-size:18px; border-top:1px solid #333; padding-top:10px;">
+                <span>إجمالي الحساب:</span>
+                <span id="modal-total-price" style="color:#d4af37;">0 د.ع</span>
+            </div>
+            <button class="btn-submit-order" onclick="submitOrderToFirebase()">تأكيد وإرسال الطلب للمطبخ 👨‍🍳</button>
         </div>
     </div>
 
+    <!-- استدعاء مكتبات البناء السحابي المتوافقة للملف بأكمله -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="app.js"></script>
