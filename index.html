@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>منيو مطعمنا الفاخر</title>
     <style>
+        /* التنسيقات العامة والخطوط */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -15,9 +16,10 @@
         body {
             background-color: #121212;
             color: #e0e0e0;
-            padding-bottom: 60px;
+            padding-bottom: 70px;
         }
 
+        /* الهيدر الفاخر والشعار الذهبي النابض */
         header {
             background: linear-gradient(145deg, #1e1e1e, #111111);
             padding: 30px 20px;
@@ -57,6 +59,7 @@
             100% { box-shadow: 0 0 15px rgba(212,175,55,0.3); }
         }
 
+        /* شبكة المنتجات والأطباق */
         .menu-container {
             max-width: 800px;
             margin: 0 auto;
@@ -131,6 +134,7 @@
             background: #f7d070;
         }
 
+        /* شريط السلة السفلي المرن */
         .cart-bar {
             position: fixed;
             bottom: 0;
@@ -138,7 +142,7 @@
             right: 0;
             background: #1e1e1e;
             border-top: 2px solid #d4af37;
-            padding: 12px 20px;
+            padding: 14px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -172,6 +176,7 @@
             font-size: 15px;
         }
 
+        /* النافذة المنبثقة لمراجعة السلة */
         .modal {
             position: fixed;
             top: 0;
@@ -216,7 +221,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 0;
+            padding: 12px 0;
             border-bottom: 1px solid #2d2d2d;
         }
 
@@ -230,8 +235,8 @@
             background: #333;
             color: #fff;
             border: 1px solid #444;
-            width: 28px;
-            height: 28px;
+            width: 30px;
+            height: 30px;
             border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
@@ -241,7 +246,7 @@
             background: linear-gradient(145deg, #d4af37, #aa8414);
             color: #111;
             width: 100%;
-            padding: 14px;
+            padding: 15px;
             border: none;
             border-radius: 8px;
             font-size: 16px;
@@ -304,7 +309,7 @@
     <div class="cart-bar" id="cartBar" onclick="toggleModal(true)" style="display: none;">
         <div class="cart-info">
             <div class="cart-count" id="cartCount">0</div>
-            <span>عرض السلة والطلبات</span>
+            <span>عرض السلة ومراجعة الطلب</span>
         </div>
         <div class="view-cart-btn" id="cartTotal">0 د.ع</div>
     </div>
@@ -312,10 +317,11 @@
     <div class="modal" id="cartModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>سلة الطلبات الخاصة بك</h2>
+                <h2>سلة الطلبات الحالية</h2>
                 <span class="close-btn" onclick="toggleModal(false)">&times;</span>
             </div>
-            <div id="modalItemsContainer"></div>
+            <div id="modalItemsContainer">
+                </div>
             <div style="margin-top:20px; display:flex; justify-content:between; font-weight:bold; font-size:18px; border-top:1px solid #333; padding-top:15px;">
                 <span>المجموع الكلي:</span>
                 <span id="modalTotal" style="color:#d4af37; margin-right:auto;">0 د.ع</span>
