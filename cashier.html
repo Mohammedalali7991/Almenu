@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم الكاشير والمطبخ الذكية</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #0f0f0f; color: #e0e0e0; padding: 15px; }
+        header { text-align: center; padding: 15px; background: #1a1a1a; border-radius: 12px; border: 1px solid #d4af37; margin-bottom: 20px; }
+        h1 { color: #d4af37; font-size: 22px; }
+        
+        .dashboard-grid { display: flex; flex-direction: column; gap: 20px; }
+        .section-box { background: #161616; border: 1px solid #2d2d2d; border-radius: 12px; padding: 15px; }
+        .section-title { color: #fff; font-size: 18px; margin-bottom: 12px; padding-bottom: 5px; border-bottom: 2px solid #333; display: flex; justify-content: space-between; align-items: center; }
+        
+        /* كروت الطاولات النشطة */
+        .tables-container { display: flex; flex-direction: column; gap: 12px; }
+        .table-card { background: #1e1e1e; border: 1px solid #333; border-radius: 10px; padding: 15px; position: relative; }
+        .table-card.urgent { border-color: #e74c3c; animation: flash-border 1.5s infinite; }
+        
+        @keyframes flash-border {
+            0% { border-color: #333; }
+            50% { border-color: #e74c3c; box-shadow: 0 0 10px rgba(231,76,60,0.3); }
+            100% { border-color: #333; }
+        }
+
+        .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .table-badge { background: #d4af37; color: #111; padding: 4px 10px; border-radius: 6px; font-weight: bold; font-size: 14px; }
+        .status-badge { background: #27ae60; color: #fff; padding: 4px 8px; border-radius: 6px; font-size: 12px; }
+        
+        .order-item-line { font-size: 14px; color: #ccc; margin-bottom: 5px; padding-right: 10px; border-right: 2px solid #d4af37; }
+        .order-notes { font-size: 12px; color: #e67e22; background: #252525; padding: 6px; border-radius: 5px; margin: 8px 0; }
+        
+        /* أزرار التحكم السريعة للكاشير */
+        .actions-group { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+        .btn-cashier { flex: 1; min-width: 100px; border: none; padding: 10px; font-size: 13px; font-weight: bold; border-radius: 6px; cursor: pointer; text-align: center; }
+        .btn-print { background: #d4af37; color: #111; }
+        .btn-status-next { background: #2980b9; color: white; }
+        .btn-clear { background: #e74c3c; color: white; }
+
+        /* التحكم بالمنيو وإخفاء الأصناف */
+        .stock-row { display: flex; justify-content: space-between; align-items: center; background: #1e1e1e; padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #2d2d2d; }
+        .btn-toggle-stock { padding: 6px 12px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 12px; }
+        .btn-stock-in { background: #27ae60; color: white; }
+        .btn-stock-out { background: #c0392b; color: white; }
+
+        /* نافذة الفاتورة الحرارية للطباعة */
+        @media print {
+            body * { display: none; }
+            #print-receipt-area, #print-receipt-area * { display: block; }
+            #print-receipt-area { position: absolute; left: 0; top: 0; width: 100%; color: #000; background: #fff; padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>لوحة تحكم الكاشير والمطبخ المتكاملة 🖥️👨‍🍳</h1>
+        <p style="font-size: 12px; color: #888; margin-top: 5px;">مزامنة فورية وحية مع طاولات الزبائن</p>
+    </header>
+
+    <div class="dashboard-grid">
+        
+        <!-- قسم الطلبات الحية وإدارة الكاشير -->
+        <div class="section-box">
+            <div class="section-title">
+                <span>📋 طاولات الزبائن النشطة</span>
+                <span style="font-size: 12px; color: #27ae60;" id="connection-status">● متصل حي الآن</span>
+            </div>
+            <div class="tables-container" id="liveTablesContainer">
+                <p style="color: #666; text-align: center; padding: 20px;">لا توجد طاولات نشطة حالياً...</p>
+            </div>
+        </div>
+
+        <!-- قسم إدارة توفر الوجبات والأطباق في المطبخ الفورية -->
+        <div class="section-box">
+            <div class="section-title">🛑 إدارة توفر الأصناف (منع الطلبات الخاطئة)</div>
+            <div id="stockControlContainer">
+                <!-- الأصناف تولد تلقائياً -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- منطقة الطباعة المخفية (تظهر فقط عند أمر الطباعة الحرارية للورق) -->
+    <div id="print-receipt-area" style="display: none; font-family: monospace;"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <script>
+        // نفس إعدادات الفايربيس الخاصة بملف الزبون لضمان الربط المتكامل
+        const firebaseConfig = {
+            apiKey: "AIzaSyCEk80-ag9mv5JP9LRBZTq1_qiVKcwUQKQ",
+            authDomain: "almenu-system.firebaseapp.com",
+            databaseURL: "https://almenu-system-default-rtdb.firebaseio.com",
+            projectId: "almenu-system",
+            storageBucket: "almenu-system.firebasestorage.app",
+            messagingSenderId: "259548428040",
+            appId: "1:259548428040:web:8d156f73ed55cec3cadebd"
+        };
+
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+        const database = firebase.database();
+
+        // لغرض إدارة توفر الأصناف
+        const productsList = [
+            { id: 1, name: "قوزي لحم عراقي فاخر" },
+            { id: 2, name: "ستيك لحم بصلصة المشروم" },
+            { id: 3, name: "كنافة نابلسية بالجبن الفاخر" },
+            { id: 4, name: "عصير برتقال طبيعي طازج" },
+            { id: 5, name: "كابتشينو إيطالي كريمي" }
+        ];
+
+        // 1. الاستماع الحي لكافة الطاولات في قاعدة البيانات وعرضها فوراً عند الكاشير
+        database.ref('active_tables').on('value', (snapshot) => {
+            const container = document.getElementById('liveTablesContainer');
+            container.innerHTML = '';
+            const data = snapshot.val();
+
+            if (!data) {
+                container.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">لا توجد طاولات نشطة حالياً...</p>';
+                return;
+            }
+
+            for (const key in data) {
+                const tableData = data[key];
+                if (!tableData.items || tableData.items.length === 0) continue;
+
+                // تحديد ما إذا كانت الطاولة تحتاج انتباه فوري (طلب فاتورة أو نداء ويتر)
+                let isUrgent = (tableData.bill_requested || tableData.waiter_requested);
+                let urgentText = "";
+                if (tableData.waiter_requested) urgentText = "🛎️ نداء ويتر فوري!";
+                if (tableData.bill_requested) urgentText = "🧾 الزبون يطلب الحساب!";
+
+                const card = document.createElement('div');
+                card.className = `table-card ${isUrgent ? 'urgent' : ''}`;
+                
+                let itemsHtml = '';
+                tableData.items.forEach(item => {
+                    itemsHtml += `<div class="order-item-line">${item.name} × العدد: ${item.quantity} (${item.price.toLocaleString()} د.ع)</div>`;
+                });
+
+                card.innerHTML = `
+                    <div class="table-header">
+                        <span class="table-badge">طاولة ${tableData.table}</span>
+                        <span class="status-badge" style="background:${getStatusColor(tableData.status)};">${tableData.status || 'نشط'}</span>
+                    </div>
+                    <div style="color:#e74c3c; font-weight:bold; font-size:13px; margin-bottom:8px;">${urgentText}</div>
+                    <div class="items-list-box">${itemsHtml}</div>
+                    <div class="order-notes">📝 ملاحظات: ${tableData.notes || 'لا توجد'}</div>
+                    <div style="margin-top:8px; font-weight:bold; font-size:15px; color:#d4af37;">إجمالي الحساب المتراكم: ${tableData.acc_total ? tableData.acc_total.toLocaleString() : '0'} د.ع</div>
+                    
+                    <!-- أزرار الكاشير الذكية للتحكم بالطاولة المباشرة وطباعتها وتصفيرها -->
+                    <div class="actions-group">
+                        <button class="btn-cashier btn-print" onclick="printReceipt('${key}', ${JSON.stringify(tableData).replace(/"/g, '&quot;')})">🖨️ طبع الفاتورة</button>
+                        <button class="btn-cashier btn-status-next" onclick="nextStatus('${key}', '${tableData.status}')">👨‍🍳 تحديث الحالة</button>
+                        <button class="btn-cashier btn-clear" onclick="clearTableFinal('${key}')">🧹 تصفير الطاولة</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            }
+        });
+
+        function getStatusColor(status) {
+            if(status === "تم_الاستلام") return "#e67e22";
+            if(status === "قيد_التحضير") return "#2980b9";
+            if(status === "جاهز_بالطريق") return "#27ae60";
+            return "#7f8c8d";
+        }
+
+        // تحديث حالة الطلب في المطبخ لكي يراها الزبون حية في شريط التتبع
+        function nextStatus(tableKey, currentStatus) {
+            let next = "تم_الاستلام";
+            if (currentStatus === "تم_الاستلام") next = "قيد_التحضير";
+            else if (currentStatus === "قيد_التحضير") next = "جاهز_بالطريق";
+            else if (currentStatus === "جاهز_بالطريق") next = "تم_الاستلام";
+
+            database.ref(`active_tables/${tableKey}`).update({ status: next });
+        }
+
+        // 2. ميزة الكاشير لطباعة الفاتورة الفورية دون طلب الزبون أو دخوله المنيو مجدداً
+        function printReceipt(tableKey, tableData) {
+            const printArea = document.getElementById('print-receipt-area');
+            let itemsLines = '';
+            tableData.items.forEach(item => {
+                itemsLines += `${item.name} x${item.quantity} - ${(item.price * item.quantity).toLocaleString()} د.ع\n`;
+            });
+
+            // صياغة شكل الفاتورة الورقية للحرارية
+            printArea.innerHTML = `
+                ==============================<br>
+                   ** فاتورة طاولة رقم: ${tableData.table} **<br>
+                ==============================<br>
+                التاريخ: ${new Date().toLocaleString('ar-IQ')}<br>
+                رقم الهاتف: ${tableData.customer_phone || 'غير مسجل'}<br>
+                ------------------------------<br>
+                ${itemsLines.replace(/\n/g, '<br>')}
+                ------------------------------<br>
+                ** المجموع النهائي: ${tableData.acc_total.toLocaleString()} د.ع **<br>
+                ==============================<br>
+                   شكراً لزيارتكم وطاب يومكم! <br>
+                ==============================<br>
+            `;
+            window.print();
+        }
+
+        // 3. زر التصفير النهائي وإرسال أمر تفريغ السلة لمتصفح الزبون تلقائياً
+        function clearTableFinal(tableKey) {
+            if (confirm("هل أنت متأكد من محاسبة الزبون وتصفير الطاولة لاستقبال الزبون التالي؟")) {
+                // إرسال حالة التصفير ليقوم هاتف الزبون بمسح السلة تلقائياً دون أي إزعاج
+                database.ref(`active_tables/${tableKey}`).update({ status: "تم_الحساب_والتصفير" }).then(() => {
+                    // مسح الطاولة تماماً من اللوحة بعد ثانية واحدة لتهيئتها
+                    setTimeout(() => {
+                        database.ref(`active_tables/${tableKey}`).remove();
+                    }, 1000);
+                });
+            }
+        }
+
+        // 10. شاشة إدارة المنيو الفورية (إخفاء/إظهار الصنف في ثانية واحدة)
+        function initStockControl() {
+            const container = document.getElementById('stockControlContainer');
+            database.ref('menu_stock_status').on('value', (snapshot) => {
+                const stockData = snapshot.val() || {};
+                container.innerHTML = '';
+
+                productsList.forEach(prod => {
+                    let isOut = stockData[prod.id] === "out";
+                    const row = document.createElement('div');
+                    row.className = 'stock-row';
+                    row.innerHTML = `
+                        <span style="font-size:14px; font-weight:bold; color:${isOut ? '#aaa':'#fff'}">${prod.name} ${isOut ? '❌ (غير متوفر)': '✅'}</span>
+                        <button class="btn-toggle-stock ${isOut ? 'btn-stock-in':'btn-stock-out'}" onclick="toggleStock(${prod.id}, '${isOut ? 'in':'out'}')">
+                            ${isOut ? 'تحويل إلى متوفر 🟢':'إخفاء من المنيو 🔴'}
+                        </button>
+                    `;
+                    container.appendChild(row);
+                });
+            });
+        }
+
+        function toggleStock(productId, newState) {
+            database.ref(`menu_stock_status/${productId}`).set(newState);
+        }
+
+        window.onload = function() {
+            initStockControl();
+        };
+    </script>
+</body>
+</html>
