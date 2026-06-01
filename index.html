@@ -10,77 +10,54 @@
         header { text-align: center; padding: 20px; background: #1a1a1a; border-radius: 12px; border: 1px solid #d4af37; margin-bottom: 20px; }
         h1 { color: #d4af37; font-size: 24px; }
         .table-info { display: inline-block; background: #333; color: #fff; padding: 5px 15px; border-radius: 20px; margin-top: 8px; font-weight: bold; font-size: 14px; }
-        
-        /* تصميم قائمة الطعام */
         .product-card { background: #161616; border: 1px solid #2d2d2d; border-radius: 12px; padding: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
         .product-info h3 { color: #fff; font-size: 16px; margin-bottom: 5px; }
         .product-info p { color: #d4af37; font-weight: bold; font-size: 14px; }
         .btn-add { background: #d4af37; color: #111; border: none; padding: 8px 15px; font-weight: bold; border-radius: 8px; cursor: pointer; }
-        
-        /* أزرار الخدمات السريعة */
         .service-buttons { display: flex; gap: 10px; margin-bottom: 20px; }
         .btn-service { flex: 1; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; text-align: center; font-size: 14px; }
         .btn-waiter { background: #e67e22; color: white; }
         .btn-bill { background: #2980b9; color: white; }
-
-        /* شريط التتبع السفلي العائم */
         .tracking-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a1a; border-top: 2px solid #d4af37; padding: 12px; display: flex; justify-content: space-between; align-items: center; z-index: 1000; }
         .status-text { font-weight: bold; color: #27ae60; font-size: 14px; }
-        
-        /* تنبيه النظام المحلي */
-        .backup-notice { background: #27ae60; color: white; padding: 8px; text-align: center; border-radius: 8px; margin-bottom: 15px; font-size: 13px; display: none; }
     </style>
 </head>
 <body>
 
     <header>
-        <h1 id="restaurantName">مطعم النخبة الذكي 🌾</h1>
+        <h1>مطعم النخبة الذكي 🌾</h1>
         <div class="table-info" id="tableBadge">طاولة: جاري التعرف...</div>
     </header>
 
-    <!-- إشعار استعادة السلة الاحتياطية في حال انقطاع الشبكة -->
-    <div class="backup-notice" id="backupNotice">🛎️ تم استعادة الأطباق التي اخترتها بنجاح قبل انقطاع الاتصال!</div>
-
-    <!-- أزرار نداء النادل وطلب الحساب -->
     <div class="service-buttons">
-        <button class="btn-service btn-waiter" onclick="callWaiter()">🛎️ نداء الويتر</button>
-        <button class="btn-service btn-bill" onclick="requestBill()">🧾 طلب الفاتورة</button>
+        <button class="btn-service btn-waiter" onclick="callService('waiter')">🛎️ نداء الويتر</button>
+        <button class="btn-service btn-bill" onclick="callService('bill')">🧾 طلب الفاتورة</button>
     </div>
 
-    <!-- قائمة الأصناف -->
     <div id="menuContainer">
         <div class="product-card">
-            <div class="product-info">
-                <h3>قوزي لحم عراقي فاخر</h3>
-                <p>18,000 د.ع</p>
-            </div>
-            <button class="btn-add" onclick="addToCart(1, 'قوزي لحم عراقي فاخر', 18000)">إضافة +</button>
+            <div class="product-info"><h3>قوزي لحم عراقي فاخر</h3><p>18,000 د.ع</p></div>
+            <button class="btn-add" onclick="addToCart('قوزي لحم عراقي فاخر', 18000)">إضافة +</button>
         </div>
         <div class="product-card">
-            <div class="product-info">
-                <h3>ستيك لحم بصلصة المشروم</h3>
-                <p>15,000 د.ع</p>
-            </div>
-            <button class="btn-add" onclick="addToCart(2, 'ستيك لحم بصلصة المشروم', 15000)">إضافة +</button>
+            <div class="product-info"><h3>ستيك لحم بصلصة المشروم</h3><p>15,000 د.ع</p></div>
+            <button class="btn-add" onclick="addToCart('ستيك لحم بصلصة المشروم', 15000)">إضافة +</button>
         </div>
     </div>
 
     <div style="text-align: center; margin-top: 20px;">
-        <button class="btn-add" style="background:#27ae60; color:#fff; width:100%; padding:15px; font-size:16px;" onclick="sendOrderLive()">🚀 إرسال الطلب للمطبخ والكاشير</button>
+        <button class="btn-add" style="background:#27ae60; color:#fff; width:100%; padding:15px; font-size:16px;" onclick="sendOrderToFirebase()">🚀 إرسال الطلب للمطبخ والكاشير</button>
     </div>
 
-    <!-- شريط تتبع حالة الطلب الحي للزبون -->
-    <div class="tracking-bar" id="trackingBar">
+    <div class="tracking-bar">
         <div>السلة: <span id="cartCount">0</span> أصناف</div>
         <div class="status-text" id="orderStatusLabel">الحالة: تصفح المنيو</div>
     </div>
 
-    <!-- مكتبات الفايربيس -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <script>
-        // إعدادات الفايربيس المتطابقة تماماً
         const firebaseConfig = {
             apiKey: "AIzaSyCEk80-ag9mv5JP9LRBZTq1_qiVKcwUQKQ",
             authDomain: "almenu-system.firebaseapp.com",
@@ -90,114 +67,54 @@
             messagingSenderId: "259548428040",
             appId: "1:259548428040:web:8d156f73ed55cec3cadebd"
         };
-
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const database = firebase.database();
 
-        // استخراج رقم الطاولة من الرابط تلقائياً
         const urlParams = new URLSearchParams(window.location.search);
-        const tableNumber = urlParams.get('table') || "1"; // إذا لم يجد رقم، يفترض طاولة 1
+        const tableNumber = urlParams.get('table') || "1";
         document.getElementById('tableBadge').innerText = `طاولة رقم: ${tableNumber}`;
 
         let cart = [];
         const tableKey = `table_${tableNumber}`;
 
-        // [ميزة ذكية]: نظام الطوارئ - استعادة السلة محلياً عند الدخول لو انقطع النت
-        window.onload = function() {
-            const savedCart = localStorage.getItem(`saved_cart_${tableKey}`);
-            if (savedCart) {
-                cart = JSON.parse(savedCart);
-                if(cart.length > 0) {
-                    document.getElementById('backupNotice').style.display = 'block';
-                    updateCartUI();
-                }
-            }
-            listenToOrderStatus();
-        };
-
-        function addToCart(id, name, price) {
-            const existing = cart.find(item => item.id === id);
-            if (existing) {
-                existing.quantity += 1;
-            } else {
-                cart.push({ id, name, price, quantity: 1 });
-            }
-            // حفظ نسخة احتياطية فورية في الهاتف منوعاً لضياع البيانات
-            localStorage.setItem(`saved_cart_${tableKey}`, JSON.stringify(cart));
-            updateCartUI();
+        function addToCart(name, price) {
+            const existing = cart.find(item => item.name === name);
+            if (existing) { existing.quantity += 1; } 
+            else { cart.push({ name, price, quantity: 1 }); }
+            document.getElementById('cartCount').innerText = cart.reduce((sum, i) => sum + i.quantity, 0);
         }
 
-        function updateCartUI() {
-            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-            document.getElementById('cartCount').innerText = totalItems;
-        }
+        function sendOrderToFirebase() {
+            if (cart.length === 0) { alert("سلتك فارغة!"); return; }
+            let total = cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
 
-        // 1. إرسال الطلب الفعلي إلى مسار active_tables لكي يظهر عند الكاشير فوراً
-        function sendOrderLive() {
-            if (cart.length === 0) {
-                alert("سلتك فارغة! أضف بعض الأطباق أولاً.");
-                return;
-            }
-
-            let totalAcc = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
-            const orderData = {
+            database.ref(`orders_system/${tableKey}`).set({
                 table: tableNumber,
                 items: cart,
-                acc_total: totalAcc,
-                status: "تم_الاستلام",
+                acc_total: total,
+                status: "طلب_جديد",
                 waiter_requested: false,
                 bill_requested: false,
-                notes: "طلب مباشر من المنيو الرقمي",
                 timestamp: Date.now()
-            };
+            }).then(() => { alert("🚀 تم إرسال طلبك بنجاح!"); });
+        }
 
-            database.ref(`active_tables/${tableKey}`).set(orderData).then(() => {
-                alert("🚀 تم إرسال طلبك للمطبخ والكاشير بنجاح وبدأ تحضيره!");
-            }).catch(err => {
-                alert("خطأ في الاتصال: " + err.message);
+        function callService(type) {
+            let updateData = { table: tableNumber };
+            if(type === 'waiter') updateData.waiter_requested = true;
+            if(type === 'bill') updateData.bill_requested = true;
+
+            database.ref(`orders_system/${tableKey}`).update(updateData).then(() => {
+                alert("🛎️ تم إرسال الإشعار للكاشير والمطبخ!");
             });
         }
 
-        // 2. زر نداء الويتر الفوري
-        function callWaiter() {
-            database.ref(`active_tables/${tableKey}`).update({
-                table: tableNumber,
-                waiter_requested: true
-            }).then(() => { alert("🛎️ تم نداء الويتر، وهو في طريقه إليك الآن."); });
-        }
-
-        // 3. زر طلب الفاتورة الفوري
-        function requestBill() {
-            database.ref(`active_tables/${tableKey}`).update({
-                table: tableNumber,
-                bill_requested: true
-            }).then(() => { alert("🧾 تم إرسال طلب الحساب للكاشير وجاري تجهيز الفاتورة."); });
-        }
-
-        // 4. الاستماع الحي لحالة الطلب (عندما يقوم الكاشير بالتحديث أو التصفير)
-        function listenToOrderStatus() {
-            database.ref(`active_tables/${tableKey}`).on('value', (snapshot) => {
-                const data = snapshot.val();
-                const statusLabel = document.getElementById('orderStatusLabel');
-                
-                if (!data) {
-                    statusLabel.innerText = "الحالة: تصفح المنيو";
-                    return;
-                }
-
-                // إذا قام الكاشير بتصفير الطاولة، يتم مسح السلة تلقائياً من هاتف الزبون
-                if (data.status === "تم_الحساب_والتصفير") {
-                    cart = [];
-                    localStorage.removeItem(`saved_cart_${tableKey}`);
-                    updateCartUI();
-                    statusLabel.innerText = "الحالة: تم تصفير الطاولة بنجاح 🧹";
-                    alert("💳 شكراً لزيارتكم! تم تسوية الحساب وتصفير الطاولة.");
-                } else {
-                    statusLabel.innerText = `الحالة: ${data.status.replace(/_/g, ' ')}`;
-                }
-            });
-        }
+        database.ref(`orders_system/${tableKey}`).on('value', (snapshot) => {
+            const data = snapshot.val();
+            if(data) {
+                document.getElementById('orderStatusLabel').innerText = `الحالة: ${data.status || 'تحت المعالجة'}`;
+            }
+        });
     </script>
 </body>
 </html>
