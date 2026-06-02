@@ -26,7 +26,7 @@ function checkTableNumber() {
     }
 }
 
-// 2️⃣ ميزة استدعاء النادل (Call Waiter)
+// 1️⃣ تحديث دالة استدعاء النادل لترسل مباشرة إلى Firebase Firestore
 function callWaiter() {
     const table = localStorage.getItem('current_table') || "غير محددة";
     
@@ -35,13 +35,22 @@ function callWaiter() {
         return;
     }
 
-    // هنا سيتم لاحقاً إرسال الطلب إلى الفايربيس (Firebase)
-    console.log(`طلب خدمة: الطاولة رقم ${table} تطلب النادل الآن.`);
-    
-    showNotification(`جاري استدعاء النادل إلى الطاولة رقم (${table})...`, '#22c55e');
+    // الإرسال الفعلي لـ Firestore في مجموعة (waiter_calls)
+    db.collection("waiter_calls").add({
+        table_number: table,
+        call_time: firebase.firestore.FieldValue.serverTimestamp(),
+        status: "active"
+    })
+    .then(() => {
+        showNotification(`جاري استدعاء النادل إلى الطاولة رقم (${table})...`, '#22c55e');
+    })
+    .catch((error) => {
+        console.error("خطأ في الإرسال: ", error);
+        showNotification("فشل إرسال الطلب، تأكد من الاتصال بالشبكة", "#ff4444");
+    });
 }
 
-// 3️⃣ ميزة إرسال سلة المشتريات مرتبطة برقم الطاولة (Cart System)
+// 2️⃣ تحديث دالة إرسال الطلبات لترسل السلة كاملة إلى Firebase Firestore
 function sendOrder(cartItems) {
     const table = localStorage.getItem('current_table') || "غير محددة";
     
@@ -50,13 +59,26 @@ function sendOrder(cartItems) {
         return;
     }
 
-    // تجهيز بيانات الطلب الكاملة هندسياً
+    // تجهيز بيانات الطلب الاحترافية هندسياً
     const orderData = {
         table_number: table,
         items: cartItems,
-        order_time: new Date().toLocaleTimeString('ar-IQ'),
-        status: "pending"
+        order_time: firebase.firestore.FieldValue.serverTimestamp(),
+        status: "pending" // الطلب قيد الانتظار في المطبخ/الكاشير
     };
+
+    // الإرسال الفعلي لـ Firestore في مجموعة (orders)
+    db.collection("orders").add(orderData)
+    .then(() => {
+        showNotification(`تم إرسال طلبك بنجاح من الطاولة رقم (${table})!`, '#22c55e');
+        localStorage.removeItem('cart'); // تفريغ السلة بعد النجاح
+    })
+    .catch((error) => {
+        console.error("خطأ في إرسال الطلب: ", error);
+        showNotification("حدث خطأ أثناء إرسال الطلب للمطبخ", "#ff4444");
+    });
+}
+
 
     // هنا سيتم ربط الإرسال الفعلي بقاعدة البيانات
     console.log("تم تجهيز الطلب لإرساله للمطبخ:", orderData);
