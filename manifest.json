@@ -1,24 +1,20 @@
 {
-  "name": "مطعم النخبة الذكي - المنيو",
+  "name": "Almenu App",
   "short_name": "Almenu",
-  "description": "تطبيق المنيو الذكي والطلب الفوري للطاولات",
-  "start_url": "index.html?table=1",
+  "description": "Smart digital menu system",
+  "start_url": "index.html",
   "display": "standalone",
   "background_color": "#0d0d0d",
   "theme_color": "#d4af37",
   "orientation": "portrait",
+  "id": "index.html",
+  "scope": "./",
   "icons": [
-    {
-      "src": "logo.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
     {
       "src": "logo.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ]
 }
