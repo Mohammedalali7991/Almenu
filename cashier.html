@@ -3,56 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة الكاشير والمطبخ المركزية</title>
+    <title>شاشة المطبخ والكاشير المدمجة الذكية</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-        body { background-color: #0f0f0f; color: #e0e0e0; padding: 15px; }
-        header { text-align: center; padding: 15px; background: #1a1a1a; border-radius: 12px; border: 1px solid #d4af37; margin-bottom: 20px; }
-        h1 { color: #d4af37; font-size: 20px; }
+        body { background-color: #0d0d0d; color: #e0e0e0; padding: 15px; }
+        header { text-align: center; padding: 15px; background: #141414; border-radius: 12px; border: 1px solid #d4af37; margin-bottom: 25px; }
+        header h1 { color: #d4af37; font-size: 22px; }
+
+        .live-grid { display: flex; flex-direction: column; gap: 15px; }
+        .table-card { background: #141414; border: 1px solid #222; border-radius: 14px; padding: 15px; position: relative; transition: 0.3s; }
         
-        .live-container { display: flex; flex-direction: column; gap: 15px; }
-        .table-card { background: #161616; border: 1px solid #2d2d2d; border-radius: 12px; padding: 15px; position: relative; }
+        .table-card.flash-waiter { border-color: #e67e22; background: #1f140b; animation: blinker 1.5s infinite; }
+        .table-card.flash-bill { border-color: #2980b9; background: #0b141f; animation: blinker 1.5s infinite; }
         
-        /* وميض ذكي ملون عند نداء النادل أو طلب الفاتورة لتنبيه الكاشير فوراً */
-        .table-card.alert-waiter { border-color: #e67e22; background: #1f1912; animation: blink 1.5s infinite; }
-        .table-card.alert-bill { border-color: #2980b9; background: #121921; animation: blink 1.5s infinite; }
-        
-        @keyframes blink {
-            0% { border-width: 1px; }
-            50% { border-color: #ff9f43; box-shadow: 0 0 10px rgba(230,126,34,0.4); }
-            100% { border-width: 1px; }
+        @keyframes blinker {
+            50% { border-color: #fff; box-shadow: 0 0 12px rgba(255,255,255,0.2); }
         }
 
-        .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .badge { background: #d4af37; color: #000; padding: 3px 10px; border-radius: 6px; font-weight: bold; font-size: 14px; }
-        .status { background: #333; color: #fff; padding: 3px 8px; border-radius: 5px; font-size: 12px; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #222; padding-bottom: 8px; }
+        .table-title { background: #d4af37; color: #0d0d0d; padding: 4px 12px; border-radius: 6px; font-weight: bold; font-size: 14px; }
+        .status-badge { background: #222; color: #aaa; padding: 4px 10px; border-radius: 5px; font-size: 12px; }
         
-        .item-line { font-size: 14px; margin-bottom: 5px; padding-right: 8px; border-right: 2px solid #d4af37; }
-        .notice-text { font-size: 14px; font-weight: bold; margin-bottom: 10px; padding: 5px; border-radius: 4px; }
+        .alert-bar { padding: 8px; border-radius: 6px; font-size: 13px; font-weight: bold; margin-bottom: 10px; text-align: center; }
         
-        .btn-group { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
-        .btn { flex: 1; min-width: 80px; border: none; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px; text-align: center; }
-        .btn-cook { background: #2980b9; color: white; }
-        .btn-ready { background: #27ae60; color: white; }
-        .btn-clear { background: #c0392b; color: white; }
+        .item-row { font-size: 15px; margin-bottom: 6px; padding-right: 8px; border-right: 2px solid #d4af37; color: #fff; }
+        .notes-box { background: #1c1c1c; border-left: 3px solid #c0392b; padding: 8px; border-radius: 4px; font-size: 13px; margin-top: 10px; color: #ccc; }
+        
+        .total-price { font-weight: bold; color: #d4af37; margin-top: 12px; font-size: 16px; }
+        
+        .actions-bar { display: flex; gap: 8px; margin-top: 15px; flex-wrap: wrap; }
+        .btn-action { flex: 1; min-width: 100px; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; text-align: center; color: white; }
+        .btn-accept { background: #2980b9; }
+        .btn-ready { background: #27ae60; }
+        .btn-print { background: #7f8c8d; color: white; } /* زر الطباعة */
+        .btn-clear { background: #c0392b; }
+
+        /* إعدادات وتنسيق ورقة الفاتورة المطبوعة للماكينات الحرارية */
+        @media print {
+            body { background: white; color: black; padding: 0; margin: 0; direction: rtl; }
+            .live-grid, header, .actions-bar, .status-badge, .alert-bar { display: none !important; }
+            .print-invoice-area { display: block !important; width: 80mm; padding: 10px; font-family: 'Courier New', monospace; }
+            .print-header { text-align: center; border-bottom: 1px dashed black; padding-bottom: 8px; margin-bottom: 8px; }
+            .print-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 5px; }
+            .print-footer { text-align: center; border-top: 1px dashed black; margin-top: 10px; padding-top: 8px; font-size: 12px; }
+        }
+        .print-invoice-area { display: none; }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>🖥️ لوحة تحكم الكاشير والمطبخ المركزية 👨‍🍳</h1>
-        <p style="font-size: 11px; color: #888; margin-top: 4px;">مزامنة فورية حية لطلبات ونداءات الطاولات</p>
+        <h1>👨‍🍳 شاشة المطبخ والكاشير الموحدة حياً 🖥️</h1>
+        <p style="font-size:11px; color:#666; margin-top:4px;">استقبال الطلبات، تعديل الحالات، وطباعة الفواتير فورا</p>
     </header>
 
-    <div class="live-container" id="liveContainer">
-        <p style="text-align:center; color:#666; padding: 20px;">في انتظار طلبات أو نداءات حية من الزبائن...</p>
+    <div class="live-grid" id="mainContainer">
+        <p style="text-align:center; color:#555; padding:30px;">في انتظار نداءات أو طلبات حية من الصالة...</p>
     </div>
+
+    <!-- حاوية خفية مخصصة لتهيئة شكل الطباعة فقط عند الضغط على الزر -->
+    <div id="printArea" class="print-invoice-area"></div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <script>
-        // إعدادات قاعدة بيانات مشروعك
         const firebaseConfig = {
             apiKey: "AIzaSyCEk80-ag9mv5JP9LRBZTq1_qiVKcwUQKQ",
             authDomain: "almenu-system.firebaseapp.com",
@@ -62,83 +77,125 @@
             messagingSenderId: "259548428040",
             appId: "1:259548428040:web:8d156f73ed55cec3cadebd"
         };
-
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const database = firebase.database();
 
-        // الاستماع الفوري للمسار الموحد للبيانات (orders_system)
+        // جلب البيانات الحية من السيرفر وعرضها في كروت الطاولات
         database.ref('orders_system').on('value', (snapshot) => {
-            const container = document.getElementById('liveContainer');
+            const container = document.getElementById('mainContainer');
             container.innerHTML = '';
             const data = snapshot.val();
 
             if (!data) {
-                container.innerHTML = '<p style="text-align:center; color:#666; padding: 20px;">في انتظار طلبات أو نداءات حية من الزبائن...</p>';
+                container.innerHTML = '<p style="text-align:center; color:#555; padding:30px;">في انتظار نداءات أو طلبات حية من الصالة...</p>';
                 return;
             }
 
             for (const key in data) {
                 const order = data[key];
-                
                 let cardClass = 'table-card';
-                let alertText = '';
-                
-                // تشغيل التنبيهات الملونة للوحة الموحدة حسب ضغطة الزبون
+                let alertHtml = '';
+
                 if (order.waiter_requested) {
-                    cardClass += ' alert-waiter';
-                    alertText = '🛎️ الزبون ينادي النادل (الويتر) فورا!';
+                    cardClass += ' flash-waiter';
+                    alertHtml = '<div class="alert-bar" style="background:#e67e22; color:white;">🛎️ زبون الطاولة ينادي النادل!</div>';
                 } else if (order.bill_requested) {
-                    cardClass += ' alert-bill';
-                    alertText = '🧾 الزبون يطلب الفاتورة والحساب النهائي!';
+                    cardClass += ' flash-bill';
+                    alertHtml = '<div class="alert-bar" style="background:#2980b9; color:white;">🧾 الزبون يطلب الحساب المالي الفاتورة!</div>';
                 }
 
                 let itemsHtml = '';
-                if (order.items && order.items.length > 0) {
-                    order.items.forEach(item => {
-                        itemsHtml += `<div class="item-line">${item.name} × العدد: ${item.quantity}</div>`;
+                if(order.items) {
+                    order.items.forEach(i => {
+                        itemsHtml += `<div class="item-row">${i.name} × العدد: ${i.quantity}</div>`;
                     });
                 } else {
-                    itemsHtml = '<span style="color:#666; font-size:13px;">(تنبيه خدمات فقط - لا توجد أطباق في السلة حالياً)</span>';
+                    itemsHtml = '<div style="color:#555; font-size:13px;">(إشعار خدمة سريع فقط)</div>';
                 }
+
+                let notesHtml = order.notes ? `<div class="notes-box"><b>📝 ملاحظة الزبون:</b> ${order.notes}</div>` : '';
 
                 const card = document.createElement('div');
                 card.className = cardClass;
                 card.innerHTML = `
-                    <div class="table-header">
-                        <span class="badge">طاولة ${order.table || key.replace('table_', '')}</span>
-                        <span class="status">${order.status || 'طلب جديد'}</span>
+                    <div class="card-header">
+                        <span class="table-title">طاولة ${order.table}</span>
+                        <span class="status-badge">${order.status ? order.status.replace(/_/g, ' ') : 'طلب جديد'}</span>
                     </div>
+                    ${alertHtml}
+                    <div>${itemsHtml}</div>
+                    ${notesHtml}
+                    <div class="total-price">إجمالي الحساب: ${order.acc_total ? order.acc_total.toLocaleString() : 0} د.ع</div>
                     
-                    ${alertText ? `<div class="notice-text" style="color: ${order.waiter_requested ? '#e67e22' : '#2980b9'}">${alertText}</div>` : ''}
-                    
-                    <div style="margin: 10px 0;">${itemsHtml}</div>
-                    
-                    <div style="font-weight:bold; color:#d4af37; margin-top:5px; font-size:15px;">
-                        إجمالي الحساب: ${order.acc_total ? order.acc_total.toLocaleString() : 0} د.ع
-                    </div>
-                    
-                    <div class="btn-group">
-                        <button class="btn btn-cook" onclick="updateTableStatus('${key}', 'قيد التحضير في المطبخ 👨‍🍳')">👨‍🍳 تحضير</button>
-                        <button class="btn btn-ready" onclick="updateTableStatus('${key}', 'جاهز للتوصيل 🚀')">🚀 جاهز</button>
-                        <button class="btn btn-clear" onclick="clearTableFinal('${key}')">🧹 محاسبة وتصفير</button>
+                    <div class="actions-bar">
+                        <button class="btn-action btn-accept" onclick="updateStatus('${key}', 'قيد_التحضير_في_المطبخ')">👨‍🍳 تحضير</button>
+                        <button class="btn-action btn-ready" onclick="updateStatus('${key}', 'الطلب_جاهز_للتوصيل')">🚀 جاهز</button>
+                        <button class="btn-action btn-print" onclick="printInvoice('${key}')">🖨️ طباعة الفاتورة</button>
+                        <button class="btn-action btn-clear" onclick="clearTable('${key}')">🧹 محاسبة وتصفير</button>
                     </div>
                 `;
                 container.appendChild(card);
             }
         });
 
-        // تحديث الحالة ومسح إشارات النداء بمجرد استجابة الطاقم
-        function updateTableStatus(key, newStatus) {
+        function updateStatus(key, status) {
             database.ref(`orders_system/${key}`).update({
-                status: newStatus,
+                status: status,
                 waiter_requested: false,
                 bill_requested: false
             });
         }
 
-        // تصفير ومسح الطاولة نهائياً بعد مغادرة الزبون
-        function clearTableFinal(key) {
-            if (confirm("هل أنت متأكد من استلام المبلغ وتصفير الطاولة للزبون التالي؟")) {
+        // دالة إنشاء الفاتورة الحرارية وإطلاق أمر الطباعة الفوري للماكينة
+        function printInvoice(key) {
+            database.ref(`orders_system/${key}`).once('value', (snapshot) => {
+                const order = snapshot.val();
+                if(!order || !order.items) { alert("لا توجد أطباق مسجلة في هذه الطاولة لطباعتها!"); return; }
+
+                const printArea = document.getElementById('printArea');
+                let itemsLines = '';
+                
+                order.items.forEach(item => {
+                    itemsLines += `
+                        <div class="print-row">
+                            <span>${item.name} (×${item.quantity})</span>
+                            <span>${(item.price * item.quantity).toLocaleString()} د.ع</span>
+                        </div>
+                    `;
+                });
+
+                let dateStr = new Date().toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit' });
+
+                // بناء الهيكل الكلاسيكي الاحترافي للفاتورة الحرارية ورق 80مم
+                printArea.innerHTML = `
+                    <div class="print-header">
+                        <h2>مطعمنا الفاخر 🍽️</h2>
+                        <p>فاتورة حساب الطاولة الذكية</p>
+                        <p><b>رقم الطاولة: ${order.table}</b></p>
+                        <p>الوقت: ${dateStr}</p>
+                    </div>
+                    <div>
+                        ${itemsLines}
+                    </div>
+                    ${order.notes ? `<div style="font-size:12px; margin-top:5px; border-top:1px dashed #000; padding-top:4px;"><b>ملاحظة:</b> ${order.notes}</div>` : ''}
+                    <div class="print-header" style="border-top: 1px dashed black; margin-top:8px;"></div>
+                    <div class="print-row" style="font-weight: bold; font-size:16px;">
+                        <span>المجموع النهائي:</span>
+                        <span>${order.acc_total ? order.acc_total.toLocaleString() : 0} د.ع</span>
+                    </div>
+                    <div class="print-footer">
+                        <p>أهلاً وسهلاً بكم .. نورتونا ✨</p>
+                        <p>نظام Almenu الذكي لإدارة المطاعم</p>
+                    </div>
+                `;
+
+                // استدعاء أمر الطباعة المدمج في النظام ليرتبط بطابعتك فوراً
+                window.print();
+            });
+        }
+
+        function clearTable(key) {
+            if (confirm("هل تريد مسح الطلب وتصفير الطاولة للزبون التالي؟")) {
                 database.ref(`orders_system/${key}`).remove();
             }
         }
