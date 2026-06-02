@@ -15,6 +15,90 @@
           navigator.serviceWorker.register('sw.js')
             .then(reg => console.log('تم تفعيل خصائص التطبيق بنجاح!'))
             .catch(err => console.log('خطأ في تهيئة ملفات التطبيق'));
+            // 1️⃣ قراءة وحفظ رقم الطاولة من الباركود فور تحميل الصفحة
+function checkTableNumber() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tableNumber = urlParams.get('table');
+
+    if (tableNumber) {
+        localStorage.setItem('current_table', tableNumber);
+        showNotification(`أهلاً بك! تم ربط جهازك بالطاولة رقم (${tableNumber})`, '#d4af37');
+    }
+}
+
+// 2️⃣ ميزة استدعاء النادل (Call Waiter)
+function callWaiter() {
+    const table = localStorage.getItem('current_table') || "غير محددة";
+    
+    if (table === "غير محددة") {
+        showNotification("تنبيه: لم يتم التعرف على رقم الطاولة من الباركود!", "#ff4444");
+        return;
+    }
+
+    // هنا سيتم لاحقاً إرسال الطلب إلى الفايربيس (Firebase)
+    console.log(`طلب خدمة: الطاولة رقم ${table} تطلب النادل الآن.`);
+    
+    showNotification(`جاري استدعاء النادل إلى الطاولة رقم (${table})...`, '#22c55e');
+}
+
+// 3️⃣ ميزة إرسال سلة المشتريات مرتبطة برقم الطاولة (Cart System)
+function sendOrder(cartItems) {
+    const table = localStorage.getItem('current_table') || "غير محددة";
+    
+    if (cartItems.length === 0) {
+        showNotification("سلة المشتريات فارغة!", "#ff4444");
+        return;
+    }
+
+    // تجهيز بيانات الطلب الكاملة هندسياً
+    const orderData = {
+        table_number: table,
+        items: cartItems,
+        order_time: new Date().toLocaleTimeString('ar-IQ'),
+        status: "pending"
+    };
+
+    // هنا سيتم ربط الإرسال الفعلي بقاعدة البيانات
+    console.log("تم تجهيز الطلب لإرساله للمطبخ:", orderData);
+    
+    showNotification(`تم إرسال طلبك بنجاح من الطاولة رقم (${table})!`, '#22c55e');
+    
+    // تفريغ السلة بعد النجاح
+    localStorage.removeItem('cart'); 
+}
+
+// دالة مساعدة لإظهار تنبيهات سريعة واحترافية للمستخدم (Toast Notifications)
+function showNotification(message, bgColor) {
+    const existingToast = document.getElementById('app-toast');
+    if (existingToast) existingToast.remove();
+
+    const toast = document.createElement('div');
+    toast.id = 'app-toast';
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: ${bgColor};
+        color: ${bgColor === '#d4af37' ? '#0d0d0d' : '#ffffff'};
+        padding: 12px 24px;
+        border-radius: 30px;
+        font-weight: bold;
+        text-align: center;
+        z-index: 10000;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+        font-family: sans-serif;
+        direction: rtl;
+        white-space: nowrap;
+    `;
+    toast.innerText = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => { toast.remove(); }, 4000);
+}
+
+// تشغيل الفحص التلقائي للطاولة عند فتح الصفحة
+window.addEventListener('DOMContentLoaded', checkTableNumber);
         });
       }
     </script>
