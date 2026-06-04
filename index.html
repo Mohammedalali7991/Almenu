@@ -123,6 +123,50 @@ function showNotification(message, bgColor) {
 window.addEventListener('DOMContentLoaded', checkTableNumber);
         });
       }
+       // ميزة الفحص والتعطيل التلقائي للأطباق النافذة من الفايربيس
+function checkProductsAvailability() {
+    db.collection("products_status").onSnapshot((snapshot) => {
+        snapshot.forEach((doc) => {
+            const productId = doc.id; 
+            const isAvailable = doc.data().available; 
+            
+            const productCard = document.querySelector(`[data-id="${productId}"]`);
+            
+            if (productCard) {
+                const qtyButtons = productCard.querySelectorAll('.btn-qty');
+                const titleElement = productCard.querySelector('h3');
+                
+                if (!isAvailable) {
+                    productCard.style.opacity = "0.5";
+                    qtyButtons.forEach(btn => {
+                        btn.disabled = true;
+                        btn.style.background = "#888888";
+                        btn.style.cursor = "not-allowed";
+                    });
+                    if (titleElement && !titleElement.innerText.includes("(نفذ)")) {
+                        titleElement.style.color = "#ff4444";
+                        titleElement.innerText += " (نفذ ❌)";
+                    }
+                } else {
+                    productCard.style.opacity = "1";
+                    qtyButtons.forEach(btn => {
+                        btn.disabled = false;
+                        btn.style.background = ""; 
+                        btn.style.cursor = "pointer";
+                    });
+                    if (titleElement) {
+                        titleElement.style.color = "";
+                        titleElement.innerText = titleElement.innerText.replace(" (نفذ ❌)", "");
+                    }
+                }
+            }
+        });
+    });
+}
+
+// تشغيل الفحص التلقائي فور تحميل الصفحة للزبون
+window.addEventListener('DOMContentLoaded', checkProductsAvailability);
+ 
     </script>
 
     <style>
@@ -225,7 +269,7 @@ window.addEventListener('DOMContentLoaded', checkTableNumber);
             </div>
         </div>
 
-        <div class="product-card" data-category="eastern">
+      <div class="product-card" data-category="eastern" data-id="quzi">
             <img src="https://images.unsplash.com/photo-1541518763669-27fef04b14ea?w=300" class="product-img" alt="قوزي لحم">
             <div class="product-details">
                 <h3>قوزي لحم عراقي فاخر</h3>
