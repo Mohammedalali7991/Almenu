@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم المطبخ والإدارة</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #0d0d0d; color: #e0e0e0; padding: 15px; }
+        
+        /* شريط القوائم الرئيسية العلوي (محاورة لبعضها) */
+        .tabs-container { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #222; padding-bottom: 10px; }
+        .tab-btn { flex: 1; padding: 15px; background: #1c1c1c; border: 1px solid #333; color: #fff; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.3s; text-align: center; }
+        .tab-btn.active { background: #d4af37; color: #0d0d0d; border-color: #d4af37; }
+        
+        /* الأقسام ومحتوياتها */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        /* زر كتم الصوت الإداري */
+        .audio-ctrl { background: #22c55e; color: white; padding: 10px 20px; border: none; border-radius: 8px; font-weight: bold; margin-bottom: 15px; cursor: pointer; width: 100%; }
+
+        /* تنسيق الطلبات واستدعاء النادل */
+        .grid-section { display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 20px; }
+        @media(min-width: 768px) { .grid-section { grid-template-columns: 2fr 1fr; } }
+        
+        .card { background: #141414; border: 1px solid #222; border-radius: 10px; padding: 15px; margin-bottom: 15px; }
+        .card-title { font-size: 18px; color: #d4af37; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px; display: flex; justify-content: space-between; }
+        
+        .waiter-card { background: #1b1010; border-color: #ff4444; }
+        .btn-action { padding: 8px 15px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-done { background: #22c55e; color: white; }
+        .btn-del { background: #ff4444; color: white; }
+        
+        /* تنسيق إدارة المنيو */
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; margin-bottom: 5px; color: #aaa; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; background: #1c1c1c; border: 1px solid #333; color: white; border-radius: 6px; }
+        .btn-add-product { background: #d4af37; color: #0d0d0d; width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        
+        .menu-item-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #1c1c1c; border-radius: 6px; margin-bottom: 8px; }
+        .toggle-switch { padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; border: none; cursor: pointer; }
+        .status-on { background: #22c55e; color: white; }
+        .status-off { background: #ff4444; color: white; }
+    </style>
+</head>
+<body>
+
+    <div class="tabs-container">
+        <div class="tab-btn active" onclick="switchTab('orders-tab', this)">🛎️ الطلبات والنداءات</div>
+        <div class="tab-btn" onclick="switchTab('management-tab', this)">⚙️ تعديل المنيو</div>
+    </div>
+
+    <button id="mute-btn" class="audio-ctrl" onclick="AudioSystem.toggleMute('mute-btn')">🔊 كتم الصوت المساعد</button>
+
+    <div id="orders-tab" class="tab-content active">
+        <div class="grid-section">
+            <div>
+                <h2>📋 طلبات الطاولات الحية</h2>
+                <div id="orders-container" style="margin-top: 10px;"></div>
+            </div>
+            <div>
+                <h2>🙋‍♂️ نداءات النادل النشطة</h2>
+                <div id="waiter-container" style="margin-top: 10px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="management-tab" class="tab-content">
+        <div class="grid-section">
+            <div class="card">
+                <div class="card-title">➕ إضافة طبق أو عصير جديد</div>
+                <div class="form-group">
+                    <label>اسم الطبق/المشروب:</label>
+                    <input type="text" id="prod-name" placeholder="مثال: شاي عراقي مهيل">
+                </div>
+                <div class="form-group">
+                    <label>السعر (د.ع):</label>
+                    <input type="number" id="prod-price" placeholder="مثال: 1500">
+                </div>
+                <div class="form-group">
+                    <label>الفئة:</label>
+                    <select id="prod-category">
+                        <option value="western">أكلات غربية</option>
+                        <option value="eastern">أكلات شرقية</option>
+                        <option value="appetizers">مقبلات</option>
+                        <option value="drinks">مشروبات وعصائر</option>
+                    </select>
+                </div>
+                <button class="btn-add-product" onclick="addNewProduct()">حفظ وإضافة للمنيو</button>
+            </div>
+
+            <div class="card">
+                <div class="card-title">🍔 التحكم بالأطباق الحالية</div>
+                <div id="admin-menu-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 🛠️ تكوين الفايربيس الخاص بمشروعك (سيقوم بربط مشروع Almenu تلقائياً)
+        const firebaseConfig = {
+            apiKey: "AIzaSy...", 
+            authDomain: "almenu-...",
+            projectId: "almenu-...", // ضع هنا معرف الـ Project ID الخاص بك
+            storageBucket: "almenu-...",
+            messagingSenderId: "...",
+            appId: "..."
+        };
+        
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+
+        // نظام التبديل الدقيق بين القائمتين الرئيستين
+        function switchTab(tabId, btnElement) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            btnElement.classList.add('active');
+        }
+
+        // 🔊 نظام الأصوات المهندس ذكياً للطلبات ونداء النادل
+        const AudioSystem = {
+            isMuted: false,
+            playSound(type) {
+                if (this.isMuted) return;
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                if (type === 'order') {
+                    // 🛎️ جرس المطبخ للطلبات
+                    oscillator.type = 'sine';
+                    oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
+                    gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                    oscillator.start(); oscillator.stop(audioCtx.currentTime + 0.3);
+                } else if (type === 'waiter') {
+                    // 🙋‍♂️ جرس حاد ومختلف لنداء النادل
+                    oscillator.type = 'triangle';
+                    oscillator.frequency.setValueAtTime(600, audioCtx.currentTime);
+                    gainNode.gain.setValueAtTime(0.6, audioCtx.currentTime);
+                    oscillator.start();
+                    setTimeout(() => oscillator.frequency.setValueAtTime(750, audioCtx.currentTime), 150);
+                    oscillator.stop(audioCtx.currentTime + 0.4);
+                }
+            },
+            toggleMute(buttonId) {
+                this.isMuted = !this.isMuted;
+                const btn = document.getElementById(buttonId);
+                if (btn) {
+                    btn.innerText = this.isMuted ? "🔇 تشغيل الصوت" : "🔊 كتم الصوت المساعد";
+                    btn.style.background = this.isMuted ? "#ff4444" : "#22c55e";
+                }
+            }
+        };
+
+        // 📥 الاستماع الحي للطلبات والنداءات من قاعدة البيانات مع تفعيل الأصوات التلقائي
+        function listenLive() {
+            // 1. طلبات المطبخ
+            db.collection("orders").orderBy("order_time", "desc").onSnapshot(snapshot => {
+                const container = document.getElementById("orders-container");
+                container.innerHTML = "";
+                
+                let isNew = false;
+                snapshot.docChanges().forEach(change => { if (change.type === "added") isNew = true; });
+                if (isNew && snapshot.docs.length > 0) AudioSystem.playSound('order');
+
+                snapshot.forEach(doc => {
+                    const order = doc.data();
+                    let itemsHtml = order.items.map(i => `<li>${i.name} (x${i.qty || 1})</li>`).join('');
+                    container.innerHTML += `
+                        <div class="card">
+                            <div class="card-title">طاولة رقم: ${order.table_number} <span>قيد الانتظار</span></div>
+                            <ul>${itemsHtml}</ul>
+                            <button class="btn-action btn-done" onclick="completeOrder('${doc.id}')">✔ تم التجهيز</button>
+                        </div>`;
+                });
+            });
+
+            // 2. نداءات النادل المدمجة بالصوت الخاص بها
+            db.collection("waiter_calls").where("status", "==", "active").onSnapshot(snapshot => {
+                const container = document.getElementById("waiter-container");
+                container.innerHTML = "";
+                
+                let isNewCall = false;
+                snapshot.docChanges().forEach(change => { if (change.type === "added") isNewCall = true; });
+                if (isNewCall && snapshot.docs.length > 0) AudioSystem.playSound('waiter');
+
+                snapshot.forEach(doc => {
+                    const call = doc.data();
+                    container.innerHTML += `
+                        <div class="card waiter-card">
+                            <div class="card-title">🙋‍♂️ نداء طاولة: ${call.table_number}</div>
+                            <button class="btn-action btn-done" onclick="archiveCall('${doc.id}')">✔ تلبية النداء</button>
+                        </div>`;
+                });
+            });
+
+            // 3. عرض الأطباق لإدارتها في قائمة تعديل المنيو
+            db.collection("products_status").onSnapshot(snapshot => {
+                const container = document.getElementById("admin-menu-list");
+                container.innerHTML = "";
+                snapshot.forEach(doc => {
+                    const prod = doc.data();
+                    const btnText = prod.available !== false ? "🟢 متوفر" : "🔴 نفذ/تعطيل";
+                    const btnClass = prod.available !== false ? "status-on" : "status-off";
+                    container.innerHTML += `
+                        <div class="menu-item-row">
+                            <div><strong>${prod.name}</strong> - ${prod.price} د.ع</div>
+                            <div>
+                                <button class="toggle-switch ${btnClass}" onclick="toggleAvailability('${doc.id}', ${prod.available !== false})">${btnText}</button>
+                                <button class="btn-action btn-del" style="margin:0 5px 0 0; padding: 5px 10px;" onclick="deleteProduct('${doc.id}')">🗑</button>
+                            </div>
+                        </div>`;
+                });
+            });
+        }
+
+        // 🛠️ الأوامر الإدارية (إنهاء طلب، تلبية نداء، تعطيل طبق، إضافة وحذف طبق)
+        function completeOrder(id) { db.collection("orders").doc(id).delete(); }
+        
+        function archiveCall(id) { db.collection("waiter_calls").doc(id).update({ status: "done" }); }
+        
+        function toggleAvailability(id, currentStatus) { db.collection("products_status").doc(id).set({ available: !currentStatus }, { merge: true }); }
+
+        function addNewProduct() {
+            const name = document.getElementById("prod-name").value;
+            const price = document.getElementById("prod-price").value;
+            const cat = document.getElementById("prod-category").value;
+            if(!name || !price) return alert("الرجاء ملء حقول اسم وسعر الطبق!");
+            
+            const id = name.toLowerCase().replace(/ /g, "_"); // توليد id تلقائي هندسي
+            db.collection("products_status").doc(id).set({ name: name, price: price, category: cat, available: true })
+            .then(() => {
+                document.getElementById("prod-name").value = "";
+                document.getElementById("prod-price").value = "";
+                alert("تمت إضافة الطبق الجديد للمنيو السحابي بنجاح!");
+            });
+        }
+
+        function deleteProduct(id) { if(confirm("هل أنت متأكد من حذف هذا الطبق نهائياً من المنيو؟")) { db.collection("products_status").doc(id).delete(); } }
+
+        window.addEventListener('DOMContentLoaded', listenLive);
+    </script>
+</body>
+</html>
+
