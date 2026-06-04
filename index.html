@@ -121,8 +121,7 @@ function showNotification(message, bgColor) {
 
 // تشغيل الفحص التلقائي للطاولة عند فتح الصفحة
 window.addEventListener('DOMContentLoaded', checkTableNumber);
-        });
-      }
+      
        // ميزة الفحص والتعطيل التلقائي للأطباق النافذة من الفايربيس
 function checkProductsAvailability() {
     db.collection("products_status").onSnapshot((snapshot) => {
