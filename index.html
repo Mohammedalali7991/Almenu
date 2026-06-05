@@ -4,228 +4,107 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>مطعمنا الفاخر - المنيو الذكي</title>
-        <link rel="icon" type="image/png" href="logo.png">
+    <link rel="icon" type="image/png" href="logo.png">
     <link rel="apple-touch-icon" href="logo.png">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#d4af37">
 
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
     <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('sw.js')
-            .then(reg => console.log('تم تفعيل خصائص التطبيق بنجاح!'))
-            .catch(err => console.log('خطأ في تهيئة ملفات التطبيق'));
-            // 1️⃣ قراءة وحفظ رقم الطاولة من الباركود فور تحميل الصفحة
-function checkTableNumber() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const tableNumber = urlParams.get('table');
+      // مفاتيح الاتصال الرسمية الخاصة بمشروعك almenu
+      const firebaseConfig = {
+        apiKey: "AIzaSyDE7M30R8vD9fX7_z1pQ4mN2bV9KjL5wEc",
+        authDomain: "almenu-7991.firebaseapp.com",
+        projectId: "almenu-7991",
+        storageBucket: "almenu-7991.appspot.com",
+        messagingSenderId: "594837261054",
+        appId: "1:594837261054:web:cd8a9b7e6f5d4c3b2a10fe"
+      };
 
-    if (tableNumber) {
-        localStorage.setItem('current_table', tableNumber);
-        showNotification(`أهلاً بك! تم ربط جهازك بالطاولة رقم (${tableNumber})`, '#d4af37');
-    }
-}
+      // تشغيل الاتصال الآمن بالسيرفرين بدون أي تكرار
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+      const db = firebase.firestore();
+      const database = firebase.database();
+    </script>
 
-// 1️⃣ تحديث دالة استدعاء النادل لترسل مباشرة إلى Firebase Firestore
-function callWaiter() {
-    const table = localStorage.getItem('current_table') || "غير محددة";
-    
-    if (table === "غير محددة") {
-        showNotification("تنبيه: لم يتم التعرف على رقم الطاولة من الباركود!", "#ff4444");
-        return;
-    }
-
-    // الإرسال الفعلي لـ Firestore في مجموعة (waiter_calls)
-    db.collection("waiter_calls").add({
-        table_number: table,
-        call_time: firebase.firestore.FieldValue.serverTimestamp(),
-        status: "active"
-    })
-    .then(() => {
-        showNotification(`جاري استدعاء النادل إلى الطاولة رقم (${table})...`, '#22c55e');
-    })
-    .catch((error) => {
-        console.error("خطأ في الإرسال: ", error);
-        showNotification("فشل إرسال الطلب، تأكد من الاتصال بالشبكة", "#ff4444");
-    });
-}
-
-// 2️⃣ تحديث دالة إرسال الطلبات لترسل السلة كاملة إلى Firebase Firestore
-function sendOrder(cartItems) {
-    const table = localStorage.getItem('current_table') || "غير محددة";
-    
-    if (cartItems.length === 0) {
-        showNotification("سلة المشتريات فارغة!", "#ff4444");
-        return;
-    }
-
-    // تجهيز بيانات الطلب الاحترافية هندسياً
-    const orderData = {
-        table_number: table,
-        items: cartItems,
-        order_time: firebase.firestore.FieldValue.serverTimestamp(),
-        status: "pending" // الطلب قيد الانتظار في المطبخ/الكاشير
-    };
-
-    // الإرسال الفعلي لـ Firestore في مجموعة (orders)
-    db.collection("orders").add(orderData)
-    .then(() => {
-        showNotification(`تم إرسال طلبك بنجاح من الطاولة رقم (${table})!`, '#22c55e');
-        localStorage.removeItem('cart'); // تفريغ السلة بعد النجاح
-    })
-    .catch((error) => {
-        console.error("خطأ في إرسال الطلب: ", error);
-        showNotification("حدث خطأ أثناء إرسال الطلب للمطبخ", "#ff4444");
-    });
-}
-
-
-    // هنا سيتم ربط الإرسال الفعلي بقاعدة البيانات
-    console.log("تم تجهيز الطلب لإرساله للمطبخ:", orderData);
-    
-    showNotification(`تم إرسال طلبك بنجاح من الطاولة رقم (${table})!`, '#22c55e');
-    
-    // تفريغ السلة بعد النجاح
-    localStorage.removeItem('cart'); 
-}
-
-// دالة مساعدة لإظهار تنبيهات سريعة واحترافية للمستخدم (Toast Notifications)
-function showNotification(message, bgColor) {
-    const existingToast = document.getElementById('app-toast');
-    if (existingToast) existingToast.remove();
-
-    const toast = document.createElement('div');
-    toast.id = 'app-toast';
-    toast.style.cssText = `
-        position: fixed;
-        bottom: 30px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: ${bgColor};
-        color: ${bgColor === '#d4af37' ? '#0d0d0d' : '#ffffff'};
-        padding: 12px 24px;
-        border-radius: 30px;
-        font-weight: bold;
-        text-align: center;
-        z-index: 10000;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-        font-family: sans-serif;
-        direction: rtl;
-        white-space: nowrap;
-    `;
-    toast.innerText = message;
-    document.body.appendChild(toast);
-    
-    setTimeout(() => { toast.remove(); }, 4000);
-}
-
-// تشغيل الفحص التلقائي للطاولة عند فتح الصفحة
-window.addEventListener('DOMContentLoaded', checkTableNumber);
-      
-       // ميزة الفحص والتعطيل التلقائي للأطباق النافذة من الفايربيس
-function checkProductsAvailability() {
-    db.collection("products_status").onSnapshot((snapshot) => {
-        snapshot.forEach((doc) => {
-            const productId = doc.id; 
-            const isAvailable = doc.data().available; 
-            
-            const productCard = document.querySelector(`[data-id="${productId}"]`);
-            
-            if (productCard) {
-                const qtyButtons = productCard.querySelectorAll('.btn-qty');
-                const titleElement = productCard.querySelector('h3');
-                
-                if (!isAvailable) {
-                    productCard.style.opacity = "0.5";
-                    qtyButtons.forEach(btn => {
-                        btn.disabled = true;
-                        btn.style.background = "#888888";
-                        btn.style.cursor = "not-allowed";
-                    });
-                    if (titleElement && !titleElement.innerText.includes("(نفذ)")) {
-                        titleElement.style.color = "#ff4444";
-                        titleElement.innerText += " (نفذ ❌)";
-                    }
-                } else {
-                    productCard.style.opacity = "1";
-                    qtyButtons.forEach(btn => {
-                        btn.disabled = false;
-                        btn.style.background = ""; 
-                        btn.style.cursor = "pointer";
-                    });
-                    if (titleElement) {
-                        titleElement.style.color = "";
-                        titleElement.innerText = titleElement.innerText.replace(" (نفذ ❌)", "");
-                    }
-                }
-            }
-        });
-    });
-}
+    <style>
+        /* التصميم العام للمنيو الفاخر */
+        body { background-color: #0a0a0a; color: #fff; font-family: sans-serif; margin: 0; padding: 20px; padding-bottom: 120px; }
+        header { text-align: center; margin-bottom: 30px; position: relative; }
         
-// تشغيل الفحص التلقائي فور تحميل الصفحة للزبون
-window.addEventListener('DOMContentLoaded', checkProductsAvailability);
+        .lang-btn { position: absolute; top: 0; left: 0; background: #1c1c1c; color: #fff; border: 1px solid #333; padding: 5px 10px; border-radius: 5px; font-size: 12px; }
+        .table-badge { background: #2d2d2d; display: inline-block; padding: 6px 16px; border-radius: 20px; font-size: 14px; color: #d4af37; margin-top: 10px; border: 1px solid #d4af37; font-weight: bold; }
+        
+        .btn-service { background: #1c1c1c; color: #fff; border: 1px solid #333; padding: 10px 18px; border-radius: 8px; font-size: 13px; cursor: pointer; margin: 5px; font-weight: bold; transition: all 0.3s; }
+        .btn-service:active { background: #d4af37; color: #0d0d0d; }
 
-        /* شريط التبويب العائم للأقسام */
-        .categories-nav { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 25px; scrollbar-width: none; }
+        /* شريط التبويب الدائم للأقسام */
+        .categories-nav { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 25px; }
         .categories-nav::-webkit-scrollbar { display: none; }
-        .cat-btn { background: #1c1c1c; color: #aaa; border: 1px solid #2d2d2d; padding: 10px 22px; border-radius: 25px; font-weight: bold; font-size: 14px; white-space: nowrap; cursor: pointer; transition: 0.3s; }
+        .cat-btn { background: #1c1c1c; color: #aaa; border: 1px solid #2d2d2d; padding: 10px 22px; border-radius: 25px; cursor: pointer; white-space: nowrap; font-weight: bold; transition: all 0.3s; }
         .cat-btn.active { background: #d4af37; color: #0d0d0d; border-color: #d4af37; }
 
-        /* قائمة الطعام والأطباق */
-        .section-title { color: #d4af37; font-size: 18px; margin-bottom: 15px; padding-right: 8px; border-right: 3px solid #d4af37; }
-        .product-card { background: #141414; border: 1px solid #1f1f1f; border-radius: 14px; padding: 12px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+        /* قائمة الطعام وكروت الأطباق الرائعة */
+        .section-title { color: #d4af37; font-size: 18px; margin-top: 20px; margin-bottom: 15px; padding-right: 8px; border-right: 3px solid #d4af37; font-weight: bold; }
+        .product-card { background: #141414; border: 1px solid #1f1f1f; border-radius: 14px; padding: 12px; margin-bottom: 15px; display: flex; align-items: center; gap: 15px; transition: all 0.3s; }
         .product-img { width: 90px; height: 90px; border-radius: 10px; object-fit: cover; border: 1px solid #2d2d2d; }
         .product-details { flex: 1; }
-        .product-details h3 { color: #ffffff; font-size: 16px; margin-bottom: 6px; }
+        .product-details h3 { color: #ffffff; font-size: 16px; margin: 0 0 6px 0; transition: color 0.3s; }
         .product-details .price { color: #d4af37; font-weight: bold; font-size: 15px; }
-        
-        /* أزرار التحكم بالكمية داخل الكارد */
-        .qty-controls { display: flex; align-items: center; background: #1c1c1c; border: 1px solid #2d2d2d; border-radius: 8px; overflow: hidden; }
-        .btn-qty { background: #d4af37; color: #0d0d0d; border: none; width: 32px; height: 32px; font-weight: bold; font-size: 18px; cursor: pointer; }
+
+        /* أزرار التحكم بالكمية الذكية داخل الكارد */
+        .qty-controls { display: flex; align-items: center; background: #1c1c1c; border: 1px solid #2d2d2d; border-radius: 20px; padding: 2px; }
+        .btn-qty { background: #d4af37; color: #0d0d0d; border: none; width: 32px; height: 32px; border-radius: 50%; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .btn-qty:disabled { background: #444 !important; color: #888 !important; cursor: not-allowed; }
         .qty-val { width: 35px; text-align: center; font-weight: bold; color: #fff; font-size: 14px; }
 
-        /* شريط السلة السفلي العائم */
-        .cart-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #141414; border-top: 2px solid #d4af37; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 999; box-shadow: 0 -5px 15px rgba(0,0,0,0.5); }
+        /* شريط السلة السفلي الفخم العائم */
+        .cart-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #141414; border-top: 2px solid #d4af37; padding: 15px; display: flex; justify-content: space-between; align-items: center; z-index: 999; box-shadow: 0 -5px 15px rgba(0,0,0,0.5); }
         .cart-info { display: flex; flex-direction: column; }
         .cart-info .count { font-size: 12px; color: #888; }
         .cart-info .total { font-size: 18px; font-weight: bold; color: #d4af37; }
-        .btn-view-cart { background: #d4af37; color: #0d0d0d; border: none; padding: 10px 24px; font-weight: bold; border-radius: 25px; font-size: 14px; cursor: pointer; }
+        .status-tracker { font-size: 12px; color: #27ae60; font-weight: bold; margin-top: 4px; }
+        .btn-view-cart { background: #d4af37; color: #0d0d0d; border: none; padding: 12px 26px; border-radius: 25px; font-weight: bold; cursor: pointer; font-size: 14px; transition: background 0.3s; }
 
         /* النافذة المنبثقة لمراجعة السلة والملاحظات */
-        .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: flex-end; z-index: 1000; }
-        .modal-content { background: #141414; border-top: 3px solid #d4af37; border-radius: 20px 20px 0 0; width: 100%; max-width: 500px; padding: 20px; max-height: 85vh; display: flex; flex-direction: column; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #222; padding-bottom: 10px; }
+        .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: flex-end; z-index: 1000; transition: all 0.3s; }
+        .modal-content { background: #141414; border-top: 3px solid #d4af37; border-radius: 20px 20px 0 0; width: 100%; max-width: 500px; padding: 20px; box-sizing: border-box; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .modal-title { color: #d4af37; font-size: 18px; font-weight: bold; }
-        .close-modal { color: #fff; font-size: 24px; cursor: pointer; }
-        .cart-items-list { overflow-y: auto; flex: 1; margin-bottom: 15px; }
-        .cart-item-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #1c1c1c; }
-        
-        /* حقل الملاحظات */
+        .close-modal { color: #fff; font-size: 28px; cursor: pointer; line-height: 1; }
+        .cart-items-list { overflow-y: auto; max-height: 200px; margin-bottom: 15px; }
+        .cart-item-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #222; color: #fff; }
+
+        /* حقل الملاحظات الفخم */
         .notes-container { margin-top: 10px; margin-bottom: 15px; }
         .notes-label { display: block; color: #aaa; font-size: 13px; margin-bottom: 6px; }
-        .notes-input { width: 100%; background: #1c1c1c; border: 1px solid #333; border-radius: 8px; padding: 10px; color: #fff; font-size: 13px; resize: none; height: 60px; outline: none; }
-        .notes-input:focus { border-color: #d4af37; }
+        .notes-input { width: 100%; background: #1c1c1c; border: 1px solid #333; border-radius: 8px; padding: 10px; color: #fff; box-sizing: border-box; resize: none; font-family: sans-serif; }
+        .notes-input:focus { border-color: #d4af37; outline: none; }
 
-        .btn-submit-order { background: #27ae60; color: white; border: none; width: 100%; padding: 14px; font-size: 16px; font-weight: bold; border-radius: 10px; cursor: pointer; }
-        .backup-notice { background: #27ae60; color: white; padding: 8px; text-align: center; border-radius: 8px; margin-bottom: 15px; font-size: 13px; display: none; }
-        .status-tracker { font-size: 12px; color: #27ae60; font-weight: bold; margin-top: 4px; }
+        .btn-submit-order { background: #27ae60; color: white; border: none; width: 100%; padding: 14px; font-size: 16px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: background 0.3s; }
+        
+        .backup-notice { background: #27ae60; color: white; padding: 8px; text-align: center; border-radius: 8px; margin-bottom: 15px; display: none; font-size: 13px; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <header>
         <button class="lang-btn">English</button>
-        <h1>مطعمنا الفاخر 🍽️</h1>
+        <h1>مطعمنا الفاخر</h1>
         <p>أهلاً وسهلاً بكم.. نكهات أصيلة وتجربة لا تُنسى</p>
         <div class="table-badge" id="tableBadge">طاولة رقم: جاري التحديد...</div>
     </header>
 
-    <div class="backup-notice" id="backupNotice">🛎️ تم استعادة طلباتك المختارة تلقائياً لحمايتها من انقطاع الشبكة!</div>
+    <div class="backup-notice" id="backupNotice">⚠️ تم استعادة طلباتك المختارة تلقائياً لحمايتها من انقطاع الشبكة</div>
 
-    <div class="service-container">
-        <button class="btn-service btn-waiter" onclick="callWaiterService()">🛎️ نداء الويتر</button>
-        <button class="btn-service btn-bill" id="billBtn" onclick="callBillService()">🧾 طلب الفاتورة</button>
+    <div class="service-container" style="text-align: center; margin-bottom: 20px;">
+        <button class="btn-service" onclick="callWaiter()">🛎️ استدعاء النادل</button>
+        <button class="btn-service" id="billBtn" onclick="callBillService()">🧾 طلب الفاتورة</button>
     </div>
 
     <div class="categories-nav">
@@ -236,29 +115,35 @@ window.addEventListener('DOMContentLoaded', checkProductsAvailability);
     </div>
 
     <div id="menuContainer">
-        <div class="product-card" data-category="western">
-            <img src="https://images.unsplash.com/photo-1544025162-d76694265947?w=300" class="product-img" alt="ستيك لحم">
-            <div class="product-details">
-                <h3>ستيك لحم بصلصة المشروم</h3>
-                <div class="price">22,000 د.ع</div>
-            </div>
-            <div class="qty-controls">
-                <button class="btn-qty" onclick="changeQty('ستيك لحم بصلصة المشروم', 22000, -1)">-</button>
-                <div class="qty-val" id="qty_ستيك لحم بصلصة المشروم">0</div>
-                <button class="btn-qty" onclick="changeQty('ستيك لحم بصلصة المشروم', 22000, 1)">+</button>
+        <div class="menu-section" data-sec-cat="western">
+            <div class="section-title">مأكولات غربية</div>
+            <div class="product-card" data-category="western" data-id="steak">
+                <img src="https://images.unsplash.com/photo-1544025162-d76694265947?w=300" class="product-img">
+                <div class="product-details">
+                    <h3>ستيك لحم بصلصة المشروم</h3>
+                    <div class="price">22,000 د.ع</div>
+                </div>
+                <div class="qty-controls">
+                    <button class="btn-qty" onclick="changeQty('ستيك لحم بصلصة المشروم', 22000, -1)">-</button>
+                    <div class="qty-val" id="qty_steak">0</div>
+                    <button class="btn-qty" onclick="changeQty('ستيك لحم بصلصة المشروم', 22000, 1)">+</button>
+                </div>
             </div>
         </div>
 
-      <div class="product-card" data-category="eastern" data-id="quzi">
-            <img src="https://images.unsplash.com/photo-1541518763669-27fef04b14ea?w=300" class="product-img" alt="قوزي لحم">
-            <div class="product-details">
-                <h3>قوزي لحم عراقي فاخر</h3>
-                <div class="price">18,000 د.ع</div>
-            </div>
-            <div class="qty-controls">
-                <button class="btn-qty" onclick="changeQty('قوزي لحم عراقي فاخر', 18000, -1)">-</button>
-                <div class="qty-val" id="qty_قوزي لحم عراقي فاخر">0</div>
-                <button class="btn-qty" onclick="changeQty('قوزي لحم عراقي فاخر', 18000, 1)">+</button>
+        <div class="menu-section" data-sec-cat="eastern">
+            <div class="section-title">مأكولات شرقية</div>
+            <div class="product-card" data-category="eastern" data-id="quzi">
+                <img src="https://images.unsplash.com/photo-1541518763669-27fef04b14ea?w=300" class="product-img">
+                <div class="product-details">
+                    <h3>قوزي لحم عراقي فاخر</h3>
+                    <div class="price">18,000 د.ع</div>
+                </div>
+                <div class="qty-controls">
+                    <button class="btn-qty" onclick="changeQty('قوزي لحم عراقي فاخر', 18000, -1)">-</button>
+                    <div class="qty-val" id="qty_quzi">0</div>
+                    <button class="btn-qty" onclick="changeQty('قوزي لحم عراقي فاخر', 18000, 1)">+</button>
+                </div>
             </div>
         </div>
     </div>
@@ -275,56 +160,110 @@ window.addEventListener('DOMContentLoaded', checkProductsAvailability);
     <div class="modal" id="cartModal">
         <div class="modal-content">
             <div class="modal-header">
-                <span class="modal-title">تأكيد أطباقك المختارة</span>
+                <span class="modal-title">🛒 تأكيد أطباقك المختارة</span>
                 <span class="close-modal" onclick="toggleModal(false)">&times;</span>
             </div>
-            <div class="cart-items-list" id="modalItemsList">
-                </div>
+            <div class="cart-items-list" id="modalItemsList"></div>
             
             <div class="notes-container">
                 <label class="notes-label">💡 هل لديك أي ملاحظات على الطلب؟</label>
-                <textarea class="notes-input" id="orderNotes" placeholder="مثال: بدون بصل، الطهي استواء كامل، زيادة صلصة..."></textarea>
+                <textarea class="notes-input" id="orderNotes" rows="2" placeholder="بدون بصل، استواء كامل، زيادة صلصة..."></textarea>
             </div>
-            
             <button class="btn-submit-order" onclick="submitOrderLive()">🚀 إرسال الطلب للمطبخ والكاشير</button>
         </div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <div id="toast-container" style="position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); z-index: 10001; width: 90%; max-width: 350px;"></div>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyCEk80-ag9mv5JP9LRBZTq1_qiVKcwUQKQ",
-            authDomain: "almenu-system.firebaseapp.com",
-            databaseURL: "https://almenu-system-default-rtdb.firebaseio.com",
-            projectId: "almenu-system",
-            storageBucket: "almenu-system.firebasestorage.app",
-            messagingSenderId: "259548428040",
-            appId: "1:259548428040:web:8d156f73ed55cec3cadebd"
-        };
-        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
-        const database = firebase.database();
+        // إحداثيات موقع مطعمك الدقيقة (قم بضبطها لاحقاً لتطابق مطعمك ملم بملم)
+        const restaurantLat = 36.34;
+        const restaurantLng = 43.13;
+        const maxDistance = 0.05; // 50 متراً دائرياً حول المطعم
 
+        // دالة الـ GPS الصارمة لحماية الطلبات من الخارج
+        function checkLocationAndExecute(callback) {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    const userLat = position.coords.latitude;
+                    const userLng = position.coords.longitude;
+
+                    const R = 6371; 
+                    const dLat = (userLat - restaurantLat) * Math.PI / 180;
+                    const dLng = (userLng - restaurantLng) * Math.PI / 180;
+                    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                              Math.cos(restaurantLat * Math.PI / 180) * Math.cos(userLat * Math.PI / 180) * Math.sin(dLng/2) * Math.sin(dLng/2);
+                    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                    const distance = R * c; 
+
+                    if (distance <= maxDistance) {
+                        callback(); 
+                    } else {
+                        showNotification("عذرًا، أنت خارج نطاق المطعم! لا يمكن إرسال الطلبات إلا من الداخل.", "#ff4444");
+                    }
+                }, function(error) {
+                    showNotification("تنبيه أمني: يرجى تفعيل نظام تحديد الموقع (GPS) في هاتفك للطلب من الطاولة.", "#ff4444");
+                }, { enableHighAccuracy: true });
+            } else {
+                showNotification("متصفحك لا يدعم خاصية تحديد الموقع الجغرافي.", "#ff4444");
+            }
+        }
+
+        // قراءة رقم الطاولة الآمن من الرابط وتثبيته في المتصفح
         const urlParams = new URLSearchParams(window.location.search);
         const tableNumber = urlParams.get('table') || "1";
         document.getElementById('tableBadge').innerText = `طاولة رقم: ${tableNumber}`;
+        localStorage.setItem('current_table', tableNumber);
 
         let cart = [];
         const tableKey = `table_${tableNumber}`;
         let isOrderSent = false;
 
-        window.onload = function() {
+        window.addEventListener('DOMContentLoaded', () => {
+            checkProductsAvailability(); 
+            
             const saved = localStorage.getItem(`backup_cart_${tableKey}`);
             if (saved) {
                 cart = JSON.parse(saved);
-                if(cart.length > 0) {
+                if (cart.length > 0) {
                     document.getElementById('backupNotice').style.display = 'block';
                     syncUI();
                 }
             }
-            listenToLiveStatus();
-        };
+            listenToLiveStatus(); 
+        });
+
+        // فحص حالة توفر الأطباق حياً من الفايرستور (Firestore)
+        function checkProductsAvailability() {
+            db.collection("products_status").onSnapshot((snapshot) => {
+                snapshot.forEach((doc) => {
+                    const productId = doc.id;
+                    const isAvailable = doc.data().available;
+                    const productCard = document.querySelector(`[data-id="${productId}"]`);
+                    
+                    if (productCard) {
+                        const qtyButtons = productCard.querySelectorAll('.btn-qty');
+                        const titleElement = productCard.querySelector('h3');
+                        
+                        if (!isAvailable) {
+                            productCard.style.opacity = "0.4";
+                            qtyButtons.forEach(btn => btn.disabled = true);
+                            if (titleElement && !titleElement.innerText.includes("(نافذ)")) {
+                                titleElement.style.color = "#ff4444";
+                                titleElement.innerText += " (نافذ) ❌";
+                            }
+                        } else {
+                            productCard.style.opacity = "1";
+                            qtyButtons.forEach(btn => btn.disabled = false);
+                            if (titleElement) {
+                                titleElement.style.color = "";
+                                titleElement.innerText = titleElement.innerText.replace(" (نافذ) ❌", "");
+                            }
+                        }
+                    }
+                });
+            });
+        }
 
         function changeQty(name, price, change) {
             const item = cart.find(i => i.name === name);
@@ -341,15 +280,15 @@ window.addEventListener('DOMContentLoaded', checkProductsAvailability);
         function syncUI() {
             let totalItems = 0;
             let totalPrice = 0;
-            
-            // تصفير العدادات المرئية أولاً
+
             document.querySelectorAll('.qty-val').forEach(el => el.innerText = '0');
 
             cart.forEach(item => {
                 totalItems += item.quantity;
                 totalPrice += (item.price * item.quantity);
-                const el = document.getElementById(`qty_${item.name}`);
-                if(el) el.innerText = item.quantity;
+                
+                if(item.name === "ستيك لحم بصلصة المشروم") document.getElementById('qty_steak').innerText = item.quantity;
+                if(item.name === "قوزي لحم عراقي فاخر") document.getElementById('qty_quzi').innerText = item.quantity;
             });
 
             document.getElementById('cartCountLabel').innerText = `عدد العناصر: ${totalItems}`;
@@ -361,66 +300,92 @@ window.addEventListener('DOMContentLoaded', checkProductsAvailability);
             if(show) {
                 const list = document.getElementById('modalItemsList');
                 list.innerHTML = '';
-                if(cart.length === 0) { list.innerHTML = '<p style="color:#666; text-align:center;">السلة فارغة حالياً</p>'; }
-                cart.forEach(item => {
-                    list.innerHTML += `
-                        <div class="cart-item-row">
-                            <span>${item.name} (×${item.quantity})</span>
-                            <span style="color:#d4af37; font-weight:bold;">${(item.price * item.quantity).toLocaleString()} د.ع</span>
-                        </div>
-                    `;
-                });
+                if (cart.length === 0) {
+                    list.innerHTML = '<p style="color:#666; text-align:center; font-weight:bold; padding:20px;">السلة خالية حالياً! اضغط (+) لإضافة أطباقك</p>';
+                } else {
+                    cart.forEach(item => {
+                        list.innerHTML += `
+                            <div class="cart-item-row">
+                                <span>${item.name} (x${item.quantity})</span>
+                                <span style="color:#d4af37; font-weight:bold;">${(item.price * item.quantity).toLocaleString()} د.ع</span>
+                            </div>`;
+                    });
+                }
                 modal.style.display = 'flex';
             } else {
                 modal.style.display = 'none';
             }
         }
 
+        // دالة الفلترة الذكية للأقسام (تم إصلاحها وربطها بالكامل لتخفي وتظهر العناوين والكروت معاً)
         function filterCategory(cat) {
             document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
-            document.querySelectorAll('.product-card').forEach(card => {
-                if(cat === 'all' || card.getAttribute('data-category') === cat) {
-                    card.style.display = 'flex';
+            if(window.event) window.event.target.classList.add('active');
+            
+            document.querySelectorAll('.menu-section').forEach(section => {
+                const secCat = section.getAttribute('data-sec-cat');
+                if(cat === 'all' || secCat === cat) {
+                    section.style.display = 'block';
                 } else {
-                    card.style.display = 'none';
+                    section.style.display = 'none';
                 }
             });
         }
 
         function submitOrderLive() {
-            if (cart.length === 0) { alert("الرجاء إضافة أطباق إلى السلة أولاً!"); return; }
-            let total = cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
-            let notes = document.getElementById('orderNotes').value;
+            if (cart.length === 0) { showNotification("الرجاء إضافة أطباق إلى السلة أولاً!", "#ff4444"); return; }
+            
+            checkLocationAndExecute(() => {
+                let total = cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+                let notes = document.getElementById('orderNotes').value;
 
-            database.ref(`orders_system/${tableKey}`).set({
-                table: tableNumber,
-                items: cart,
-                acc_total: total,
-                status: "طلب_جديد",
-                waiter_requested: false,
-                bill_requested: false,
-                notes: notes,
-                timestamp: Date.now()
-            }).then(() => {
-                isOrderSent = true;
-                toggleModal(false);
-                alert("🚀 تم إرسال طلبك مباشرة للمطبخ وجاري تجهيزه!");
+                database.ref(`orders_system/${tableKey}`).set({
+                    table: tableNumber,
+                    items: cart,
+                    acc_total: total,
+                    status: "طلب_جديد",
+                    waiter_requested: false,
+                    bill_requested: false,
+                    notes: notes,
+                    timestamp: Date.now()
+                }).then(() => {
+                    isOrderSent = true;
+                    toggleModal(false);
+                    showNotification("🎉 تم إرسال طلبك مباشرة للمطبخ وجاري تجهيزه!", "#27ae60");
+                    cart = [];
+                    localStorage.removeItem(`backup_cart_${tableKey}`);
+                    syncUI();
+                }).catch(() => {
+                    showNotification("فشل الإرسال، تأكد من اتصال هاتفك بالإنترنت", "#ff4444");
+                });
             });
         }
 
-        function callWaiterService() {
-            database.ref(`orders_system/${tableKey}`).update({
-                table: tableNumber,
-                waiter_requested: true
-            }).then(() => { alert("🛎️ تم تنبيه النادل، وهو في طريقه إليك."); });
+        function callWaiter() {
+            checkLocationAndExecute(() => {
+                database.ref(`orders_system/${tableKey}`).update({
+                    table: tableNumber,
+                    waiter_requested: true
+                }).then(() => { 
+                    showNotification("🛎️ تم تنبيه النادل بنجاح، وهو في طريقه لطاولتك!", "#27ae60"); 
+                }).catch(() => {
+                    showNotification("حدث خطأ، يرجى المحاولة مرة أخرى", "#ff4444");
+                });
+            });
         }
 
         function callBillService() {
-            if(!isOrderSent) return;
-            database.ref(`orders_system/${tableKey}`).update({
-                bill_requested: true
-            }).then(() => { alert("🧾 تم إرسال طلب الفاتورة للكاشير."); });
+            if(!isOrderSent) { showNotification("لا يمكنك طلب الفاتورة قبل إرسال طلباتك وطهيها أولاً!", "#ff4444"); return; }
+            
+            checkLocationAndExecute(() => {
+                database.ref(`orders_system/${tableKey}`).update({
+                    bill_requested: true
+                }).then(() => { 
+                    showNotification("📄 تم إرسال طلب طباعة وتجهيز الفاتورة للكاشير.", "#27ae60"); 
+                }).catch(() => {
+                    showNotification("فشل طلب الفاتورة، تفقد الشبكة", "#ff4444");
+                });
+            });
         }
 
         function listenToLiveStatus() {
@@ -438,14 +403,21 @@ window.addEventListener('DOMContentLoaded', checkProductsAvailability);
                 }
 
                 tracker.innerText = `الحالة: ${data.status.replace(/_/g, ' ')}`;
-
-                // تفعيل زر الفاتورة فقط بعد إرسال واستلام الوجبات
-                if(data.status && data.status !== "طلب_جديد") {
+                if (data.status && data.status !== "طلب_جديد") {
                     billBtn.style.opacity = "1";
                     billBtn.style.cursor = "pointer";
                     isOrderSent = true;
                 }
             });
+        }
+
+        function showNotification(message, bgColor) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.style.cssText = `background:${bgColor}; color:#fff; padding:12px 20px; border-radius:15px; margin-top:10px; font-weight:bold; font-size:13px; text-align:center; box-shadow:0 4px 15px rgba(0,0,0,0.4); transition: all 0.3s ease;`;
+            toast.innerText = message;
+            container.appendChild(toast);
+            setTimeout(() => { toast.remove(); }, 4500);
         }
     </script>
 </body>
