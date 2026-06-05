@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مطعمنا الفاخر - المنيو الذكي</title>
+    <title>مطعمنا الفاخر - المنيو الذكي المتكامل</title>
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="apple-touch-icon" href="logo.png">
     <link rel="manifest" href="manifest.json">
@@ -21,10 +21,10 @@
         projectId: "almenu-7991",
         storageBucket: "almenu-7991.appspot.com",
         messagingSenderId: "594837261054",
-        appId: "1:594837261054:web:cd8a9b7e6f5d4c3b2a10fe"
+        appId: "1:594837261054:web:cd8a9b7e6f5d4c3b2a10fe",
+        databaseURL: "https://almenu-7991-default-rtdb.firebaseio.com"
       };
 
-      // تشغيل الاتصال الآمن بالسيرفرين بدون أي تكرار
       if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
       }
@@ -33,8 +33,8 @@
     </script>
 
     <style>
-        /* التصميم العام الفخم للمنيو */
-        body { background-color: #0a0a0a; color: #fff; font-family: sans-serif; margin: 0; padding: 20px; padding-bottom: 120px; }
+        /* التصميم العام الفخم المتوافق مع جميع الهواتف */
+        body { background-color: #0a0a0a; color: #fff; font-family: sans-serif; margin: 0; padding: 20px; padding-bottom: 120px; -webkit-tap-highlight-color: transparent; }
         header { text-align: center; margin-bottom: 30px; position: relative; }
         
         .lang-btn { position: absolute; top: 0; left: 0; background: #1c1c1c; color: #fff; border: 1px solid #333; padding: 5px 10px; border-radius: 5px; font-size: 12px; }
@@ -43,36 +43,31 @@
         .btn-service { background: #1c1c1c; color: #fff; border: 1px solid #333; padding: 10px 18px; border-radius: 8px; font-size: 13px; cursor: pointer; margin: 5px; font-weight: bold; transition: all 0.3s; }
         .btn-service:active { background: #d4af37; color: #0d0d0d; }
 
-        /* شريط التبويب الدائم للأقسام للتحكم بالمنيو */
         .categories-nav { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 25px; }
         .categories-nav::-webkit-scrollbar { display: none; }
         .cat-btn { background: #1c1c1c; color: #aaa; border: 1px solid #2d2d2d; padding: 10px 22px; border-radius: 25px; cursor: pointer; white-space: nowrap; font-weight: bold; transition: all 0.3s; }
         .cat-btn.active { background: #d4af37; color: #0d0d0d; border-color: #d4af37; }
 
-        /* قائمة الطعام وكروت الأطباق الرائعة */
         .section-title { color: #d4af37; font-size: 18px; margin-top: 20px; margin-bottom: 15px; padding-right: 8px; border-right: 3px solid #d4af37; font-weight: bold; }
-        .product-card { background: #141414; border: 1px solid #1f1f1f; border-radius: 14px; padding: 12px; margin-bottom: 15px; display: flex; align-items: center; gap: 15px; transition: all 0.3s; }
+        .product-card { background: #141414; border: 1px solid #1f1f1f; border-radius: 14px; padding: 12px; margin-bottom: 15px; display: flex; align-items: center; gap: 15px; }
         .product-img { width: 90px; height: 90px; border-radius: 10px; object-fit: cover; border: 1px solid #2d2d2d; }
         .product-details { flex: 1; }
-        .product-details h3 { color: #ffffff; font-size: 16px; margin: 0 0 6px 0; transition: color 0.3s; }
+        .product-details h3 { color: #ffffff; font-size: 16px; margin: 0 0 6px 0; }
         .product-details .price { color: #d4af37; font-weight: bold; font-size: 15px; }
 
-        /* أزرار التحكم بالكمية الذكية داخل الكارد */
         .qty-controls { display: flex; align-items: center; background: #1c1c1c; border: 1px solid #2d2d2d; border-radius: 20px; padding: 2px; }
         .btn-qty { background: #d4af37; color: #0d0d0d; border: none; width: 32px; height: 32px; border-radius: 50%; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; }
         .btn-qty:disabled { background: #444 !important; color: #888 !important; cursor: not-allowed; }
         .qty-val { width: 35px; text-align: center; font-weight: bold; color: #fff; font-size: 14px; }
 
-        /* شريط السلة السفلي الفخم العائم */
-        .cart-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #141414; border-top: 2px solid #d4af37; padding: 15px; display: flex; justify-content: space-between; align-items: center; z-index: 999; box-shadow: 0 -5px 15px rgba(0,0,0,0.5); }
+        .cart-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #141414; border-top: 2px solid #d4af37; padding: 15px; display: flex; justify-content: space-between; align-items: center; z-index: 999; }
         .cart-info { display: flex; flex-direction: column; }
         .cart-info .count { font-size: 12px; color: #888; }
         .cart-info .total { font-size: 18px; font-weight: bold; color: #d4af37; }
         .status-tracker { font-size: 12px; color: #27ae60; font-weight: bold; margin-top: 4px; }
-        .btn-view-cart { background: #d4af37; color: #0d0d0d; border: none; padding: 12px 26px; border-radius: 25px; font-weight: bold; cursor: pointer; font-size: 14px; transition: background 0.3s; }
+        .btn-view-cart { background: #d4af37; color: #0d0d0d; border: none; padding: 12px 26px; border-radius: 25px; font-weight: bold; cursor: pointer; font-size: 14px; }
 
-        /* النافذة المنبثقة لمراجعة السلة والملاحظات للمطبخ */
-        .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: flex-end; z-index: 1000; transition: all 0.3s; }
+        .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: flex-end; z-index: 1000; }
         .modal-content { background: #141414; border-top: 3px solid #d4af37; border-radius: 20px 20px 0 0; width: 100%; max-width: 500px; padding: 20px; box-sizing: border-box; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .modal-title { color: #d4af37; font-size: 18px; font-weight: bold; }
@@ -80,20 +75,26 @@
         .cart-items-list { overflow-y: auto; max-height: 200px; margin-bottom: 15px; }
         .cart-item-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #222; color: #fff; }
 
-        /* حقل الملاحظات الفخم المرسل للمطبخ */
         .notes-container { margin-top: 10px; margin-bottom: 15px; }
         .notes-label { display: block; color: #aaa; font-size: 13px; margin-bottom: 6px; }
         .notes-input { width: 100%; background: #1c1c1c; border: 1px solid #333; border-radius: 8px; padding: 10px; color: #fff; box-sizing: border-box; resize: none; font-family: sans-serif; }
-        .notes-input:focus { border-color: #d4af37; outline: none; }
 
-        .btn-submit-order { background: #27ae60; color: white; border: none; width: 100%; padding: 14px; font-size: 16px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: background 0.3s; }
-        
+        .btn-submit-order { background: #27ae60; color: white; border: none; width: 100%; padding: 14px; font-size: 16px; border-radius: 8px; font-weight: bold; cursor: pointer; }
         .backup-notice { background: #27ae60; color: white; padding: 8px; text-align: center; border-radius: 8px; margin-bottom: 15px; display: none; font-size: 13px; font-weight: bold; }
 
-        /* شاشة القفل عند الخروج أو التصفير التام لحماية المطعم */
         #lockScreen { position: fixed; top:0; left:0; width:100vw; height:100vh; background:#0a0a0a; z-index:10000; display:none; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:20px; box-sizing:border-box; }
         #lockScreen h2 { color:#d4af37; margin-bottom:15px; }
         #lockScreen p { color:#aaa; font-size:15px; }
+
+        /* ستايل لوحة المطبخ والكاشير والإحصائيات المدمجة */
+        .admin-panel { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #0f0f0f; z-index: 20000; display: none; flex-direction: column; padding: 20px; overflow-y: auto; }
+        .admin-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #d4af37; padding-bottom: 10px; margin-bottom: 20px; }
+        .order-card-admin { background: #1a1a1a; border: 1px solid #333; border-radius: 10px; padding: 15px; margin-bottom: 15px; }
+        .badge-status { padding: 4px 10px; border-radius: 5px; font-size: 12px; font-weight: bold; }
+        .stats-box { background: #1c1c1c; border: 1px solid #d4af37; border-radius: 10px; padding: 15px; margin-bottom: 25px; }
+        .stats-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px dashed #333; }
+        .btn-admin-action { background: #d4af37; color: #000; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-left: 5px; font-size: 12px; }
+        .btn-admin-danger { background: #c0392b; color: #fff; }
     </style>
 </head>
 <body>
@@ -105,7 +106,7 @@
 
     <div id="appContent">
         <header>
-            <button class="lang-btn">English</button>
+            <button class="lang-btn" onclick="openAdminGate()">⚙️ الإدارة</button>
             <h1>مطعمنا الفاخر</h1>
             <p>أهلاً وسهلاً بكم.. نكهات أصيلة وتجربة لا تُنسى</p>
             <div class="table-badge" id="tableBadge">طاولة رقم: جاري التحديد...</div>
@@ -131,12 +132,12 @@
                     <img src="https://images.unsplash.com/photo-1544025162-d76694265947?w=300" class="product-img">
                     <div class="product-details">
                         <h3>ستيك لحم بصلصة المشروم</h3>
-                        <div class="price">22,000 د.ع</div>
+                        <div class="price" id="price_steak">22,000 د.ع</div>
                     </div>
                     <div class="qty-controls">
-                        <button class="btn-qty" onclick="changeQty('ستيك لحم بصلصة المشروم', 22000, -1)">-</button>
+                        <button class="btn-qty" onclick="changeQty('steak', -1)">-</button>
                         <div class="qty-val" id="qty_steak">0</div>
-                        <button class="btn-qty" onclick="changeQty('ستيك لحم بصلصة المشروم', 22000, 1)">+</button>
+                        <button class="btn-qty" onclick="changeQty('steak', 1)">+</button>
                     </div>
                 </div>
             </div>
@@ -147,12 +148,12 @@
                     <img src="https://images.unsplash.com/photo-1541518763669-27fef04b14ea?w=300" class="product-img">
                     <div class="product-details">
                         <h3>قوزي لحم عراقي فاخر</h3>
-                        <div class="price">18,000 د.ع</div>
+                        <div class="price" id="price_quzi">18,000 د.ع</div>
                     </div>
                     <div class="qty-controls">
-                        <button class="btn-qty" onclick="changeQty('قوزي لحم عراقي فاخر', 18000, -1)">-</button>
+                        <button class="btn-qty" onclick="changeQty('quzi', -1)">-</button>
                         <div class="qty-val" id="qty_quzi">0</div>
-                        <button class="btn-qty" onclick="changeQty('قوزي لحم عراقي فاخر', 18000, 1)">+</button>
+                        <button class="btn-qty" onclick="changeQty('quzi', 1)">+</button>
                     </div>
                 </div>
             </div>
@@ -177,44 +178,50 @@
                 
                 <div class="notes-container">
                     <label class="notes-label">💡 هل لديك أي ملاحظات على الطلب؟</label>
-                    <textarea class="notes-input" id="orderNotes" rows="2" placeholder="بدون بصل، استواء كامل، زيادة صلصة..."></textarea>
+                    <textarea class="notes-input" id="orderNotes" rows="2" placeholder="بدون بصل، استواء كامل..."></textarea>
                 </div>
                 <button class="btn-submit-order" onclick="submitOrderLive()">🚀 إرسال الطلب للمطبخ والكاشير</button>
             </div>
         </div>
     </div>
 
+    <div class="admin-panel" id="adminPanel">
+        <div class="admin-header">
+            <h2 style="color: #d4af37; margin:0;">⚙️ شاشة المطبخ والكاشير الموحدة</h2>
+            <button class="btn-admin-danger" style="padding: 8px 15px; border-radius:5px; border:none; cursor:pointer;" onclick="closeAdminPanel()">إغلاق ❌</button>
+        </div>
+        
+        <div class="stats-box">
+            <h3 style="margin-top:0; color:#d4af37;">📊 الأطباق الأكثر مبيعاً (إحصائيات حية)</h3>
+            <div id="statsItemsContainer">جاري الحساب...</div>
+        </div>
+
+        <h3 style="color:#fff; border-right: 3px solid #27ae60; padding-right:8px;">🛎️ الطلبات الحالية والنداءات في الصالة</h3>
+        <div id="adminOrdersContainer">جاري تحميل الطلبات الحية...</div>
+    </div>
+
     <div id="toast-container" style="position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); z-index: 10001; width: 90%; max-width: 350px;"></div>
 
     <script>
-        // نظام التنبيهات الصوتية الحية التفاعلية للزبون والمطبخ
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let audioCtx;
+        function initAudio() { if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } }
+
         function playNotificationSound(type) {
+            initAudio(); if(!audioCtx) return;
             try {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                
+                if (audioCtx.state === 'suspended') { audioCtx.resume(); }
+                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+                osc.connect(gain); gain.connect(audioCtx.destination);
                 if (type === 'success') {
-                    // نغمة نجاح الطلب (ثنائية صاعدة مبهجة)
-                    osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
-                    osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.15); // A5
-                    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-                    osc.start();
-                    osc.stop(audioCtx.currentTime + 0.35);
-                } else if (type === 'waiter') {
-                    // نغمة جرس استدعاء النادل المترددة
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(660, audioCtx.currentTime); // E5
-                    gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
-                    osc.start();
-                    osc.stop(audioCtx.currentTime + 0.2);
+                    osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.15);
+                    gain.gain.setValueAtTime(0.3, audioCtx.currentTime); osc.start(); osc.stop(audioCtx.currentTime + 0.35);
+                } else {
+                    osc.type = 'triangle'; osc.frequency.setValueAtTime(660, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.4, audioCtx.currentTime); osc.start(); osc.stop(audioCtx.currentTime + 0.2);
                 }
-            } catch (e) { console.log("الصوت ينتظر تفاعل المستخدم أولاً"); }
+            } catch (e) { console.log(e); }
         }
 
-        // التحقق من الدخول الآمن الصارم عبر الباركود فقط لربط الطاولة
         const urlParams = new URLSearchParams(window.location.search);
         const hasTableParam = urlParams.has('table');
         const tableNumber = urlParams.get('table') || "1";
@@ -228,13 +235,18 @@
             localStorage.setItem('current_table', tableNumber);
         }
 
+        // قاعدة البيانات المحلية لتعريف المواد والأسعار الافتراضية
+        const productsDef = {
+            steak: { name: "ستيك لحم بصلصة المشروم", defaultPrice: 22000 },
+            quzi: { name: "قوزي لحم عراقي فاخر", defaultPrice: 18000 }
+        };
+
         let cart = [];
         let isOrderSent = false;
 
         window.addEventListener('DOMContentLoaded', () => {
             if (hasTableParam) {
-                checkProductsAvailability(); 
-                
+                syncProductsAndPricesLive(); 
                 const saved = localStorage.getItem(`backup_cart_${tableKey}`);
                 if (saved) {
                     cart = JSON.parse(saved);
@@ -247,64 +259,68 @@
             }
         });
 
-        // فحص حالة توفر الأطباق حياً من الفايرستور (Firestore) وتعطيل الكروت تلقائياً في حال نفاذ المادة
-        function checkProductsAvailability() {
+        // ميزة 1: مزامنة الأسعار وحالة التوفر حياً وديناميكياً من السيرفر
+        function syncProductsAndPricesLive() {
             db.collection("products_status").onSnapshot((snapshot) => {
                 snapshot.forEach((doc) => {
                     const productId = doc.id;
-                    const isAvailable = doc.data().available;
-                    const productCard = document.querySelector(`[data-id="${productId}"]`);
-                    
-                    if (productCard) {
-                        const qtyButtons = productCard.querySelectorAll('.btn-qty');
-                        const titleElement = productCard.querySelector('h3');
+                    const data = doc.data();
+                    if (productsDef[productId]) {
+                        // تحديث السعر إذا كان موجوداً بالسيرفر أو وضع الافتراضي لعدم التوقف
+                        productsDef[productId].price = data.price ? data.price : productsDef[productId].defaultPrice;
+                        const isAvailable = data.available !== undefined ? data.available : true;
                         
-                        if (!isAvailable) {
-                            productCard.style.opacity = "0.4";
-                            qtyButtons.forEach(btn => btn.disabled = true);
-                            if (titleElement && !titleElement.innerText.includes("(نافذ)")) {
-                                titleElement.style.color = "#ff4444";
-                                titleElement.innerText += " (نافذ) ❌";
-                            }
-                        } else {
-                            productCard.style.opacity = "1";
-                            qtyButtons.forEach(btn => btn.disabled = false);
-                            if (titleElement) {
-                                titleElement.style.color = "";
-                                titleElement.innerText = titleElement.innerText.replace(" (نافذ) ❌", "");
+                        const priceEl = document.getElementById(`price_${productId}`);
+                        if(priceEl) priceEl.innerText = `${productsDef[productId].price.toLocaleString()} د.ع`;
+
+                        const productCard = document.querySelector(`[data-id="${productId}"]`);
+                        if (productCard) {
+                            const qtyButtons = productCard.querySelectorAll('.btn-qty');
+                            const titleElement = productCard.querySelector('h3');
+                            if (!isAvailable) {
+                                productCard.style.opacity = "0.4";
+                                qtyButtons.forEach(btn => btn.disabled = true);
+                                if (titleElement && !titleElement.innerText.includes("(نافذ)")) {
+                                    titleElement.style.color = "#ff4444"; titleElement.innerText += " (نافذ) ❌";
+                                }
+                            } else {
+                                productCard.style.opacity = "1"; qtyButtons.forEach(btn => btn.disabled = false);
+                                if (titleElement) {
+                                    titleElement.style.color = ""; titleElement.innerText = titleElement.innerText.replace(" (نافذ) ❌", "");
+                                }
                             }
                         }
                     }
                 });
+                syncUI();
             });
         }
 
-        function changeQty(name, price, change) {
-            const item = cart.find(i => i.name === name);
+        function changeQty(id, change) {
+            initAudio();
+            const pDef = productsDef[id];
+            const currentPrice = pDef.price || pDef.defaultPrice;
+            const item = cart.find(i => i.id === id);
+            
             if (item) {
                 item.quantity += change;
-                if (item.quantity <= 0) cart = cart.filter(i => i.name !== name);
+                if (item.quantity <= 0) cart = cart.filter(i => i.id !== id);
             } else if (change > 0) {
-                cart.push({ name, price, quantity: 1 });
+                cart.push({ id, name: pDef.name, price: currentPrice, quantity: 1 });
             }
             localStorage.setItem(`backup_cart_${tableKey}`, JSON.stringify(cart));
             syncUI();
         }
 
         function syncUI() {
-            let totalItems = 0;
-            let totalPrice = 0;
-
+            let totalItems = 0; let totalPrice = 0;
             document.querySelectorAll('.qty-val').forEach(el => el.innerText = '0');
-
             cart.forEach(item => {
                 totalItems += item.quantity;
                 totalPrice += (item.price * item.quantity);
-                
-                if(item.name === "ستيك لحم بصلصة المشروم") document.getElementById('qty_steak').innerText = item.quantity;
-                if(item.name === "قوزي لحم عراقي فاخر") document.getElementById('qty_quzi').innerText = item.quantity;
+                const el = document.getElementById(`qty_${item.id}`);
+                if(el) el.innerText = item.quantity;
             });
-
             document.getElementById('cartCountLabel').innerText = `عدد العناصر: ${totalItems}`;
             document.getElementById('cartTotalLabel').innerText = `${totalPrice.toLocaleString()} د.ع`;
         }
@@ -312,10 +328,9 @@
         function toggleModal(show) {
             const modal = document.getElementById('cartModal');
             if(show) {
-                const list = document.getElementById('modalItemsList');
-                list.innerHTML = '';
+                const list = document.getElementById('modalItemsList'); list.innerHTML = '';
                 if (cart.length === 0) {
-                    list.innerHTML = '<p style="color:#666; text-align:center; font-weight:bold; padding:20px;">السلة خالية حالياً! اضغط (+) لإضافة أطباقك</p>';
+                    list.innerHTML = '<p style="color:#666; text-align:center; font-weight:bold; padding:20px;">السلة خالية حالياً!</p>';
                 } else {
                     cart.forEach(item => {
                         list.innerHTML += `
@@ -326,30 +341,20 @@
                     });
                 }
                 modal.style.display = 'flex';
-            } else {
-                modal.style.display = 'none';
-            }
+            } else { modal.style.display = 'none'; }
         }
 
-        // فلترة وعرض الأطباق حسب القسم المختار (التحكم الكامل بالمنيو)
         function filterCategory(cat) {
             document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-            if(window.event) window.event.target.classList.add('active');
-            
+            if(window.event && window.event.target) window.event.target.classList.add('active');
             document.querySelectorAll('.menu-section').forEach(section => {
                 const secCat = section.getAttribute('data-sec-cat');
-                if(cat === 'all' || secCat === cat) {
-                    section.style.display = 'block';
-                } else {
-                    section.style.display = 'none';
-                }
+                if(cat === 'all' || secCat === cat) { section.style.display = 'block'; } else { section.style.display = 'none'; }
             });
         }
 
-        // إرسال الطلب المباشر للمطبخ والكاشير وتفريغ وتصفير السلة فوراً عند النجاح
         function submitOrderLive() {
-            if (cart.length === 0) { showNotification("الرجاء إضافة أطباق إلى السلة أولاً!", "#ff4444"); return; }
-            
+            if (cart.length === 0) { showNotification("الرجاء إضافة أطباق أولاً!", "#ff4444"); return; }
             let total = cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
             let notes = document.getElementById('orderNotes').value;
 
@@ -363,82 +368,146 @@
                 notes: notes,
                 timestamp: Date.now()
             }).then(() => {
-                isOrderSent = true;
-                toggleModal(false);
-                playNotificationSound('success'); // تشغيل صوت النجاح التفاعلي
-                showNotification("🎉 تم إرسال طلبك مباشرة للمطبخ وجاري تجهيزه!", "#27ae60");
-                
-                // التفريغ الكامل والمحكم للسلة بعد إرسال وتأكيد الطلب للمطبخ
-                cart = [];
-                localStorage.removeItem(`backup_cart_${tableKey}`);
+                isOrderSent = true; toggleModal(false); playNotificationSound('success');
+                showNotification("🎉 تم إرسال طلبك للمطبخ وجاري تجهيزه!", "#27ae60");
+                cart = []; localStorage.removeItem(`backup_cart_${tableKey}`);
                 document.getElementById('backupNotice').style.display = 'none';
-                document.getElementById('orderNotes').value = '';
-                syncUI(); // تصفير واجهة المستخدم فوراً وبشكل حاسم
-            }).catch(() => {
-                showNotification("فشل الإرسال، تأكد من اتصال هاتفك بالإنترنت", "#ff4444");
-            });
+                document.getElementById('orderNotes').value = ''; syncUI();
+            }).catch(() => { showNotification("فشل الإرسال، تحقق من الاتصال", "#ff4444"); });
         }
 
-        // استدعاء النادل حياً لشاشة المطبخ والكاشير مع صوت تنبيهي
         function callWaiter() {
-            database.ref(`orders_system/${tableKey}`).update({
-                table: tableNumber,
-                waiter_requested: true
-            }).then(() => { 
-                playNotificationSound('waiter');
-                showNotification("🛎️ تم تنبيه النادل بنجاح، وهو في طريقه لطاولتك!", "#27ae60"); 
+            database.ref(`orders_system/${tableKey}`).update({ table: tableNumber, waiter_requested: true }).then(() => { 
+                playNotificationSound('waiter'); showNotification("🛎️ تم تنبيه النادل بنجاح!", "#27ae60"); 
             });
         }
 
-        // طلب الفاتورة للكاشير حياً مع تفعيل الصوت التنبيهي
         function callBillService() {
-            if(!isOrderSent) { showNotification("لا يمكنك طلب الفاتورة قبل إرسال طلباتك وطهيها أولاً!", "#ff4444"); return; }
-            
-            database.ref(`orders_system/${tableKey}`).update({
-                bill_requested: true
-            }).then(() => { 
-                playNotificationSound('waiter');
-                showNotification("📄 تم إرسال طلب طباعة وتجهيز الفاتورة للكاشير.", "#27ae60"); 
+            if(!isOrderSent) { showNotification("لا يمكنك طلب الفاتورة قبل الطلب أولاً!", "#ff4444"); return; }
+            database.ref(`orders_system/${tableKey}`).update({ bill_requested: true }).then(() => { 
+                playNotificationSound('waiter'); showNotification("📄 تم إرسال طلب الفاتورة للكاشير.", "#27ae60"); 
             });
         }
 
-        // مراقبة حية لحالة الطلب بالمطبخ + قفل المنيو وطرد العميل فور تصفير الحساب من الكاشير
         function listenToLiveStatusAndLock() {
             database.ref(`orders_system/${tableKey}`).on('value', (snapshot) => {
                 const data = snapshot.val();
                 const tracker = document.getElementById('liveStatusTracker');
                 const billBtn = document.getElementById('billBtn');
 
-                // التصفير السحابي: إذا مسح الكاشير الطاولة بعد الدفع، يتم قفل المنيو وطرده فوراً
                 if (!data) {
-                    tracker.innerText = "الحالة: تصفح المنيو";
-                    billBtn.style.opacity = "0.4";
-                    billBtn.style.cursor = "not-allowed";
-                    
+                    tracker.innerText = "الحالة: تصفح المنيو"; billBtn.style.opacity = "0.4"; billBtn.style.cursor = "not-allowed";
                     if (isOrderSent) {
                         localStorage.removeItem('current_table');
                         document.getElementById('lockScreen').style.display = 'flex';
                         document.getElementById('appContent').style.display = 'none';
                     }
-                    isOrderSent = false;
+                    isOrderSent = false; return;
+                }
+                tracker.innerText = `الحالة: ${data.status ? data.status.replace(/_/g, ' ') : 'قيد الانتظار'}`;
+                if (data.status && data.status !== "طلب_جديد") { billBtn.style.opacity = "1"; billBtn.style.cursor = "pointer"; isOrderSent = true; }
+            });
+        }
+
+        // ------------------ أجهزة الإدارة وشاشة المطبخ والإحصائيات ------------------
+        function openAdminGate() {
+            let pwd = prompt("الرجاء إدخال رمز دخول الإدارة المالي والمطبخ:");
+            if (pwd === "1234") { // يمكنك استبدال 1234 بأي رمز تريده
+                document.getElementById('adminPanel').style.display = 'flex';
+                listenToAllOrdersAdmin();
+            } else if (pwd !== null) { alert("⚠️ الرمز خاطئ! الدخول غير مصرح به."); }
+        }
+
+        function closeAdminPanel() { document.getElementById('adminPanel').style.display = 'none'; }
+
+        // ميزة 2 وميزة 3: المراقبة الكلية، شاشة المطبخ، وحساب الطبق الأكثر مبيعاً تلقائياً
+        function listenToAllOrdersAdmin() {
+            database.ref('orders_system').on('value', (snapshot) => {
+                const container = document.getElementById('adminOrdersContainer');
+                const statsContainer = document.getElementById('statsItemsContainer');
+                container.innerHTML = '';
+                const allData = snapshot.val();
+
+                if (!allData) {
+                    container.innerHTML = '<p style="color:#666; text-align:center; padding:20px;">📭 لا توجد طلبات أو تنبيهات نشطة حالياً في الصالة.</p>';
+                    statsContainer.innerHTML = 'لا توجد بيانات مبيعات حالية لحسابها.';
                     return;
                 }
 
-                tracker.innerText = `الحالة: ${data.status.replace(/_/g, ' ')}`;
-                if (data.status && data.status !== "طلب_جديد") {
-                    billBtn.style.opacity = "1";
-                    billBtn.style.cursor = "pointer";
-                    isOrderSent = true;
+                let productSalesCount = {};
+
+                for (let key in allData) {
+                    const order = allData[key];
+                    
+                    // حساب إحصائيات المبيعات حياً
+                    if(order.items && Array.isArray(order.items)) {
+                        order.items.forEach(item => {
+                            productSalesCount[item.name] = (productSalesCount[item.name] || 0) + item.quantity;
+                        });
+                    }
+
+                    // تصميم كارد المطبخ والكاشير لكل طاولة حياً
+                    let itemsHtml = '';
+                    if(order.items) {
+                        order.items.forEach(i => { itemsHtml += `<li> ${i.name} <b style="color:#d4af37;">(x${i.quantity})</b></li>`; });
+                    }
+
+                    let waiterBadge = order.waiter_requested ? `<span class="badge-status" style="background:#e67e22; color:#fff; margin-right:5px;">🛎️ يطلب النادل!</span>` : '';
+                    let billBadge = order.bill_requested ? `<span class="badge-status" style="background:#9b59b6; color:#fff; margin-right:5px;">🧾 يطلب الفاتورة!</span>` : '';
+
+                    container.innerHTML += `
+                        <div class="order-card-admin">
+                            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #333; padding-bottom:8px; margin-bottom:10px;">
+                                <span style="font-weight:bold; font-size:16px; color:#d4af37;">🍽️ طاولة رقم: ${order.table}</span>
+                                <div>
+                                    ${waiterBadge} ${billBadge}
+                                    <span class="badge-status" style="background:#27ae60;">${order.status ? order.status.replace(/_/g, ' ') : 'طلب جديد'}</span>
+                                </div>
+                            </div>
+                            <ul style="margin:0; padding-right:20px; color:#eee;">${itemsHtml}</ul>
+                            <p style="margin:10px 0 0 0; font-size:13px; color:#aaa;"><b>💡 الملاحظات للمطبخ:</b> ${order.notes ? order.notes : 'لا يوجد ملاحظات'}</p>
+                            <p style="margin:5px 0 10px 0; font-size:14px; color:#fff;"><b>💰 الحساب الإجمالي:</b> ${order.acc_total ? order.acc_total.toLocaleString() : 0} د.ع</p>
+                            
+                            <div style="margin-top:10px;">
+                                <button class="btn-admin-action" onclick="updateStatusAdmin('${key}', 'جاري_التجهيز')">👨‍🍳 تجهيز بالمطبخ</button>
+                                <button class="btn-admin-action" onclick="updateStatusAdmin('${key}', 'تم_الطهي_والتوصيل')">🚀 تم التوصيل</button>
+                                <button class="btn-admin-action btn-admin-danger" onclick="clearTableAdmin('${key}')">💳 دفع وتصفير الطاولة</button>
+                            </div>
+                        </div>
+                    `;
                 }
+
+                // عرض الإحصائيات حياً بعد ترتيب الأطباق من الأكثر مبيعاً للأقل
+                statsContainer.innerHTML = '';
+                let sortedSales = Object.entries(productSalesCount).sort((a,b) => b[1] - a[1]);
+                if(sortedSales.length === 0) { statsContainer.innerHTML = 'جاري تجميع البيانات...'; }
+                sortedSales.forEach(([name, qty], index) => {
+                    let medal = index === 0 ? "🏆 الأول مبيعاً" : `⭐ المركز ${index+1}`;
+                    statsContainer.innerHTML += `
+                        <div class="stats-item">
+                            <span>${medal}: <b>${name}</b></span>
+                            <span style="color:#27ae60; font-weight:bold;">تم طلبها ${qty} مرات</span>
+                        </div>
+                    `;
+                });
             });
+        }
+
+        function updateStatusAdmin(key, newStatus) {
+            database.ref(`orders_system/${key}`).update({ status: newStatus, waiter_requested: false });
+        }
+
+        function clearTableAdmin(key) {
+            if(confirm("هل أنت متأكد من استلام الحساب وتصفير الطاولة؟ (سيتم قفل شاشة الزبون تلقائياً)")) {
+                database.ref(`orders_system/${key}`).remove();
+            }
         }
 
         function showNotification(message, bgColor) {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
-            toast.style.cssText = `background:${bgColor}; color:#fff; padding:12px 20px; border-radius:15px; margin-top:10px; font-weight:bold; font-size:13px; text-align:center; box-shadow:0 4px 15px rgba(0,0,0,0.4); transition: all 0.3s ease;`;
-            toast.innerText = message;
-            container.appendChild(toast);
+            toast.style.cssText = `background:${bgColor}; color:#fff; padding:12px 20px; border-radius:15px; margin-top:10px; font-weight:bold; font-size:13px; text-align:center; box-shadow:0 4px 15px rgba(0,0,0,0.4);`;
+            toast.innerText = message; container.appendChild(toast);
             setTimeout(() => { toast.remove(); }, 4500);
         }
     </script>
