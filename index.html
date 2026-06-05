@@ -33,7 +33,7 @@
     </script>
 
     <style>
-        /* التصميم العام للمنيو الفاخر */
+        /* التصميم العام الفخم للمنيو */
         body { background-color: #0a0a0a; color: #fff; font-family: sans-serif; margin: 0; padding: 20px; padding-bottom: 120px; }
         header { text-align: center; margin-bottom: 30px; position: relative; }
         
@@ -43,7 +43,7 @@
         .btn-service { background: #1c1c1c; color: #fff; border: 1px solid #333; padding: 10px 18px; border-radius: 8px; font-size: 13px; cursor: pointer; margin: 5px; font-weight: bold; transition: all 0.3s; }
         .btn-service:active { background: #d4af37; color: #0d0d0d; }
 
-        /* شريط التبويب الدائم للأقسام */
+        /* شريط التبويب الدائم للأقسام للتحكم بالمنيو */
         .categories-nav { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 25px; }
         .categories-nav::-webkit-scrollbar { display: none; }
         .cat-btn { background: #1c1c1c; color: #aaa; border: 1px solid #2d2d2d; padding: 10px 22px; border-radius: 25px; cursor: pointer; white-space: nowrap; font-weight: bold; transition: all 0.3s; }
@@ -71,7 +71,7 @@
         .status-tracker { font-size: 12px; color: #27ae60; font-weight: bold; margin-top: 4px; }
         .btn-view-cart { background: #d4af37; color: #0d0d0d; border: none; padding: 12px 26px; border-radius: 25px; font-weight: bold; cursor: pointer; font-size: 14px; transition: background 0.3s; }
 
-        /* النافذة المنبثقة لمراجعة السلة والملاحظات */
+        /* النافذة المنبثقة لمراجعة السلة والملاحظات للمطبخ */
         .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: flex-end; z-index: 1000; transition: all 0.3s; }
         .modal-content { background: #141414; border-top: 3px solid #d4af37; border-radius: 20px 20px 0 0; width: 100%; max-width: 500px; padding: 20px; box-sizing: border-box; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
@@ -80,7 +80,7 @@
         .cart-items-list { overflow-y: auto; max-height: 200px; margin-bottom: 15px; }
         .cart-item-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #222; color: #fff; }
 
-        /* حقل الملاحظات الفخم */
+        /* حقل الملاحظات الفخم المرسل للمطبخ */
         .notes-container { margin-top: 10px; margin-bottom: 15px; }
         .notes-label { display: block; color: #aaa; font-size: 13px; margin-bottom: 6px; }
         .notes-input { width: 100%; background: #1c1c1c; border: 1px solid #333; border-radius: 8px; padding: 10px; color: #fff; box-sizing: border-box; resize: none; font-family: sans-serif; }
@@ -89,151 +89,165 @@
         .btn-submit-order { background: #27ae60; color: white; border: none; width: 100%; padding: 14px; font-size: 16px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: background 0.3s; }
         
         .backup-notice { background: #27ae60; color: white; padding: 8px; text-align: center; border-radius: 8px; margin-bottom: 15px; display: none; font-size: 13px; font-weight: bold; }
+
+        /* شاشة القفل عند الخروج أو التصفير التام لحماية المطعم */
+        #lockScreen { position: fixed; top:0; left:0; width:100vw; height:100vh; background:#0a0a0a; z-index:10000; display:none; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:20px; box-sizing:border-box; }
+        #lockScreen h2 { color:#d4af37; margin-bottom:15px; }
+        #lockScreen p { color:#aaa; font-size:15px; }
     </style>
 </head>
 <body>
 
-    <header>
-        <button class="lang-btn">English</button>
-        <h1>مطعمنا الفاخر</h1>
-        <p>أهلاً وسهلاً بكم.. نكهات أصيلة وتجربة لا تُنسى</p>
-        <div class="table-badge" id="tableBadge">طاولة رقم: جاري التحديد...</div>
-    </header>
-
-    <div class="backup-notice" id="backupNotice">⚠️ تم استعادة طلباتك المختارة تلقائياً لحمايتها من انقطاع الشبكة</div>
-
-    <div class="service-container" style="text-align: center; margin-bottom: 20px;">
-        <button class="btn-service" onclick="callWaiter()">🛎️ استدعاء النادل</button>
-        <button class="btn-service" id="billBtn" onclick="callBillService()">🧾 طلب الفاتورة</button>
+    <div id="lockScreen">
+        <h2>🔒 انتهت الجلسة الآمنة</h2>
+        <p>شكرًا لزيارتكم مطعمنا الفاخر.. للاستمرار أو للطلب مجددًا، يرجى مسح كود الـ QR المتواجد على طاولتك داخل الصالة.</p>
     </div>
 
-    <div class="categories-nav">
-        <button class="cat-btn active" onclick="filterCategory('all')">الكل</button>
-        <button class="cat-btn" onclick="filterCategory('western')">مأكولات غربية</button>
-        <button class="cat-btn" onclick="filterCategory('eastern')">مأكولات شرقية</button>
-        <button class="cat-btn" onclick="filterCategory('appetizers')">مقبلات</button>
-    </div>
+    <div id="appContent">
+        <header>
+            <button class="lang-btn">English</button>
+            <h1>مطعمنا الفاخر</h1>
+            <p>أهلاً وسهلاً بكم.. نكهات أصيلة وتجربة لا تُنسى</p>
+            <div class="table-badge" id="tableBadge">طاولة رقم: جاري التحديد...</div>
+        </header>
 
-    <div id="menuContainer">
-        <div class="menu-section" data-sec-cat="western">
-            <div class="section-title">مأكولات غربية</div>
-            <div class="product-card" data-category="western" data-id="steak">
-                <img src="https://images.unsplash.com/photo-1544025162-d76694265947?w=300" class="product-img">
-                <div class="product-details">
-                    <h3>ستيك لحم بصلصة المشروم</h3>
-                    <div class="price">22,000 د.ع</div>
+        <div class="backup-notice" id="backupNotice">⚠️ تم استعادة طلباتك المختارة تلقائياً لحمايتها من انقطاع الشبكة</div>
+
+        <div class="service-container" style="text-align: center; margin-bottom: 20px;">
+            <button class="btn-service" onclick="callWaiter()">🛎️ استدعاء النادل</button>
+            <button class="btn-service" id="billBtn" onclick="callBillService()">🧾 طلب الفاتورة</button>
+        </div>
+
+        <div class="categories-nav">
+            <button class="cat-btn active" onclick="filterCategory('all')">الكل</button>
+            <button class="cat-btn" onclick="filterCategory('western')">مأكولات غربية</button>
+            <button class="cat-btn" onclick="filterCategory('eastern')">مأكولات شرقية</button>
+        </div>
+
+        <div id="menuContainer">
+            <div class="menu-section" data-sec-cat="western">
+                <div class="section-title">مأكولات غربية</div>
+                <div class="product-card" data-category="western" data-id="steak">
+                    <img src="https://images.unsplash.com/photo-1544025162-d76694265947?w=300" class="product-img">
+                    <div class="product-details">
+                        <h3>ستيك لحم بصلصة المشروم</h3>
+                        <div class="price">22,000 د.ع</div>
+                    </div>
+                    <div class="qty-controls">
+                        <button class="btn-qty" onclick="changeQty('ستيك لحم بصلصة المشروم', 22000, -1)">-</button>
+                        <div class="qty-val" id="qty_steak">0</div>
+                        <button class="btn-qty" onclick="changeQty('ستيك لحم بصلصة المشروم', 22000, 1)">+</button>
+                    </div>
                 </div>
-                <div class="qty-controls">
-                    <button class="btn-qty" onclick="changeQty('ستيك لحم بصلصة المشروم', 22000, -1)">-</button>
-                    <div class="qty-val" id="qty_steak">0</div>
-                    <button class="btn-qty" onclick="changeQty('ستيك لحم بصلصة المشروم', 22000, 1)">+</button>
+            </div>
+
+            <div class="menu-section" data-sec-cat="eastern">
+                <div class="section-title">مأكولات شرقية</div>
+                <div class="product-card" data-category="eastern" data-id="quzi">
+                    <img src="https://images.unsplash.com/photo-1541518763669-27fef04b14ea?w=300" class="product-img">
+                    <div class="product-details">
+                        <h3>قوزي لحم عراقي فاخر</h3>
+                        <div class="price">18,000 د.ع</div>
+                    </div>
+                    <div class="qty-controls">
+                        <button class="btn-qty" onclick="changeQty('قوزي لحم عراقي فاخر', 18000, -1)">-</button>
+                        <div class="qty-val" id="qty_quzi">0</div>
+                        <button class="btn-qty" onclick="changeQty('قوزي لحم عراقي فاخر', 18000, 1)">+</button>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="menu-section" data-sec-cat="eastern">
-            <div class="section-title">مأكولات شرقية</div>
-            <div class="product-card" data-category="eastern" data-id="quzi">
-                <img src="https://images.unsplash.com/photo-1541518763669-27fef04b14ea?w=300" class="product-img">
-                <div class="product-details">
-                    <h3>قوزي لحم عراقي فاخر</h3>
-                    <div class="price">18,000 د.ع</div>
-                </div>
-                <div class="qty-controls">
-                    <button class="btn-qty" onclick="changeQty('قوزي لحم عراقي فاخر', 18000, -1)">-</button>
-                    <div class="qty-val" id="qty_quzi">0</div>
-                    <button class="btn-qty" onclick="changeQty('قوزي لحم عراقي فاخر', 18000, 1)">+</button>
-                </div>
+        <div class="cart-bar">
+            <div class="cart-info">
+                <span class="count" id="cartCountLabel">عدد العناصر: 0</span>
+                <span class="total" id="cartTotalLabel">0 د.ع</span>
+                <span class="status-tracker" id="liveStatusTracker">الحالة: تصفح المنيو</span>
             </div>
+            <button class="btn-view-cart" onclick="toggleModal(true)">عرض السلة 🛒</button>
         </div>
-    </div>
 
-    <div class="cart-bar">
-        <div class="cart-info">
-            <span class="count" id="cartCountLabel">عدد العناصر: 0</span>
-            <span class="total" id="cartTotalLabel">0 د.ع</span>
-            <span class="status-tracker" id="liveStatusTracker">الحالة: تصفح المنيو</span>
-        </div>
-        <button class="btn-view-cart" onclick="toggleModal(true)">عرض السلة 🛒</button>
-    </div>
-
-    <div class="modal" id="cartModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span class="modal-title">🛒 تأكيد أطباقك المختارة</span>
-                <span class="close-modal" onclick="toggleModal(false)">&times;</span>
+        <div class="modal" id="cartModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <span class="modal-title">🛒 تأكيد أطباقك المختارة</span>
+                    <span class="close-modal" onclick="toggleModal(false)">&times;</span>
+                </div>
+                <div class="cart-items-list" id="modalItemsList"></div>
+                
+                <div class="notes-container">
+                    <label class="notes-label">💡 هل لديك أي ملاحظات على الطلب؟</label>
+                    <textarea class="notes-input" id="orderNotes" rows="2" placeholder="بدون بصل، استواء كامل، زيادة صلصة..."></textarea>
+                </div>
+                <button class="btn-submit-order" onclick="submitOrderLive()">🚀 إرسال الطلب للمطبخ والكاشير</button>
             </div>
-            <div class="cart-items-list" id="modalItemsList"></div>
-            
-            <div class="notes-container">
-                <label class="notes-label">💡 هل لديك أي ملاحظات على الطلب؟</label>
-                <textarea class="notes-input" id="orderNotes" rows="2" placeholder="بدون بصل، استواء كامل، زيادة صلصة..."></textarea>
-            </div>
-            <button class="btn-submit-order" onclick="submitOrderLive()">🚀 إرسال الطلب للمطبخ والكاشير</button>
         </div>
     </div>
 
     <div id="toast-container" style="position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); z-index: 10001; width: 90%; max-width: 350px;"></div>
 
     <script>
-        // إحداثيات موقع مطعمك الدقيقة (قم بضبطها لاحقاً لتطابق مطعمك ملم بملم)
-        const restaurantLat = 36.34;
-        const restaurantLng = 43.13;
-        const maxDistance = 0.05; // 50 متراً دائرياً حول المطعم
-
-        // دالة الـ GPS الصارمة لحماية الطلبات من الخارج
-        function checkLocationAndExecute(callback) {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(function(position) {
-                    const userLat = position.coords.latitude;
-                    const userLng = position.coords.longitude;
-
-                    const R = 6371; 
-                    const dLat = (userLat - restaurantLat) * Math.PI / 180;
-                    const dLng = (userLng - restaurantLng) * Math.PI / 180;
-                    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                              Math.cos(restaurantLat * Math.PI / 180) * Math.cos(userLat * Math.PI / 180) * Math.sin(dLng/2) * Math.sin(dLng/2);
-                    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-                    const distance = R * c; 
-
-                    if (distance <= maxDistance) {
-                        callback(); 
-                    } else {
-                        showNotification("عذرًا، أنت خارج نطاق المطعم! لا يمكن إرسال الطلبات إلا من الداخل.", "#ff4444");
-                    }
-                }, function(error) {
-                    showNotification("تنبيه أمني: يرجى تفعيل نظام تحديد الموقع (GPS) في هاتفك للطلب من الطاولة.", "#ff4444");
-                }, { enableHighAccuracy: true });
-            } else {
-                showNotification("متصفحك لا يدعم خاصية تحديد الموقع الجغرافي.", "#ff4444");
-            }
+        // نظام التنبيهات الصوتية الحية التفاعلية للزبون والمطبخ
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playNotificationSound(type) {
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                if (type === 'success') {
+                    // نغمة نجاح الطلب (ثنائية صاعدة مبهجة)
+                    osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+                    osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.15); // A5
+                    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.35);
+                } else if (type === 'waiter') {
+                    // نغمة جرس استدعاء النادل المترددة
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(660, audioCtx.currentTime); // E5
+                    gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.2);
+                }
+            } catch (e) { console.log("الصوت ينتظر تفاعل المستخدم أولاً"); }
         }
 
-        // قراءة رقم الطاولة الآمن من الرابط وتثبيته في المتصفح
+        // التحقق من الدخول الآمن الصارم عبر الباركود فقط لربط الطاولة
         const urlParams = new URLSearchParams(window.location.search);
+        const hasTableParam = urlParams.has('table');
         const tableNumber = urlParams.get('table') || "1";
-        document.getElementById('tableBadge').innerText = `طاولة رقم: ${tableNumber}`;
-        localStorage.setItem('current_table', tableNumber);
+        const tableKey = `table_${tableNumber}`;
+
+        if (!hasTableParam) {
+            document.getElementById('lockScreen').style.display = 'flex';
+            document.getElementById('appContent').style.display = 'none';
+        } else {
+            document.getElementById('tableBadge').innerText = `طاولة رقم: ${tableNumber}`;
+            localStorage.setItem('current_table', tableNumber);
+        }
 
         let cart = [];
-        const tableKey = `table_${tableNumber}`;
         let isOrderSent = false;
 
         window.addEventListener('DOMContentLoaded', () => {
-            checkProductsAvailability(); 
-            
-            const saved = localStorage.getItem(`backup_cart_${tableKey}`);
-            if (saved) {
-                cart = JSON.parse(saved);
-                if (cart.length > 0) {
-                    document.getElementById('backupNotice').style.display = 'block';
-                    syncUI();
+            if (hasTableParam) {
+                checkProductsAvailability(); 
+                
+                const saved = localStorage.getItem(`backup_cart_${tableKey}`);
+                if (saved) {
+                    cart = JSON.parse(saved);
+                    if (cart.length > 0) {
+                        document.getElementById('backupNotice').style.display = 'block';
+                        syncUI();
+                    }
                 }
+                listenToLiveStatusAndLock(); 
             }
-            listenToLiveStatus(); 
         });
 
-        // فحص حالة توفر الأطباق حياً من الفايرستور (Firestore)
+        // فحص حالة توفر الأطباق حياً من الفايرستور (Firestore) وتعطيل الكروت تلقائياً في حال نفاذ المادة
         function checkProductsAvailability() {
             db.collection("products_status").onSnapshot((snapshot) => {
                 snapshot.forEach((doc) => {
@@ -317,7 +331,7 @@
             }
         }
 
-        // دالة الفلترة الذكية للأقسام (تم إصلاحها وربطها بالكامل لتخفي وتظهر العناوين والكروت معاً)
+        // فلترة وعرض الأطباق حسب القسم المختار (التحكم الكامل بالمنيو)
         function filterCategory(cat) {
             document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
             if(window.event) window.event.target.classList.add('active');
@@ -332,72 +346,80 @@
             });
         }
 
+        // إرسال الطلب المباشر للمطبخ والكاشير وتفريغ وتصفير السلة فوراً عند النجاح
         function submitOrderLive() {
             if (cart.length === 0) { showNotification("الرجاء إضافة أطباق إلى السلة أولاً!", "#ff4444"); return; }
             
-            checkLocationAndExecute(() => {
-                let total = cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
-                let notes = document.getElementById('orderNotes').value;
+            let total = cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+            let notes = document.getElementById('orderNotes').value;
 
-                database.ref(`orders_system/${tableKey}`).set({
-                    table: tableNumber,
-                    items: cart,
-                    acc_total: total,
-                    status: "طلب_جديد",
-                    waiter_requested: false,
-                    bill_requested: false,
-                    notes: notes,
-                    timestamp: Date.now()
-                }).then(() => {
-                    isOrderSent = true;
-                    toggleModal(false);
-                    showNotification("🎉 تم إرسال طلبك مباشرة للمطبخ وجاري تجهيزه!", "#27ae60");
-                    cart = [];
-                    localStorage.removeItem(`backup_cart_${tableKey}`);
-                    syncUI();
-                }).catch(() => {
-                    showNotification("فشل الإرسال، تأكد من اتصال هاتفك بالإنترنت", "#ff4444");
-                });
+            database.ref(`orders_system/${tableKey}`).set({
+                table: tableNumber,
+                items: cart,
+                acc_total: total,
+                status: "طلب_جديد",
+                waiter_requested: false,
+                bill_requested: false,
+                notes: notes,
+                timestamp: Date.now()
+            }).then(() => {
+                isOrderSent = true;
+                toggleModal(false);
+                playNotificationSound('success'); // تشغيل صوت النجاح التفاعلي
+                showNotification("🎉 تم إرسال طلبك مباشرة للمطبخ وجاري تجهيزه!", "#27ae60");
+                
+                // التفريغ الكامل والمحكم للسلة بعد إرسال وتأكيد الطلب للمطبخ
+                cart = [];
+                localStorage.removeItem(`backup_cart_${tableKey}`);
+                document.getElementById('backupNotice').style.display = 'none';
+                document.getElementById('orderNotes').value = '';
+                syncUI(); // تصفير واجهة المستخدم فوراً وبشكل حاسم
+            }).catch(() => {
+                showNotification("فشل الإرسال، تأكد من اتصال هاتفك بالإنترنت", "#ff4444");
             });
         }
 
+        // استدعاء النادل حياً لشاشة المطبخ والكاشير مع صوت تنبيهي
         function callWaiter() {
-            checkLocationAndExecute(() => {
-                database.ref(`orders_system/${tableKey}`).update({
-                    table: tableNumber,
-                    waiter_requested: true
-                }).then(() => { 
-                    showNotification("🛎️ تم تنبيه النادل بنجاح، وهو في طريقه لطاولتك!", "#27ae60"); 
-                }).catch(() => {
-                    showNotification("حدث خطأ، يرجى المحاولة مرة أخرى", "#ff4444");
-                });
+            database.ref(`orders_system/${tableKey}`).update({
+                table: tableNumber,
+                waiter_requested: true
+            }).then(() => { 
+                playNotificationSound('waiter');
+                showNotification("🛎️ تم تنبيه النادل بنجاح، وهو في طريقه لطاولتك!", "#27ae60"); 
             });
         }
 
+        // طلب الفاتورة للكاشير حياً مع تفعيل الصوت التنبيهي
         function callBillService() {
             if(!isOrderSent) { showNotification("لا يمكنك طلب الفاتورة قبل إرسال طلباتك وطهيها أولاً!", "#ff4444"); return; }
             
-            checkLocationAndExecute(() => {
-                database.ref(`orders_system/${tableKey}`).update({
-                    bill_requested: true
-                }).then(() => { 
-                    showNotification("📄 تم إرسال طلب طباعة وتجهيز الفاتورة للكاشير.", "#27ae60"); 
-                }).catch(() => {
-                    showNotification("فشل طلب الفاتورة، تفقد الشبكة", "#ff4444");
-                });
+            database.ref(`orders_system/${tableKey}`).update({
+                bill_requested: true
+            }).then(() => { 
+                playNotificationSound('waiter');
+                showNotification("📄 تم إرسال طلب طباعة وتجهيز الفاتورة للكاشير.", "#27ae60"); 
             });
         }
 
-        function listenToLiveStatus() {
+        // مراقبة حية لحالة الطلب بالمطبخ + قفل المنيو وطرد العميل فور تصفير الحساب من الكاشير
+        function listenToLiveStatusAndLock() {
             database.ref(`orders_system/${tableKey}`).on('value', (snapshot) => {
                 const data = snapshot.val();
                 const tracker = document.getElementById('liveStatusTracker');
                 const billBtn = document.getElementById('billBtn');
 
-                if(!data) {
+                // التصفير السحابي: إذا مسح الكاشير الطاولة بعد الدفع، يتم قفل المنيو وطرده فوراً
+                if (!data) {
                     tracker.innerText = "الحالة: تصفح المنيو";
                     billBtn.style.opacity = "0.4";
                     billBtn.style.cursor = "not-allowed";
+                    
+                    if (isOrderSent) {
+                        localStorage.removeItem('current_table');
+                        document.getElementById('lockScreen').style.display = 'flex';
+                        document.getElementById('appContent').style.display = 'none';
+                    }
                     isOrderSent = false;
                     return;
                 }
