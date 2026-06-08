@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مطعمنا الفاخر - المنيو الذكي المتكامل</title>
+    <title>مطعمنا الفاخر - المنيو الذكي ونظام الولاء</title>
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="apple-touch-icon" href="logo.png">
     <link rel="manifest" href="manifest.json">
@@ -60,6 +60,13 @@
         .btn-qty:disabled { background: #444 !important; color: #888 !important; cursor: not-allowed; }
         .qty-val { width: 35px; text-align: center; font-weight: bold; color: #fff; font-size: 14px; }
 
+        /* ستايل كارت نظام الولاء الصيني التفاعلي للزبون */
+        .loyalty-card { background: linear-gradient(135deg, #1e1b10 0%, #111111 100%); border: 1px dashed #d4af37; border-radius: 15px; padding: 15px; margin: 15px 0; display: none; box-shadow: 0 4px 15px rgba(212,175,55,0.1); }
+        .loyalty-title { display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 14px; color: #d4af37; margin-bottom: 10px; }
+        .progress-container { background: #222; border-radius: 10px; height: 14px; width: 100%; position: relative; overflow: hidden; border: 1px solid #333; }
+        .progress-bar-fill { background: linear-gradient(90deg, #d4af37, #f39c12); height: 100%; width: 0%; transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+        .loyalty-status-text { font-size: 12px; color: #aaa; margin-top: 8px; display: block; text-align: left; }
+
         .cart-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #141414; border-top: 2px solid #d4af37; padding: 15px; display: flex; justify-content: space-between; align-items: center; z-index: 999; }
         .cart-info { display: flex; flex-direction: column; }
         .cart-info .count { font-size: 12px; color: #888; }
@@ -86,15 +93,20 @@
         #lockScreen h2 { color:#d4af37; margin-bottom:15px; }
         #lockScreen p { color:#aaa; font-size:15px; }
 
-        /* ستايل لوحة المطبخ والكاشير والإحصائيات المدمجة */
+        /* ستايل لوحة المطبخ والكاشير مع تحكم الولاء الذكي المطور */
         .admin-panel { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #0f0f0f; z-index: 20000; display: none; flex-direction: column; padding: 20px; overflow-y: auto; }
         .admin-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #d4af37; padding-bottom: 10px; margin-bottom: 20px; }
         .order-card-admin { background: #1a1a1a; border: 1px solid #333; border-radius: 10px; padding: 15px; margin-bottom: 15px; }
         .badge-status { padding: 4px 10px; border-radius: 5px; font-size: 12px; font-weight: bold; }
-        .stats-box { background: #1c1c1c; border: 1px solid #d4af37; border-radius: 10px; padding: 15px; margin-bottom: 25px; }
+        .stats-box { background: #1c1c1c; border: 1px solid #333; border-radius: 10px; padding: 15px; margin-bottom: 20px; }
         .stats-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px dashed #333; }
         .btn-admin-action { background: #d4af37; color: #000; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-left: 5px; font-size: 12px; }
         .btn-admin-danger { background: #c0392b; color: #fff; }
+
+        .admin-input-group { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+        .admin-input-group label { width: 100%; color: #aaa; font-size: 13px; margin-bottom: 2px; }
+        .admin-field { background: #141414; border: 1px solid #444; padding: 8px; color: #fff; border-radius: 6px; flex: 1; min-width: 120px; }
+        .btn-toggle-loyalty { padding: 8px 16px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -111,6 +123,17 @@
             <p>أهلاً وسهلاً بكم.. نكهات أصيلة وتجربة لا تُنسى</p>
             <div class="table-badge" id="tableBadge">طاولة رقم: جاري التحديد...</div>
         </header>
+
+        <div class="loyalty-card" id="loyaltyCustomerCard">
+            <div class="loyalty-title">
+                <span>🎁 نظام المكافآت التفاعلي لعملائنا</span>
+                <span id="loyaltyRatioText" style="color: #fff;">0 / 0</span>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar-fill" id="loyaltyProgressBar"></div>
+            </div>
+            <span class="loyalty-status-text" id="loyaltyRewardDescription">جاري تحميل المكافأة الحالية...</span>
+        </div>
 
         <div class="backup-notice" id="backupNotice">⚠️ تم استعادة طلباتك المختارة تلقائياً لحمايتها من انقطاع الشبكة</div>
 
@@ -177,7 +200,7 @@
                 <div class="cart-items-list" id="modalItemsList"></div>
                 
                 <div class="notes-container">
-                    <label class="notes-label">💡 هل لديك أي ملاحظات على الطلب؟</label>
+                    <label class="notes-label">💡 هل لديك أي ملاحظات على الطلب?</label>
                     <textarea class="notes-input" id="orderNotes" rows="2" placeholder="بدون بصل، استواء كامل..."></textarea>
                 </div>
                 <button class="btn-submit-order" onclick="submitOrderLive()">🚀 إرسال الطلب للمطبخ والكاشير</button>
@@ -187,8 +210,26 @@
 
     <div class="admin-panel" id="adminPanel">
         <div class="admin-header">
-            <h2 style="color: #d4af37; margin:0;">⚙️ شاشة المطبخ والكاشير الموحدة</h2>
+            <h2 style="color: #d4af37; margin:0;">⚙️ شاشة الإدارة والمطبخ الشاملة</h2>
             <button class="btn-admin-danger" style="padding: 8px 15px; border-radius:5px; border:none; cursor:pointer;" onclick="closeAdminPanel()">إغلاق ❌</button>
+        </div>
+        
+        <div class="stats-box" style="border-color: #f39c12;">
+            <h3 style="margin-top:0; color:#f39c12; display:flex; justify-content:space-between; align-items:center;">
+                <span>🛠️ إعدادات نظام الولاء والمكافآت (الصيني)</span>
+                <button id="adminLoyaltyToggleBtn" class="btn-toggle-loyalty" onclick="toggleLoyaltySystemServer()">جاري الفحص...</button>
+            </h3>
+            <div class="admin-input-group">
+                <div style="flex:1; min-width:140px;">
+                    <label>🎯 كم نقطة يجمع الزبون للحصول على الهدية؟</label>
+                    <input type="number" id="adminLoyaltyPointsInput" class="admin-field" min="1" value="10">
+                </div>
+                <div style="flex:2; min-width:180px;">
+                    <label>🎁 ما هي الجائزة الحالية للزبون عند اكتمال النقاط؟</label>
+                    <input type="text" id="adminLoyaltyGiftInput" class="admin-field" placeholder="مثال: طبق حلوى نوتيلا أو عصير موهيتو بارد">
+                </div>
+            </div>
+            <button class="btn-admin-action" style="background:#f39c12; width:100%; padding:10px; font-size:14px;" onclick="saveLoyaltySettingsServer()">💾 حفظ وتطبيق إعدادات المكافآت فوراً</button>
         </div>
         
         <div class="stats-box">
@@ -235,7 +276,6 @@
             localStorage.setItem('current_table', tableNumber);
         }
 
-        // قاعدة البيانات المحلية لتعريف المواد والأسعار الافتراضية
         const productsDef = {
             steak: { name: "ستيك لحم بصلصة المشروم", defaultPrice: 22000 },
             quzi: { name: "قوزي لحم عراقي فاخر", defaultPrice: 18000 }
@@ -243,10 +283,12 @@
 
         let cart = [];
         let isOrderSent = false;
+        let globalLoyaltyEnabled = false;
 
         window.addEventListener('DOMContentLoaded', () => {
             if (hasTableParam) {
                 syncProductsAndPricesLive(); 
+                listenToLoyaltySystemCustomer();
                 const saved = localStorage.getItem(`backup_cart_${tableKey}`);
                 if (saved) {
                     cart = JSON.parse(saved);
@@ -259,14 +301,12 @@
             }
         });
 
-        // ميزة 1: مزامنة الأسعار وحالة التوفر حياً وديناميكياً من السيرفر
         function syncProductsAndPricesLive() {
             db.collection("products_status").onSnapshot((snapshot) => {
                 snapshot.forEach((doc) => {
                     const productId = doc.id;
                     const data = doc.data();
                     if (productsDef[productId]) {
-                        // تحديث السعر إذا كان موجوداً بالسيرفر أو وضع الافتراضي لعدم التوقف
                         productsDef[productId].price = data.price ? data.price : productsDef[productId].defaultPrice;
                         const isAvailable = data.available !== undefined ? data.available : true;
                         
@@ -278,8 +318,7 @@
                             const qtyButtons = productCard.querySelectorAll('.btn-qty');
                             const titleElement = productCard.querySelector('h3');
                             if (!isAvailable) {
-                                productCard.style.opacity = "0.4";
-                                qtyButtons.forEach(btn => btn.disabled = true);
+                                productCard.style.opacity = "0.4"; qtyButtons.forEach(btn => btn.disabled = true);
                                 if (titleElement && !titleElement.innerText.includes("(نافذ)")) {
                                     titleElement.style.color = "#ff4444"; titleElement.innerText += " (نافذ) ❌";
                                 }
@@ -293,6 +332,41 @@
                     }
                 });
                 syncUI();
+            });
+        }
+
+        function listenToLoyaltySystemCustomer() {
+            database.ref('loyalty_settings/config').on('value', (configSnapshot) => {
+                const config = configSnapshot.val();
+                const cardEl = document.getElementById('loyaltyCustomerCard');
+                
+                if (!config || config.enabled === false) {
+                    globalLoyaltyEnabled = false;
+                    cardEl.style.display = 'none'; 
+                    return;
+                }
+
+                globalLoyaltyEnabled = true;
+                cardEl.style.display = 'block'; 
+
+                const targetPoints = config.target_points || 10;
+                const giftName = config.gift_name || "عصير منعش مجاناً";
+
+                database.ref(`loyalty_points/${tableKey}`).on('value', (pointsSnapshot) => {
+                    const currentPoints = pointsSnapshot.val() || 0;
+                    
+                    document.getElementById('loyaltyRatioText').innerText = `${currentPoints} / ${targetPoints}`;
+                    
+                    let percentage = (currentPoints / targetPoints) * 100;
+                    if(percentage > 100) percentage = 100;
+                    document.getElementById('loyaltyProgressBar').style.width = `${percentage}%`;
+
+                    if (currentPoints >= targetPoints) {
+                        document.getElementById('loyaltyRewardDescription').innerHTML = `🎉 🎉 <b>تهانينا! لقد اكتملت نقاطك!</b> جائزتك الحالية جاهزة: <span style="color:#d4af37; font-weight:bold;">${giftName}</span> (أخبر النادل عند وصوله لتسليمها)`;
+                    } else {
+                        document.getElementById('loyaltyRewardDescription').innerText = `تتبقّى لك ${targetPoints - currentPoints} نقاط لتكسب: ${giftName} 🎁`;
+                    }
+                });
             });
         }
 
@@ -316,10 +390,8 @@
             let totalItems = 0; let totalPrice = 0;
             document.querySelectorAll('.qty-val').forEach(el => el.innerText = '0');
             cart.forEach(item => {
-                totalItems += item.quantity;
-                totalPrice += (item.price * item.quantity);
-                const el = document.getElementById(`qty_${item.id}`);
-                if(el) el.innerText = item.quantity;
+                totalItems += item.quantity; totalPrice += (item.price * item.quantity);
+                const el = document.getElementById(`qty_${item.id}`); if(el) el.innerText = item.quantity;
             });
             document.getElementById('cartCountLabel').innerText = `عدد العناصر: ${totalItems}`;
             document.getElementById('cartTotalLabel').innerText = `${totalPrice.toLocaleString()} د.ع`;
@@ -359,17 +431,18 @@
             let notes = document.getElementById('orderNotes').value;
 
             database.ref(`orders_system/${tableKey}`).set({
-                table: tableNumber,
-                items: cart,
-                acc_total: total,
-                status: "طلب_جديد",
-                waiter_requested: false,
-                bill_requested: false,
-                notes: notes,
-                timestamp: Date.now()
+                table: tableNumber, items: cart, acc_total: total, status: "طلب_جديد",
+                waiter_requested: false, bill_requested: false, notes: notes, timestamp: Date.now()
             }).then(() => {
                 isOrderSent = true; toggleModal(false); playNotificationSound('success');
                 showNotification("🎉 تم إرسال طلبك للمطبخ وجاري تجهيزه!", "#27ae60");
+
+                if (globalLoyaltyEnabled) {
+                    database.ref(`loyalty_points/${tableKey}`).transaction((currentPoints) => {
+                        return (currentPoints || 0) + 1;
+                    });
+                }
+
                 cart = []; localStorage.removeItem(`backup_cart_${tableKey}`);
                 document.getElementById('backupNotice').style.display = 'none';
                 document.getElementById('orderNotes').value = ''; syncUI();
@@ -409,44 +482,75 @@
             });
         }
 
-        // ------------------ أجهزة الإدارة وشاشة المطبخ والإحصائيات ------------------
+        // ------------------ أجهزة الإدارة وشاشة المطبخ ونظام الولاء ------------------
+        let currentAdminLoyaltyStatus = false;
+
         function openAdminGate() {
             let pwd = prompt("الرجاء إدخال رمز دخول الإدارة المالي والمطبخ:");
-            if (pwd === "1234") { // يمكنك استبدال 1234 بأي رمز تريده
+            if (pwd === "1234") {
                 document.getElementById('adminPanel').style.display = 'flex';
                 listenToAllOrdersAdmin();
+                listenToLoyaltySettingsAdmin();
             } else if (pwd !== null) { alert("⚠️ الرمز خاطئ! الدخول غير مصرح به."); }
         }
 
         function closeAdminPanel() { document.getElementById('adminPanel').style.display = 'none'; }
 
-        // ميزة 2 وميزة 3: المراقبة الكلية، شاشة المطبخ، وحساب الطبق الأكثر مبيعاً تلقائياً
+        function listenToLoyaltySettingsAdmin() {
+            database.ref('loyalty_settings/config').on('value', (snapshot) => {
+                const config = snapshot.val() || { enabled: false, target_points: 10, gift_name: "عصير مجاني" };
+                currentAdminLoyaltyStatus = config.enabled;
+                
+                const btn = document.getElementById('adminLoyaltyToggleBtn');
+                if (currentAdminLoyaltyStatus) {
+                    btn.innerText = "🟢 مفعّل الآن (اضغط للإيقاف)"; btn.style.background = "#27ae60"; btn.style.color = "#fff";
+                } else {
+                    btn.innerText = "🔴 متوقف حالياً (اضغط للتفعيل)"; btn.style.background = "#c0392b"; btn.style.color = "#fff";
+                }
+
+                document.getElementById('adminLoyaltyPointsInput').value = config.target_points || 10;
+                document.getElementById('adminLoyaltyGiftInput').value = config.gift_name || "";
+            });
+        }
+
+        function toggleLoyaltySystemServer() {
+            currentAdminLoyaltyStatus = !currentAdminLoyaltyStatus;
+            database.ref('loyalty_settings/config').update({ enabled: currentAdminLoyaltyStatus }).then(() => {
+                showNotification(currentAdminLoyaltyStatus ? "🚀 تم تفعيل نظام النقاط وظهر للزبائن حياً!" : "🔒 تم إيقاف نظام النقاط واختفى من عند الزبائن!", currentAdminLoyaltyStatus ? "#27ae60" : "#c0392b");
+            });
+        }
+
+        function saveLoyaltySettingsServer() {
+            const pts = parseInt(document.getElementById('adminLoyaltyPointsInput').value) || 10;
+            const gift = document.getElementById('adminLoyaltyGiftInput').value || "وجبة مجانية زكية";
+            
+            database.ref('loyalty_settings/config').update({
+                target_points: pts,
+                gift_name: gift
+            }).then(() => {
+                showNotification("💾 تم حفظ وتطبيق شروط الجائزة وعدد النقاط بنجاح!", "#27ae60");
+            });
+        }
+
         function listenToAllOrdersAdmin() {
             database.ref('orders_system').on('value', (snapshot) => {
                 const container = document.getElementById('adminOrdersContainer');
                 const statsContainer = document.getElementById('statsItemsContainer');
-                container.innerHTML = '';
-                const allData = snapshot.val();
+                container.innerHTML = ''; const allData = snapshot.val();
 
                 if (!allData) {
                     container.innerHTML = '<p style="color:#666; text-align:center; padding:20px;">📭 لا توجد طلبات أو تنبيهات نشطة حالياً في الصالة.</p>';
-                    statsContainer.innerHTML = 'لا توجد بيانات مبيعات حالية لحسابها.';
-                    return;
+                    statsContainer.innerHTML = 'لا توجد بيانات مبيعات حالية لحسابها.'; return;
                 }
 
                 let productSalesCount = {};
 
                 for (let key in allData) {
                     const order = allData[key];
-                    
-                    // حساب إحصائيات المبيعات حياً
                     if(order.items && Array.isArray(order.items)) {
-                        order.items.forEach(item => {
-                            productSalesCount[item.name] = (productSalesCount[item.name] || 0) + item.quantity;
-                        });
+                        order.items.forEach(item => { productSalesCount[item.name] = (productSalesCount[item.name] || 0) + item.quantity; });
                     }
 
-                    // تصميم كارد المطبخ والكاشير لكل طاولة حياً
                     let itemsHtml = '';
                     if(order.items) {
                         order.items.forEach(i => { itemsHtml += `<li> ${i.name} <b style="color:#d4af37;">(x${i.quantity})</b></li>`; });
@@ -477,7 +581,6 @@
                     `;
                 }
 
-                // عرض الإحصائيات حياً بعد ترتيب الأطباق من الأكثر مبيعاً للأقل
                 statsContainer.innerHTML = '';
                 let sortedSales = Object.entries(productSalesCount).sort((a,b) => b[1] - a[1]);
                 if(sortedSales.length === 0) { statsContainer.innerHTML = 'جاري تجميع البيانات...'; }
@@ -498,7 +601,8 @@
         }
 
         function clearTableAdmin(key) {
-            if(confirm("هل أنت متأكد من استلام الحساب وتصفير الطاولة؟ (سيتم قفل شاشة الزبون تلقائياً)")) {
+            if(confirm("هل أنت متأكد من استلام الحساب وتصفير الطاولة؟ (سيتم قفل شاشة الزبون تلقائياً وتصفير نقاط ولائه للجلسة القادمة)")) {
+                database.ref(`loyalty_points/${key}`).remove(); 
                 database.ref(`orders_system/${key}`).remove();
             }
         }
