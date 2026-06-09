@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>النظام الملكي المتكامل لإدارة المطاعم ونقاط البيع</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="apple-touch-icon" href="logo.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#d4af37">
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <script>
+      // إعدادات ومفاتيح الاتصال الرسمية الخاصة بمشروعك almenu
+      const firebaseConfig = {
+        apiKey: "AIzaSyDE7M30R8vD9fX7_z1pQ4mN2bV9KjL5wEc",
+        authDomain: "almenu-7991.firebaseapp.com",
+        projectId: "almenu-7991",
+        storageBucket: "almenu-7991.appspot.com",
+        messagingSenderId: "594837261054",
+        appId: "1:594837261054:web:cd8a9b7e6f5d4c3b2a10fe",
+        databaseURL: "https://almenu-7991-default-rtdb.firebaseio.com"
+      };
+
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+      const db = firebase.firestore();
+      const database = firebase.database();
+    </script>
+
+    <style>
+        /* الهوية البصرية الفخمة الملكية الأسود والذهبي */
+        body { background-color: #0a0a0a; color: #fff; font-family: sans-serif; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; display: flex; }
+        
+        /* شريط التنقل الجانبي لمدير النظام والكاشير (مخفي افتراضياً للزبون) */
+        .sidebar { width: 260px; background: #111; height: 100vh; position: fixed; right: 0; top: 0; border-left: 2px solid #d4af37; padding: 20px 10px; box-sizing: border-box; display: none; flex-direction: column; gap: 10px; z-index: 10005; }
+        .sidebar-brand { text-align: center; color: #d4af37; font-size: 20px; font-weight: bold; margin-bottom: 25px; border-bottom: 1px dashed #333; padding-bottom: 15px; }
+        .sidebar-btn { background: #1c1c1c; color: #aaa; border: 1px solid #222; padding: 14px 18px; border-radius: 10px; text-align: right; cursor: pointer; font-weight: bold; transition: all 0.2s; font-size: 14px; }
+        .sidebar-btn:hover, .sidebar-btn.active { background: #d4af37; color: #0d0d0d; border-color: #d4af37; }
+
+        /* حاوية المحتوى الرئيسي المتجاوبة */
+        .main-content { margin-right: 0; padding: 25px; width: 100%; box-sizing: border-box; min-height: 100vh; padding-bottom: 140px; transition: margin-right 0.3s ease; }
+        .main-content.admin-mode { margin-right: 260px; }
+        
+        /* هيدر المنيو واللوحة */
+        header { text-align: center; margin-bottom: 25px; position: relative; }
+        header h1 { color: #d4af37; margin: 5px 0; font-size: 26px; font-weight: bold; cursor: pointer; }
+        header p { color: #aaa; margin: 0; font-size: 14px; }
+        
+        .table-badge { background: #141414; display: inline-block; padding: 6px 18px; border-radius: 20px; font-size: 14px; color: #d4af37; margin-top: 12px; border: 1px solid #d4af37; font-weight: bold; }
+        
+        /* أزرار الخدمات السريعة للنادل والفاتورة */
+        .btn-service { background: #1c1c1c; color: #fff; border: 1px solid #2d2d2d; padding: 12px 22px; border-radius: 10px; font-size: 14px; cursor: pointer; margin: 5px; font-weight: bold; transition: all 0.2s ease; }
+        .btn-service:active { background: #d4af37; color: #0d0d0d; border-color: #d4af37; }
+
+        /* الأقسام والفلاتر الذكية للمنيو */
+        .categories-nav { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 15px; }
+        .categories-nav::-webkit-scrollbar { display: none; }
+        .cat-btn { background: #1c1c1c; color: #aaa; border: 1px solid #2d2d2d; padding: 10px 24px; border-radius: 25px; cursor: pointer; white-space: nowrap; font-weight: bold; transition: all 0.3s; }
+        .cat-btn.active { background: #d4af37; color: #0d0d0d; border-color: #d4af37; }
+
+        .smart-filters { display: flex; gap: 8px; margin-bottom: 25px; overflow-x: auto; padding-bottom: 5px; }
+        .smart-filters::-webkit-scrollbar { display: none; }
+        .filter-pill { background: #111; border: 1px solid #333; color: #eee; padding: 6px 14px; border-radius: 15px; font-size: 12px; cursor: pointer; font-weight: bold; white-space: nowrap; transition: all 0.2s; }
+        .filter-pill.active { background: #222; border-color: #d4af37; color: #d4af37; }
+
+        .section-title { color: #d4af37; font-size: 18px; margin-top: 25px; margin-bottom: 15px; padding-right: 10px; border-right: 4px solid #d4af37; font-weight: bold; }
+        .product-card { background: #141414; border: 1px solid #1f1f1f; border-radius: 16px; padding: 14px; margin-bottom: 15px; display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .product-img { width: 85px; height: 85px; border-radius: 12px; object-fit: cover; border: 1px solid #2d2d2d; }
+        .product-details { flex: 1; }
+        .product-details h3 { color: #ffffff; font-size: 16px; margin: 0 0 4px 0; font-weight: bold; }
+        .diet-badge { background: rgba(39, 174, 96, 0.15); color: #2ecc71; font-size: 11px; padding: 3px 8px; border-radius: 6px; display: inline-block; margin-bottom: 6px; border: 1px solid rgba(39, 174, 96, 0.3); font-weight: bold; }
+        .product-details .price { color: #d4af37; font-weight: bold; font-size: 15px; }
+
+        .qty-controls { display: flex; align-items: center; background: #1c1c1c; border: 1px solid #2d2d2d; border-radius: 25px; padding: 3px; }
+        .btn-qty { background: #d4af37; color: #0d0d0d; border: none; width: 34px; height: 34px; border-radius: 50%; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .qty-val { width: 35px; text-align: center; font-weight: bold; color: #fff; font-size: 15px; }
+
+        /* شريط السلة السفلي المثبت للزبون */
+        .cart-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #111111; border-top: 2px solid #d4af37; padding: 16px; display: flex; justify-content: space-between; align-items: center; z-index: 999; box-shadow: 0 -4px 20px rgba(0,0,0,0.5); transition: right 0.3s ease; }
+        body:has(.sidebar[style*="display: flex"]) .cart-bar { right: 260px; }
+        .cart-info { display: flex; flex-direction: column; }
+        .cart-info .total { font-size: 19px; font-weight: bold; color: #d4af37; }
+        .btn-view-cart { background: #d4af37; color: #0d0d0d; border: none; padding: 12px 28px; border-radius: 25px; font-weight: bold; cursor: pointer; font-size: 14px; }
+
+        /* الشاشات واللوحات الإدارية والكاشير المتطورة */
+        .app-screen { display: none; }
+        .app-screen.active { display: block; }
+
+        /* كروت مؤشرات الأداء والتحليلات الحية للوحة التحكم المالي */
+        .kpi-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .kpi-card { background: #141414; border: 1px solid #222; border-radius: 12px; padding: 20px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+        .kpi-card h4 { margin: 0 0 10px 0; font-size: 13px; color: #aaa; }
+        .kpi-card p { margin: 0; font-size: 24px; font-weight: bold; color: #d4af37; }
+
+        /* فواتير الإدارة وتحكم الكاشير */
+        .admin-order-card { background: #141414; border: 1px solid #2d2d2d; border-radius: 12px; padding: 16px; margin-bottom: 15px; border-right: 5px solid #d4af37; }
+        .badge-alert { padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; margin-left: 5px; display: inline-block; }
+
+        /* خريطة الطاولات التفاعلية المباشرة */
+        .tables-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 15px; margin-top: 20px; }
+        .table-box { background: #1c1c1c; border: 2px solid #27ae60; border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; font-weight: bold; transition: all 0.2s; }
+        .table-box.occupied { border-color: #c0392b; background: rgba(192, 41, 43, 0.1); }
+        .table-box.waiter-call { border-color: #e67e22; background: rgba(230, 126, 34, 0.1); animation: pulse-border 1.5s infinite; }
+        .table-box p { margin: 5px 0 0 0; font-size: 12px; color: #aaa; }
+
+        @keyframes pulse-border {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+            100% { transform: scale(1); }
+        }
+
+        /* واجهة المصاريف والنثريات اليومية */
+        .expense-form { background: #141414; border: 1px solid #222; padding: 20px; border-radius: 12px; margin-bottom: 20px; display: flex; gap: 12px; flex-wrap: wrap; }
+        .form-field { background: #1c1c1c; border: 1px solid #333; padding: 12px; color: #fff; border-radius: 8px; flex: 1; min-width: 180px; font-size: 14px; }
+        .btn-add-expense { background: #c0392b; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+
+        .admin-table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #141414; border-radius: 8px; overflow: hidden; }
+        .admin-table th, .admin-table td { padding: 12px 15px; text-align: right; border-bottom: 1px solid #222; }
+        .admin-table th { background: #1c1c1c; color: #d4af37; }
+
+        /* التنبيهات والمنبثقات */
+        .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: flex-end; z-index: 10000; }
+        .modal-content { background: #141414; border-top: 3px solid #d4af37; border-radius: 24px 24px 0 0; width: 100%; max-width: 500px; padding: 24px; box-sizing: border-box; }
+        
+        #lockScreen { position: fixed; top:0; left:0; width:100vw; height:100vh; background:#0a0a0a; z-index:20000; display:none; flex-direction:column; justify-content:center; align-items:center; }
+        #lockScreen h2 { color:#d4af37; }
+        .backup-notice { background: #27ae60; color: white; padding: 10px; text-align: center; border-radius: 8px; margin-bottom: 15px; display: none; font-size: 13px; font-weight: bold; }
+
+        @media (max-width: 768px) {
+            .sidebar { display: none !important; }
+            .main-content { margin-right: 0 !important; }
+            .cart-bar { right: 0 !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="lockScreen">
+        <h2>🔒 يرجى مسح كود الطاولة لتفعيل المنيو</h2>
+        <p style="color:#aaa;">لا يمكن التصفح أو الطلب المباشر بدون تعيين رقم طاولة صالح داخل الصالة.</p>
+    </div>
+
+    <div class="sidebar" id="adminSidebar">
+        <div class="sidebar-brand">👑 نظام الإدارة والـ POS</div>
+        <button class="sidebar-btn active" onclick="switchScreen('menu-screen')">🛒 منيو الطلبات والزبائن</button>
+        <button class="sidebar-btn" onclick="switchScreen('dashboard-screen')">📊 لوحة التحليلات الحية</button>
+        <button class="sidebar-btn" onclick="switchScreen('tables-screen')">🗺️ خريطة الطاولات الذكية</button>
+        <button class="sidebar-btn" onclick="switchScreen('expenses-screen')">💸 إدارة المصاريف اليومية</button>
+        <button class="sidebar-btn" onclick="switchScreen('delivery-screen')">🛵 تتبع طلبات التوصيل</button>
+        <button class="sidebar-btn" style="background:#c0392b; color:#fff;" onclick="logoutAdminMode()">🔒 تسجيل خروج الإدارة</button>
+    </div>
+
+    <div class="main-content" id="mainContentArea">
+        
+        <div id="menu-screen" class="app-screen active">
+            <header>
+                <h1 onclick="triggerAdminLogin()">مطعمنا الفاخر & نظام الـ POS</h1>
+                <p>اضغط على الاسم أعلاه للدخول للوحة التحكم والمطبخ (خاص بالإدارة والكاشير)</p>
+                <div class="table-badge" id="tableBadge">طاولة رقم: جاري التحديد...</div>
+            </header>
+
+            <div class="backup-notice" id="backupNotice">⚠️ تم استعادة طلباتك المختارة تلقائياً لحمايتها من انقطاع الشبكة</div>
+
+            <div class="service-container" style="text-align: center; margin-bottom: 15px;">
+                <button class="btn-service" onclick="callWaiterLive()">🛎️ استدعاء النادل</button>
+                <button class="btn-service" onclick="callBillLive()">🧾 طلب الفاتورة والحساب</button>
+            </div>
+
+            <div class="categories-nav">
+                <button class="cat-btn active" onclick="filterCategory('all')">الكل</button>
+                <button class="cat-btn" onclick="filterCategory('western')">مأكولات غربية</button>
+                <button class="cat-btn" onclick="filterCategory('eastern')">مأكولات شرقية</button>
+            </div>
+
+            <div class="smart-filters">
+                <button class="filter-pill active" id="filter-all" onclick="setSmartFilter('all')">✨ كل الأصناف</button>
+                <button class="filter-pill" id="filter-diet" onclick="setSmartFilter('diet')">🥗 أطباق دايت ورجيم مخصصة</button>
+            </div>
+
+            <div id="menuContainer">
+                <div class="menu-section" data-sec-cat="western">
+                    <div class="section-title">مأكولات غربية صحية وعادية</div>
+                    
+                    <div class="product-card" data-category="western" data-id="diet_chicken" data-diet="true">
+                        <img src="https://images.unsplash.com/photo-1327170138356-8a4bf579ba65?w=300" class="product-img">
+                        <div class="product-details">
+                            <h3>صدر دجاج مشوي مع خضار سوتيه 🥗</h3>
+                            <div class="diet-badge">🔥 380 سعرة | 45g بروتين | 12g كارب</div>
+                            <div class="price" id="price_diet_chicken">14,000 د.ع</div>
+                        </div>
+                        <div class="qty-controls">
+                            <button class="btn-qty" onclick="changeQty('diet_chicken', -1)">-</button>
+                            <div class="qty-val" id="qty_diet_chicken">0</div>
+                            <button class="btn-qty" onclick="changeQty('diet_chicken', 1)">+</button>
+                        </div>
+                    </div>
+
+                    <div class="product-card" data-category="western" data-id="steak" data-diet="false">
+                        <img src="https://images.unsplash.com/photo-1544025162-d76694265947?w=300" class="product-img">
+                        <div class="product-details">
+                            <h3>ستيك لحم بصلصة المشروم الفاخرة</h3>
+                            <div class="price" id="price_steak">22,000 د.ع</div>
+                        </div>
+                        <div class="qty-controls">
+                            <button class="btn-qty" onclick="changeQty('steak', -1)">-</button>
+                            <div class="qty-val" id="qty_steak">0</div>
+                            <button class="btn-qty" onclick="changeQty('steak', 1)">+</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="menu-section" data-sec-cat="eastern">
+                    <div class="section-title">مأكولات شرقية</div>
+                    <div class="product-card" data-category="eastern" data-id="diet_fish" data-diet="true">
+                        <img src="https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=300" class="product-img">
+                        <div class="product-details">
+                            <h3>سمك مسكوف صحي مشوي عالفحم 🥗</h3>
+                            <div class="diet-badge">🔥 420 سعرة | 52g بروتين | 0g كارب</div>
+                            <div class="price" id="price_diet_fish">19,000 د.ع</div>
+                        </div>
+                        <div class="qty-controls">
+                            <button class="btn-qty" onclick="changeQty('diet_fish', -1)">-</button>
+                            <div class="qty-val" id="qty_diet_fish">0</div>
+                            <button class="btn-qty" onclick="changeQty('diet_fish', 1)">+</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cart-bar">
+                <div class="cart-info">
+                    <span class="total" id="cartTotalLabel">إجمالي الحساب: 0 د.ع</span>
+                    <span style="font-size:11px; color:#27ae60;" id="liveStatusTracker">حالة المزامنة: متصل بالسحاب الحركي</span>
+                </div>
+                <button class="btn-view-cart" onclick="toggleModal(true)">إرسال ومراجعة الطلب 🛒</button>
+            </div>
+        </div>
+
+        <div id="dashboard-screen" class="app-screen">
+            <h2 style="color:#d4af37; border-bottom:1px solid #222; padding-bottom:10px;">📊 لوحة تحليلات الأداء والجريد المالي المباشر</h2>
+            
+            <div class="kpi-container">
+                <div class="kpi-card" style="border-color:#27ae60;">
+                    <h4>إجمالي المبيعات الحية</h4>
+                    <p id="kpiSales">0 د.ع</p>
+                </div>
+                <div class="kpi-card" style="border-color:#c0392b;">
+                    <h4>إجمالي المصاريف والنثريات</h4>
+                    <p id="kpiExpenses">0 د.ع</p>
+                </div>
+                <div class="kpi-card" style="border-color:#f39c12;">
+                    <h4>صافي الأرباح المتبقية بالخزنة</h4>
+                    <p id="kpiProfits">0 د.ع</p>
+                </div>
+                <div class="kpi-card" style="border-color:#2980b9;">
+                    <h4>إجمالي عدد الطلبات</h4>
+                    <p id="kpiOrdersCount">0</p>
+                </div>
+            </div>
+
+            <h3 style="color:#d4af37; margin-top:30px;">🛎️ سجل فواتير الطاولات النشطة وطلبات المطبخ الحالية</h3>
+            <div id="adminOrdersContainer">جاري مزامنة الطلبات من الخادم السحابي...</div>
+        </div>
+
+        <div id="tables-screen" class="app-screen">
+            <h2 style="color:#d4af37; border-bottom:1px solid #222; padding-bottom:10px;">🗺️ خريطة وجدول طاولات الصالة التفاعلي الحية</h2>
+            <p style="color:#aaa; font-size:13px;">تحديث مباشر للألوان: أخضر (جاهزة) | أحمر (مشغولة وتأكل) | برتقالي وامض (الزبون يطلب النادل أو الحساب!).</p>
+            
+            <div class="tables-grid" id="tablesMapContainer"></div>
+        </div>
+
+        <div id="expenses-screen" class="app-screen">
+            <h2 style="color:#d4af37; border-bottom:1px solid #222; padding-bottom:10px;">💸 إدارة المصاريف والتدفقات النقدية الخارجة</h2>
+            
+            <div class="expense-form">
+                <input type="text" id="expReason" class="form-field" placeholder="سبب صرف المبلغ...">
+                <input type="number" id="expAmount" class="form-field" placeholder="المبلغ المصروف د.ع">
+                <button class="btn-add-expense" onclick="submitExpenseLive()">💾 تسجيل المصروف فوراً</button>
+            </div>
+
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>البيان والسبب</th>
+                        <th>المبلغ د.ع</th>
+                        <th>التوقيت والتاريخ</th>
+                    </tr>
+                </thead>
+                <tbody id="expensesTableBody"></tbody>
+            </table>
+        </div>
+
+        <div id="delivery-screen" class="app-screen">
+            <h2 style="color:#d4af37; border-bottom:1px solid #222; padding-bottom:10px;">🛵 نظام تتبع ومعالجة طلبات التوصيل (Delivery Hub)</h2>
+            <div id="deliveryOrdersContainer">لا توجد طلبات توصيل خارجية نشطة حالياً.</div>
+        </div>
+
+    </div>
+
+    <div class="modal" id="cartModal">
+        <div class="modal-content">
+            <h3 style="color:#d4af37; margin-top:0;">🧾 تفاصيل الفاتورة والطلب الحالي</h3>
+            <div id="modalItemsList" style="max-height:200px; overflow-y:auto; margin-bottom:15px; border-bottom: 1px dashed #333;"></div>
+            
+            <div style="margin-bottom:15px;">
+                <label style="display:block; font-size:12px; color:#aaa; margin-bottom:5px;">💡 نوع طلب الفاتورة الجديد:</label>
+                <select id="orderTypeSelect" class="form-field" style="width:100%;" onchange="toggleOrderTypeFields()">
+                    <option value="صالة">طلب داخل الصالة (منضدة)</option>
+                    <option value="توصيل">طلب توصيل خارجي (Delivery)</option>
+                </select>
+            </div>
+
+            <div id="deliveryFields" style="display:none; margin-bottom:15px;">
+                <input type="text" id="customerName" class="form-field" style="width:100%; margin-bottom:8px;" placeholder="اسم زبون التوصيل">
+                <input type="text" id="customerPhone" class="form-field" style="width:100%;" placeholder="العنوان ورقم الهاتف المباشر">
+            </div>
+
+            <div style="margin-bottom:15px;">
+                <input type="text" id="orderNotesInput" class="form-field" style="width:100%;" placeholder="أي ملاحظات للمطبخ (بدون بهارات، زيادة صلصة)...">
+            </div>
+
+            <button class="btn-submit-order" style="background:#27ae60; color:#fff; font-weight:bold; width:100%; padding:14px; border:none; border-radius:8px; cursor:pointer;" onclick="sendFinalOrderToServer()">🚀 تأكيد وحفظ الطلب بالنظام السحابي</button>
+            <button class="btn-service" style="width:100%; margin:8px 0 0 0; text-align:center; background:#222;" onclick="toggleModal(false)">تراجع وإغلاق ❌</button>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const hasTableParam = urlParams.has('table');
+        const tableNumber = urlParams.get('table') || "1";
+        const tableKey = `table_${tableNumber}`;
+
+        if (!hasTableParam) {
+            document.getElementById('lockScreen').style.display = 'flex';
+        } else {
+            document.getElementById('tableBadge').innerText = `طاولة رقم: ${tableNumber}`;
+        }
+
+        const productsDef = {
+            diet_chicken: { name: "صدر دجاج مشوي مع خضار سوتيه 🥗", defaultPrice: 14000 },
+            steak: { name: "ستيك لحم بصلصة المشروم", defaultPrice: 22000 },
+            diet_fish: { name: "سمك مسكوف صحي مشوي عالفحم 🥗", defaultPrice: 19000 }
+        };
+
+        let cart = [];
+        let currentSmartFilter = 'all';
+
+        window.addEventListener('DOMContentLoaded', () => {
+            syncProductsAndPricesLive();
+            listenToSystemMetricsAndData();
+            generateTablesMap();
+            
+            // استعادة السلة التلقائية لحماية البيانات من الانقطاع
+            const savedCart = localStorage.getItem(`bk_cart_${tableKey}`);
+            if(savedCart) {
+                cart = JSON.parse(savedCart);
+                if(cart.length > 0) {
+                    document.getElementById('backupNotice').style.display = 'block';
+                    syncUI();
+                }
+            }
+        });
+
+        // تفعيل تسجيل الدخول السري للكاشير والإدارة عند الضغط 5 مرات متتالية على العنوان العلوي
+        let loginClicks = 0;
+        function triggerAdminLogin() {
+            loginClicks++;
+            if(loginClicks >= 5) {
+                loginClicks = 0;
+                let pass = prompt("الرجاء إدخال رمز التحقق الخاص بالكاشير والإدارة الصارمة:");
+                if(pass === "1234") {
+                    document.getElementById('adminSidebar').style.display = 'flex';
+                    document.getElementById('mainContentArea').classList.add('admin-mode');
+                    switchScreen('dashboard-screen');
+                    alert("🔓 تم تفعيل وضع الكاشير المركزي وخريطة المطبخ بنجاح!");
+                } else if(pass !== null) { alert("❌ رمز الدخول غير صحيح بالمرة."); }
+            }
+        }
+
+        function logoutAdminMode() {
+            document.getElementById('adminSidebar').style.display = 'none';
+            document.getElementById('mainContentArea').classList.remove('admin-mode');
+            switchScreen('menu-screen');
+        }
+
+        function switchScreen(screenId) {
+            document.querySelectorAll('.app-screen').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            if(window.event && window.event.target) window.event.target.classList.add('active');
+        }
+
+        function setSmartFilter(filterType) {
+            currentSmartFilter = filterType;
+            document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+            document.getElementById(`filter-${filterType}`).classList.add('active');
+            applyFilters();
+        }
+
+        function filterCategory(cat) {
+            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+            if(window.event && window.event.target) window.event.target.classList.add('active');
+            document.querySelectorAll('.menu-section').forEach(section => {
+                const secCat = section.getAttribute('data-sec-cat');
+                if(cat === 'all' || secCat === cat) section.style.display = 'block'; else section.style.display = 'none';
+            });
+            applyFilters();
+        }
+
+        function applyFilters() {
+            document.querySelectorAll('.product-card').forEach(card => {
+                const isDiet = card.getAttribute('data-diet') === 'true';
+                const parentSection = card.closest('.menu-section');
+                let matches = true;
+                if (currentSmartFilter === 'diet' && !isDiet) matches = false;
+                if (matches && parentSection.style.display !== 'none') card.style.display = 'flex'; else card.style.display = 'none';
+            });
+        }
+
+        function changeQty(id, change) {
+            const pDef = productsDef[id];
+            const currentPrice = pDef.price || pDef.defaultPrice;
+            const item = cart.find(i => i.id === id);
+            if (item) {
+                item.quantity += change;
+                if (item.quantity <= 0) cart = cart.filter(i => i.id !== id);
+            } else if (change > 0) {
+                cart.push({ id, name: pDef.name, price: currentPrice, quantity: 1 });
+            }
+            localStorage.setItem(`bk_cart_${tableKey}`, JSON.stringify(cart));
+            syncUI();
+        }
+
+        function syncUI() {
+            let totalPrice = 0;
+            document.querySelectorAll('.qty-val').forEach(el => el.innerText = '0');
+            cart.forEach(item => {
+                totalPrice += (item.price * item.quantity);
+                const el = document.getElementById(`qty_${item.id}`); if(el) el.innerText = item.quantity;
+            });
+            document.getElementById('cartTotalLabel').innerText = `إجمالي الحساب: ${totalPrice.toLocaleString()} د.ع`;
+        }
+
+        function syncProductsAndPricesLive() {
+            db.collection("products_status").onSnapshot((snapshot) => {
+                snapshot.forEach((doc) => {
+                    const productId = doc.id;
+                    const data = doc.data();
+                    if (productsDef[productId]) {
+                        productsDef[productId].price = data.price ? data.price : productsDef[productId].defaultPrice;
+                        const priceEl = document.getElementById(`price_${productId}`);
+                        if(priceEl) priceEl.innerText = `${productsDef[productId].price.toLocaleString()} د.ع`;
+                    }
+                });
+                syncUI();
+            });
+        }
+
+        function toggleModal(show) {
+            const modal = document.getElementById('cartModal');
+            if(show) {
+                const list = document.getElementById('modalItemsList'); list.innerHTML = '';
+                if(cart.length === 0) { list.innerHTML = '<p style="color:#666; text-align:center; padding:15px;">السلة خالية تماماً، أضف وجبات أولاً!</p>'; }
+                cart.forEach(item => {
+                    list.innerHTML += `<div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #222;"><span>${item.name} (x${item.quantity})</span> <span style="color:#d4af37; font-weight:bold;">${(item.price * item.quantity).toLocaleString()} د.ع</span></div>`;
+                });
+                modal.style.display = 'flex';
+            } else { modal.style.display = 'none'; }
+        }
+
+        function toggleOrderTypeFields() {
+            const type = document.getElementById('orderTypeSelect').value;
+            document.getElementById('deliveryFields').style.display = (type === 'توصيل') ? 'block' : 'none';
+        }
+
+        // إرسال الطلبات السحابية الحية لتحديث المطبخ والكاشير فورياً وبدون تأخير
+        function sendFinalOrderToServer() {
+            if(cart.length === 0) return;
+            const type = document.getElementById('orderTypeSelect').value;
+            const total = cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+            const notes = document.getElementById('orderNotesInput').value || "لا توجد ملاحظات";
+            
+            let finalTable = tableNumber;
+            let deliveryMeta = {};
+            const orderId = type === 'توصيل' ? `delivery_${Date.now()}` : tableKey;
+
+            if(type === 'توصيل') {
+                finalTable = "توصيل خارجي 🛵";
+                deliveryMeta = {
+                    customer: document.getElementById('customerName').value || "زبون غير مسجل",
+                    phone: document.getElementById('customerPhone').value || "بدون عنوان"
+                };
+            }
+
+            database.ref(`orders_system/${orderId}`).set({
+                table: finalTable,
+                items: cart,
+                acc_total: total,
+                status: "طلب_جديد",
+                type: type,
+                deliveryMeta: deliveryMeta,
+                notes: notes,
+                waiter_requested: false,
+                bill_requested: false,
+                timestamp: Date.now()
+            }).then(() => {
+                alert("🎉 ممتاز! تم إرسال طلبك حياً إلى المطبخ وشاشة الكاشير المركزية.");
+                cart = []; localStorage.removeItem(`bk_cart_${tableKey}`);
+                document.getElementById('backupNotice').style.display = 'none';
+                document.getElementById('orderNotesInput').value = '';
+                syncUI(); toggleModal(false);
+            });
+        }
+
+        // استدعاء النادل المباشر من الصالة
+        function callWaiterLive() {
+            database.ref(`orders_system/${tableKey}`).update({
+                table: tableNumber,
+                waiter_requested: true,
+                status: "طلب_نادل_بالصالة",
+                timestamp: Date.now()
+            }).then(() => { alert("🛎️ تم إرسال إشعار وامض إلى شاشة الكاشير! النادل في طريقه إليك."); });
+        }
+
+        // طلب الفاتورة والحساب النهائي من الطاولة
+        function callBillLive() {
+            database.ref(`orders_system/${tableKey}`).update({
+                bill_requested: true,
+                status: "زبون_يطلب_الحساب",
+                timestamp: Date.now()
+            }).then(() => { alert("🧾 تم تنبيه المحاسب لتجهيز وصياغة فاتورتك المطبوعة الآن."); });
+        }
+
+        function submitExpenseLive() {
+            const reason = document.getElementById('expReason').value;
+            const amount = parseInt(document.getElementById('expAmount').value) || 0;
+            if(!reason || amount <= 0) return;
+
+            database.ref(`expenses_system/${Date.now()}`).set({
+                reason: reason,
+                amount: amount,
+                timestamp: Date.now()
+            }).then(() => {
+                document.getElementById('expReason').value = '';
+                document.getElementById('expAmount').value = '';
+            });
+        }
+
+        function generateTablesMap() {
+            const container = document.getElementById('tablesMapContainer');
+            container.innerHTML = '';
+            for(let i=1; i<=12; i++) {
+                container.innerHTML += `<div class="table-box" id="map_table_${i}" onclick="manageTableFromMap(${i})">طاولة ${i} <p id="map_status_${i}">فارغة جاهزة</p></div>`;
+            }
+        }
+
+        function manageTableFromMap(num) {
+            if(confirm(`هل تريد تصفير وإغلاق حساب الطاولة رقم ${num} وتجهيزها لزبون جديد؟`)) {
+                database.ref(`orders_system/table_${num}`).remove();
+                alert(`🧹 تم تصفير الطاولة ${num} بنجاح.`);
+            }
+        }
+
+        function updateAdminOrderStatus(key, status) {
+            database.ref(`orders_system/${key}`).update({ status: status, waiter_requested: false, bill_requested: false });
+        }
+
+        function deleteOrderAdmin(key) {
+            if(confirm("هل تريد مسح هذه الفاتورة تماماً من شاشة الكاشير الحية؟")) {
+                database.ref(`orders_system/${key}`).remove();
+            }
+        }
+
+        function listenToSystemMetricsAndData() {
+            // الاستماع ومزامنة الطلبات حياً (Real-time Core Sync)
+            database.ref('orders_system').on('value', (snapshot) => {
+                const allOrders = snapshot.val();
+                let totalSales = 0; let totalOrders = 0;
+                const container = document.getElementById('adminOrdersContainer');
+                const deliveryContainer = document.getElementById('deliveryOrdersContainer');
+                
+                container.innerHTML = '';
+                deliveryContainer.innerHTML = '';
+
+                // إعادة تهيئة خريطة الطاولات الافتراضية
+                for(let i=1; i<=12; i++) {
+                    const box = document.getElementById(`map_table_${i}`);
+                    if(box) {
+                        box.className = "table-box";
+                        document.getElementById(`map_status_${i}`).innerText = "فارغة جاهزة";
+                    }
+                }
+
+                if(allOrders) {
+                    for(let key in allOrders) {
+                        const order = allOrders[key];
+                        totalOrders++;
+                        if(order.acc_total) totalSales += order.acc_total;
+
+                        // تحديث الألوان التفاعلية للخريطة حياً بناءً على طلبات الصالة والفيديو المرسل
+                        if(order.type !== 'توصيل' && order.table) {
+                            const box = document.getElementById(`map_table_${order.table}`);
+                            if(box) {
+                                if(order.waiter_requested || order.bill_requested) {
+                                    box.className = "table-box waiter-call";
+                                    document.getElementById(`map_status_${order.table}`).innerText = order.bill_requested ? "🛎️ يطلب الحساب!" : "🙋 يطلب النادل!";
+                                } else {
+                                    box.className = "table-box occupied";
+                                    document.getElementById(`map_status_${order.table}`).innerText = `مشغولة (${order.acc_total ? order.acc_total.toLocaleString() : 0} د.ع)`;
+                                }
+                            }
+                        }
+
+                        // توليد وعرض بطاقات المطبخ والكاشير المركزية داخل شاشة الإدارة
+                        let itemsStr = order.items ? order.items.map(i => `${i.name} (x${i.quantity})`).join(' + ') : 'لا يوجد أصناف';
+                        let alertBadge = order.waiter_requested ? `<span class="badge-alert" style="background:#e67e22;">🛎️ النادل</span>` : '';
+                        if(order.bill_requested) alertBadge += `<span class="badge-alert" style="background:#9b59b6;">🧾 الفاتورة</span>`;
+
+                        const cardHtml = `
+                            <div class="admin-order-card">
+                                <div style="display:flex; justify-content:space-between;">
+                                    <strong style="color:#d4af37; font-size:16px;">📍 جهة/طاولة: ${order.table} ${alertBadge}</strong>
+                                    <span style="color:#aaa; font-size:12px;">الحالة: ${order.status}</span>
+                                </div>
+                                <p style="margin:8px 0; color:#eee;"><b>📦 الأصناف:</b> ${itemsStr}</p>
+                                <p style="margin:4px 0; color:#ffcc00; font-size:13px;"><b>💡 الملاحظات:</b> ${order.notes || 'لا يوجد'}</p>
+                                <div style="margin-top:12px; display:flex; gap:5px; justify-content:flex-end;">
+                                    <button style="background:#2980b9; color:#fff; border:none; padding:6px 12px; border-radius:5px; cursor:pointer; font-weight:bold; font-size:11px;" onclick="updateAdminOrderStatus('${key}', 'جاري_الطبخ_بالمطبخ')">👨‍🍳 للمطبخ</button>
+                                    <button style="background:#27ae60; color:#fff; border:none; padding:6px 12px; border-radius:5px; cursor:pointer; font-weight:bold; font-size:11px;" onclick="updateAdminOrderStatus('${key}', 'تم_توصيل_الطعام')">✅ تم التسليم</button>
+                                    <button style="background:#c0392b; color:#fff; border:none; padding:6px 12px; border-radius:5px; cursor:pointer; font-weight:bold; font-size:11px;" onclick="deleteOrderAdmin('${key}')">💵 تصفير ودفع</button>
+                                </div>
+                            </div>`;
+
+                        if(order.type === 'توصيل') {
+                            deliveryContainer.innerHTML += cardHtml;
+                        } else {
+                            container.innerHTML += cardHtml;
+                        }
+                    }
+                }
+                
+                document.getElementById('kpiOrdersCount').innerText = totalOrders;
+                document.getElementById('kpiSales').innerText = `${totalSales.toLocaleString()} د.ع`;
+                calculateMetrics(totalSales, null);
+            });
+
+            // الاستماع ومزامنة شاشة المصاريف والنثريات حياً
+            database.ref('expenses_system').on('value', (snapshot) => {
+                const allExpenses = snapshot.val();
+                let totalExp = 0;
+                const tbody = document.getElementById('expensesTableBody');
+                tbody.innerHTML = '';
+
+                if(allExpenses) {
+                    for(let key in allExpenses) {
+                        const exp = allExpenses[key];
+                        totalExp += exp.amount || 0;
+                        tbody.innerHTML += `<tr><td>${exp.reason}</td><td style="color:#c0392b; font-weight:bold;">${exp.amount.toLocaleString()} د.ع</td><td>${new Date(exp.timestamp).toLocaleTimeString('ar-IQ')}</td></tr>`;
+                    }
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#666;">لا توجد مصاريف مسجلة لليوم بعد.</td></tr>';
+                }
+                document.getElementById('kpiExpenses').innerText = `${totalExp.toLocaleString()} د.ع`;
+                calculateMetrics(null, totalExp);
+            });
+        }
+
+        let cacheSales = 0; let cacheExp = 0;
+        function calculateMetrics(sales, exp) {
+            if(sales !== null) cacheSales = sales;
+            if(exp !== null) cacheExp = exp;
+            document.getElementById('kpiProfits').innerText = `${(cacheSales - cacheExp).toLocaleString()} د.ع`;
+        }
+    </script>
+</body>
+</html>
+
