@@ -3,65 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة إدارة المنيو</title>
+    <title>منيو مطعم دجلة الذكي</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="manifest" href="manifest.json">
     <style>
-        body { font-family: 'Cairo', sans-serif; background-color: #f4f6f7; }
-        .admin-card { background: #fff; border: none; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
-        .img-preset-option { width: 60px; height: 60px; object-fit: cover; border-radius: 10px; cursor: pointer; border: 2px solid transparent; margin: 3px; transition: all 0.2s; }
-        .img-preset-option.selected { border-color: #0d6efd; box-shadow: 0 0 8px rgba(13, 110, 253, 0.4); transform: scale(1.05); }
+        :root { --brand-dark: #121212; --brand-gold: #c5a880; --brand-light: #f8f9fa; --card-bg: #ffffff; }
+        body { font-family: 'Cairo', sans-serif; background-color: var(--brand-light); color: var(--brand-dark); padding-bottom: 180px; }
+        .brand-header { background-color: var(--brand-dark); color: white; padding: 15px 10px; text-align: center; border-bottom: 3px solid var(--brand-gold); border-radius: 0 0 20px 20px; }
+        .brand-logo-img { max-height: 65px; margin-bottom: 5px; }
+        .categories-scroll { overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; padding: 12px 0; }
+        .categories-scroll::-webkit-scrollbar { display: none; }
+        .btn-menu-cat { border-radius: 50px; padding: 6px 18px; font-weight: 500; border: 1px solid #dee2e6; background: #fff; color: var(--brand-dark); margin-left: 6px; transition: all 0.2s; }
+        .btn-menu-cat.active { background-color: var(--brand-dark); border-color: var(--brand-gold); color: var(--brand-gold); }
+        .item-card { background: var(--card-bg); border: none; border-radius: 14px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
+        .food-thumb { width: 70px; height: 70px; object-fit: cover; border-radius: 50%; border: 2px solid var(--brand-gold); }
+        .item-price-tag { color: #b33939; font-weight: 700; }
+        .qty-btn { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--brand-dark); background: white; font-weight: bold; display: flex; align-items: center; justify-content: center; }
+        .customer-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(18, 18, 18, 0.98); backdrop-filter: blur(8px); padding: 12px; border-top: 3px solid var(--brand-gold); border-radius: 16px 16px 0 0; z-index: 1050; }
+        .cart-summary { color: white; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; margin-bottom: 8px; font-size: 0.9rem; }
     </style>
 </head>
 <body>
 
-<div class="container py-4">
-    <div class="card admin-card p-4">
-        <h2 class="fw-bold mb-4">⚙️ لوحة تحكم مدير المطعم</h2>
-        
-        <div class="mb-4 border-bottom pb-4">
-            <h5 class="text-success fw-bold">إدارة التصنيفات</h5>
-            <div class="row g-2">
-                <div class="col-8 col-md-10"><input type="text" id="newCat" class="form-control" placeholder="اسم التصنيف الجديد"></div>
-                <div class="col-4 col-md-2"><button onclick="addCategory()" class="btn btn-success w-100">إضافة</button></div>
-            </div>
-        </div>
+<div class="brand-header shadow">
+    <img src="logo.png" alt="شعار المنيو" class="brand-logo-img">
+    <h4 class="fw-bold mb-0" style="color: var(--brand-gold);">مطعم دجلة</h4>
+</div>
 
-        <div class="mb-5 border-bottom pb-4">
-            <h5 class="text-primary fw-bold">إضافة صنف جديد للمنيو مع الصورة</h5>
-            <div class="row g-3">
-                <div class="col-12 col-md-4"><label class="form-label small fw-bold">اسم الصنف</label><input type="text" id="itemName" class="form-control" placeholder="مثال: كباب دجاج"></div>
-                <div class="col-12 col-sm-6 col-md-4"><label class="form-label small fw-bold">القسم</label><select id="itemCat" class="form-select"></select></div>
-                <div class="col-12 col-sm-6 col-md-4"><label class="form-label small fw-bold">السعر (د.ع)</label><input type="number" id="itemPrice" class="form-control" placeholder="السعر"></div>
-                
-                <div class="col-12">
-                    <label class="form-label small fw-bold text-dark d-block">📸 اختر صورة الطبق من القائمة الذكية:</label>
-                    <div class="d-flex flex-wrap p-2 border rounded bg-light" id="preset-images-container">
-                        </div>
-                    <input type="hidden" id="itemImgSelected" value="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=150&auto=format&fit=crop">
-                </div>
+<div class="container py-2">
+    <div class="alert alert-dark text-center my-2 py-1 border-0 small">
+        📍 طاولة رقم: <span id="table-number-display" class="fw-bold text-warning">1</span>
+    </div>
 
-                <div class="col-12 d-flex align-items-end"><button onclick="addItem()" class="btn btn-primary w-100 py-2 fw-bold">حفظ الصنف داخل المنيو الحية</button></div>
+    <div class="categories-scroll" id="categories-container"></div>
+
+    <div id="menu-grid" class="row g-3">
+        <div class="col-12 text-center py-5 text-muted">جاري تحميل قائمة الطعام الحية...</div>
+    </div>
+</div>
+
+<div class="customer-bar">
+    <div class="container">
+        <div class="cart-summary d-flex justify-content-between align-items-center">
+            <span>🛒 السلة: <span id="cart-count">0</span> أصناف</span>
+            <span>الإجمالي: <span id="cart-total" class="text-warning fw-bold">0</span> د.ع</span>
+        </div>
+        <div class="row g-2 text-center">
+            <div class="col-4">
+                <button onclick="requestService('waiter')" class="btn btn-warning w-100 py-2 small fw-bold text-dark"><i class="bi bi-bell"></i> ويتر</button>
+            </div>
+            <div class="col-4">
+                <button onclick="requestService('bill')" class="btn btn-danger w-100 py-2 small fw-bold text-white"><i class="bi bi-receipt"></i> الحساب</button>
+            </div>
+            <div class="col-4">
+                <button onclick="sendOrderToFirebase()" class="btn btn-success w-100 py-2 small fw-bold text-white"><i class="bi bi-send"></i> اطلب الآن</button>
             </div>
         </div>
-        
-        <div>
-            <h5 class="text-danger fw-bold">الأصناف المضافة حالياً</h5>
-            <div class="table-responsive shadow-sm rounded-3 mt-2">
-                <table class="table table-hover align-middle mb-0 text-center">
-                    <thead class="table-dark">
-                        <tr><th>الصورة</th><th>اسم الصنف</th><th>القسم</th><th>السعر</th><th>إجراءات</th></tr>
-                    </thead>
-                    <tbody id="admin-table-items"></tbody>
-                </table>
-            </div>
-        </div>
-        <div class="mt-4"><a href="index.html" class="btn btn-outline-secondary">📋 العودة للمنيو</a></div>
     </div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
 <script>
     const firebaseConfig = {
         apiKey: "AIzaSyC6fFl4gN2N-W7oK3v70g_v3P932fM6bNY",
@@ -73,33 +78,111 @@
         appId: "1:305206060548:web:b1d79aa3ec2c2cc2ebbb9d"
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
 
-    // مكتبة من الصور الاحترافية والمضغوطة لسرعة فتح المنيو على هواتف الزبائن
-    const foodGallery = [
-        { title: "سلطة ومقبلات", url: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=150&auto=format&fit=crop" },
-        { title: "مشاوي وكباب", url: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=150&auto=format&fit=crop" },
-        { title: "بيتزا فخمة", url: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=150&auto=format&fit=crop" },
-        { title: "برغر فخم", url: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=150&auto=format&fit=crop" },
-        { title: "شاورما وقص", url: "https://images.unsplash.com/photo-1633424233228-56dfc1e195cf?w=150&auto=format&fit=crop" },
-        { title: "أرز ومطابخ بشرق", url: "https://images.unsplash.com/photo-1512058564366-18510be2db19?w=150&auto=format&fit=crop" },
-        { title: "حلويات وافل", url: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?w=150&auto=format&fit=crop" },
-        { title: "عصائر ومشروبات", url: "https://images.unsplash.com/photo-1536935338788-846bb9981813?w=150&auto=format&fit=crop" }
-    ];
+    const urlParams = new URLSearchParams(window.location.search);
+    const tableNo = urlParams.get('table') || "1";
+    document.getElementById('table-number-display').innerText = tableNo;
 
-    document.addEventListener("DOMContentLoaded", () => {
-        const container = document.getElementById("preset-images-container");
-        container.innerHTML = foodGallery.map((img, i) => `
-            <img src="${img.url}" class="img-preset-option ${i===0?'selected':''}" title="${img.title}" onclick="selectPresetImg(this, '${img.url}')">
-        `).join('');
+    let localItems = [], localCategories = ['الكل'], activeCategory = 'الكل', cart = {};
+
+    database.ref('menu_data').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            localItems = data.items || [];
+            localCategories = ['الكل', ...(data.categories || [])];
+        }
+        renderClientMenu();
     });
 
-    function selectPresetImg(el, url) {
-        document.querySelectorAll(".img-preset-option").forEach(i => i.classList.remove("selected"));
-        el.classList.add("selected");
-        document.getElementById("itemImgSelected").value = url;
+    // الاستماع المباشر لإشعارات استجابة الموظفين للويتر
+    database.ref(`orders_system/${tableNo}/waiter_status_message`).on('value', (snapshot) => {
+        const msg = snapshot.val();
+        if (msg) {
+            alert(`💬 رسالة من الإدارة: ${msg}`);
+            database.ref(`orders_system/${tableNo}/waiter_status_message`).remove();
+        }
+    });
+
+    function renderClientMenu() {
+        document.getElementById('categories-container').innerHTML = localCategories.map(c => `
+            <button class="btn-menu-cat ${c === activeCategory ? 'active' : ''}" onclick="switchCategory('${c}')">${c}</button>
+        `).join('');
+
+        const filtered = (activeCategory === 'الكل') ? localItems : localItems.filter(i => i.cat === activeCategory);
+        const grid = document.getElementById('menu-grid');
+        
+        if (filtered.length === 0) {
+            grid.innerHTML = `<div class="col-12 text-center py-5 text-muted">لا توجد أصناف مضافة في هذا القسم حالياً.</div>`;
+            return;
+        }
+
+        grid.innerHTML = filtered.map((item, idx) => {
+            const qty = cart[item.name] ? cart[item.name].quantity : 0;
+            const imgUrl = item.img || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=150&auto=format&fit=crop';
+            return `
+                <div class="col-12 col-md-6">
+                    <div class="card item-card p-2">
+                        <div class="d-flex align-items-center">
+                            <img src="${imgUrl}" class="food-thumb shadow-sm me-3">
+                            <div class="flex-grow-1 px-2">
+                                <h6 class="fw-bold mb-1">${item.name}</h6>
+                                <span class="item-price-tag small d-block mb-1">${Number(item.price).toLocaleString()} د.ع</span>
+                            </div>
+                            <div class="d-flex align-items-center bg-light p-1 rounded-pill border">
+                                <button class="qty-btn" onclick="updateCart('${item.name}', ${item.price}, -1)">-</button>
+                                <span class="fw-bold mx-2" style="min-width:15px; text-align:center;" id="qty-${item.name}">${qty}</span>
+                                <button class="qty-btn" onclick="updateCart('${item.name}', ${item.price}, 1)">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
     }
+
+    function switchCategory(cat) { activeCategory = cat; renderClientMenu(); }
+
+    function updateCart(name, price, change) {
+        if (!cart[name]) cart[name] = { name, price, quantity: 0 };
+        cart[name].quantity += change;
+        if (cart[name].quantity <= 0) delete cart[name];
+        
+        const qtyElement = document.getElementById(`qty-${name}`);
+        if(qtyElement) qtyElement.innerText = cart[name] ? cart[name].quantity : 0;
+        updateCartSummary();
+    }
+
+    function updateCartSummary() {
+        let count = 0, total = 0;
+        Object.values(cart).forEach(i => { count += i.quantity; total += (i.price * i.quantity); });
+        document.getElementById('cart-count').innerText = count;
+        document.getElementById('cart-total').innerText = total.toLocaleString();
+    }
+
+    function sendOrderToFirebase() {
+        if (Object.keys(cart).length === 0) { alert("سلتك فارغة! اختر بعض الأصناف أولاً."); return; }
+        let total = 0; Object.values(cart).forEach(i => total += (i.price * i.quantity));
+        const timestamp = new Date().toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit' });
+
+        database.ref(`orders_system/${tableNo}`).set({
+            items: cart,
+            total_price: total,
+            time: timestamp,
+            waiter_requested: false,
+            bill_requested: false
+        }).then(() => { alert("🚀 تم إرسال طلبك للمطبخ والكاشير بنجاح!"); cart = {}; updateCartSummary(); renderClientMenu(); });
+    }
+
+    function requestService(type) {
+        const timestamp = new Date().toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit' });
+        let updateData = { time: timestamp };
+        if (type === 'waiter') { updateData.waiter_requested = true; alert("🔔 تم نداء الويتر. انتظر الاستجابة المباشرة على الشاشة."); }
+        if (type === 'bill') { updateData.bill_requested = true; alert("🧾 تم طلب الحساب."); }
+        database.ref(`orders_system/${tableNo}`).update(updateData);
+    }
+
+    if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js'); }); }
 </script>
-<script src="app.js"></script>
 </body>
 </html>
-
