@@ -3,262 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم طلبات المطبخ الفورية</title>
+    <title>لوحة مراقبة الطلبات العامة</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;500;700&display=swap" rel="stylesheet">
     <style>
-        /* التنسيقات العامة الفاخرة المتناسقة مع المنيو الأسود والذهبي */
-        * { 
-            box-sizing: border-box; 
-            margin: 0; 
-            padding: 0; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-        }
-        body { 
-            background-color: #121212; 
-            color: #e0e0e0; 
-            padding: 20px; 
-        }
-        header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            border-bottom: 2px solid #d4af37; 
-            padding-bottom: 15px; 
-            margin-bottom: 25px; 
-        }
-        h1 { 
-            color: #d4af37; 
-            font-size: 24px; 
-            display: flex; 
-            align-items: center; 
-            gap: 10px; 
-        }
-        .live-indicator {
-            height: 12px; 
-            width: 12px; 
-            background-color: #27ae60; 
-            border-radius: 50%; 
-            display: inline-block;
-            box-shadow: 0 0 10px #27ae60;
-            animation: blink 1.5s infinite;
-        }
-        @keyframes blink {
-            0% { opacity: 0.4; }
-            50% { opacity: 1; }
-            100% { opacity: 0.4; }
-        }
-        .stats { 
-            background: #1e1e1e; 
-            padding: 8px 18px; 
-            border-radius: 20px; 
-            color: #fff; 
-            font-size: 14px; 
-            border: 1px solid #333; 
-        }
-        /* شبكة عرض كروت الطلبات */
-        .orders-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
-            gap: 20px; 
-        }
-        .order-card { 
-            background: #1e1e1e; 
-            border-radius: 12px; 
-            border: 1px solid #2d2d2d; 
-            padding: 15px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5); 
-            position: relative; 
-            animation: popIn 0.3s ease-in-out; 
-        }
-        .order-header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center;
-            margin-bottom: 12px; 
-            padding-bottom: 8px; 
-            border-bottom: 1px dashed #333; 
-        }
-        .table-badge { 
-            background: #d4af37; 
-            color: #111; 
-            font-weight: bold; 
-            padding: 4px 12px; 
-            border-radius: 6px; 
-            font-size: 14px; 
-        }
-        .order-time { 
-            color: #888; 
-            font-size: 13px; 
-        }
-        .order-body {
-            margin-bottom: 15px;
-        }
-        .item-row { 
-            display: flex; 
-            justify-content: space-between; 
-            font-size: 15px; 
-            margin-bottom: 6px; 
-            background: #242424; 
-            padding: 8px 12px; 
-            border-radius: 6px; 
-            border-right: 3px solid #d4af37;
-        }
-        .item-count { 
-            color: #d4af37; 
-            font-weight: bold; 
-        }
-        .order-footer { 
-            margin-top: 15px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            border-top: 1px solid #2d2d2d;
-            padding-top: 12px;
-        }
-        .total-price { 
-            font-weight: bold; 
-            color: #fff; 
-            font-size: 16px; 
-        }
-        .btn-done { 
-            background: linear-gradient(145deg, #27ae60, #1e8449); 
-            color: white; 
-            border: none; 
-            padding: 8px 18px; 
-            border-radius: 6px; 
-            cursor: pointer; 
-            font-weight: bold; 
-            transition: 0.2s; 
-        }
-        .btn-done:hover { 
-            background: #219653; 
-            transform: scale(1.02);
-        }
-        .no-orders { 
-            text-align: center; 
-            color: #666; 
-            padding: 100px 20px; 
-            grid-column: 1/-1; 
-            font-size: 18px; 
-        }
-        @keyframes popIn {
-            0% { transform: scale(0.95); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
+        body { font-family: 'Cairo', sans-serif; background-color: #111827; color: #f9fafb; padding-bottom: 40px; }
+        .dashboard-header { background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%); border-bottom: 2px solid #374151; padding: 15px; }
+        .dash-card { background-color: #1f2937; border: 1px solid #374151; border-radius: 14px; padding: 15px; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(0.99); } }
+        .status-waiter-pulse { border: 2px solid #f59e0b !important; animation: pulse 1s infinite; }
+        .status-bill-pulse { border: 2px solid #ef4444 !important; animation: pulse 1s infinite; }
+        .dash-item-row { background: rgba(255,255,255,0.02); border-radius: 8px; padding: 6px 12px; margin-bottom: 6px; }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>👨‍🍳 لوحة طلبات المطبخ الحية <span class="live-indicator"></span></h1>
-        <div class="stats">الطلبات النشطة حالياً: <span id="order-count" style="color:#d4af37; font-weight:bold;">0</span></div>
-    </header>
+<div class="dashboard-header text-center shadow">
+    <h4 class="fw-bold mb-1 text-white">📊 لوحة المراقبة والمتابعة العامة</h4>
+</div>
 
-    <!-- حاوية عرض الطلبات القادمة من السيرفر -->
-    <div class="orders-grid" id="ordersContainer">
-        <div class="no-orders">بانتظار استقبال طلبات الزبائن الفورية... ✨</div>
+<div class="container-fluid px-3 mt-4">
+    <div id="dashboard-grid" class="row g-3">
+        <div class="col-12 text-center py-5 text-muted">جاري تحميل البيانات الحية...</div>
     </div>
+</div>
 
-    <!-- جرس ومؤثر صوتي للتنبيه الفوري للمطبخ عند وصول طلب جديد (تم اختيار رابط صوتي عالي الاعتمادية) -->
-    <audio id="notifSound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-600.wav" preload="auto"></audio>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
-    <!-- استدعاء مكتبات الـ Realtime Database المتوافقة تماماً والمطابقة لملف app.js -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    
-    <script>
-        // مفاتيح الربط الفورية الموحدة للنظام السحابي بالكامل
-        const firebaseConfig = {
-            apiKey: "AIzaSyCEk80-ag9mv5JP9LRBZTq1_qiVKcwUQKQ",
-            authDomain: "almenu-system.firebaseapp.com",
-            databaseURL: "https://almenu-system-default-rtdb.firebaseio.com",
-            projectId: "almenu-system",
-            storageBucket: "almenu-system.firebasestorage.app",
-            messagingSenderId: "259548428040",
-            appId: "1:259548428040:web:8d156f73ed55cec3cadebd",
-            measurementId: "G-EL9GDKQ0KV"
-        };
-        
-        // تهيئة اتصال السيرفر لشاشة إدارة المطبخ
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyC6fFl4gN2N-W7oK3v70g_v3P932fM6bNY",
+        authDomain: "almenu-system.firebaseapp.com",
+        databaseURL: "https://almenu-system-default-rtdb.firebaseio.com",
+        projectId: "almenu-system",
+        storageBucket: "almenu-system.appspot.com",
+        messagingSenderId: "305206060548",
+        appId: "1:305206060548:web:b1d79aa3ec2c2cc2ebbb9d"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    database.ref('orders_system').on('value', (snapshot) => {
+        const container = document.getElementById('dashboard-grid');
+        const data = snapshot.val();
+        if (!data) { container.innerHTML = `<div class="col-12 text-center py-5 text-white-50">✨ لا توجد طاولات نشطة.</div>`; return; }
+        container.innerHTML = '';
+
+        for (const key in data) {
+            const order = data[key];
+            let cardClass = "dash-card";
+            let badge = `<span class="badge bg-success">⚙️ تحت الخدمة</span>`;
+
+            if (order.waiter_requested) { cardClass += " status-waiter-pulse"; badge = `<span class="badge bg-warning text-dark">🔔 نداء ويتر</span>`; }
+            else if (order.bill_requested) { cardClass += " status-bill-pulse"; badge = `<span class="badge bg-danger">🧾 طلب حساب</span>`; }
+
+            let itemsHtml = Object.values(order.items || {}).map(i => `
+                <div class="d-flex justify-content-between dash-item-row">
+                    <span class="text-white-50">${i.name}</span><span class="badge bg-primary">x${i.quantity}</span>
+                </div>
+            `).join('');
+
+            const col = document.createElement('div');
+            col.className = "col-12 col-md-6 col-lg-4";
+            col.innerHTML = `
+                <div class="${cardClass}">
+                    <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2 border-secondary">
+                        <h5 class="fw-bold mb-0 text-warning">طاولة # ${key}</h5>${badge}
+                    </div>
+                    <div class="mb-3">${itemsHtml || '<div class="text-muted small">نداء مباشر</div>'}</div>
+                    <div class="p-2 rounded bg-dark d-flex justify-content-between align-items-center">
+                        <span class="small text-muted">الإجمالي:</span><span class="fw-bold text-success">${Number(order.total_price || 0).toLocaleString()} د.ع</span>
+                    </div>
+                    <div class="row g-2 mt-2">
+                        <div class="col-6"><button class="btn btn-sm btn-outline-warning w-100" onclick="updateStatus('${key}', 'waiter')">تلبية الويتر</button></div>
+                        <div class="col-6"><button class="btn btn-sm btn-outline-danger w-100" onclick="updateStatus('${key}', 'bill')">تثبيط الحساب</button></div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(col);
         }
-        const database = firebase.database();
+    });
 
-        // متغير لمراقبة حالة الرفع ومنع تشغيل الصوت بشكل عشوائي عند أول إقلاع للموقع
-        let lastCount = 0;
-        let isFirstLoad = true;
-
-        // دالة الاستماع الحي والمباشر لقاعدة البيانات الفورية
-        database.ref('orders').on('value', (snapshot) => {
-            const container = document.getElementById('ordersContainer');
-            container.innerHTML = '';
-            let currentActiveCount = 0;
-
-            if (snapshot.exists()) {
-                const data = snapshot.val();
-                
-                // ترتيب عينات الداتا لعرض الطلبات الجديدة أولاً بأول
-                Object.keys(data).reverse().forEach(key => {
-                    const order = data[key];
-                    
-                    // فلترة وعرض الطلبات التي تحمل الحالة "جديد" فقط
-                    if (order.status === "جديد") {
-                        currentActiveCount++;
-                        let itemsHtml = '';
-                        
-                        // بناء قائمة الأكلات المطلوبة داخل الكارت
-                        order.items.forEach(item => {
-                            itemsHtml += `
-                                <div class="item-row">
-                                    <span>${item.name}</span>
-                                    <span class="item-count">x${item.quantity}</span>
-                                </div>
-                            `;
-                        });
-
-                        // بناء الهيكل المرئي لكارت الطلب الفردي
-                        const card = document.createElement('div');
-                        card.className = 'order-card';
-                        card.innerHTML = `
-                            <div class="order-header">
-                                <span class="table-badge">طاولة ${order.table}</span>
-                                <span class="order-time">⏰ ${order.time}</span>
-                            </div>
-                            <div class="order-body">${itemsHtml}</div>
-                            <div class="order-footer">
-                                <span class="total-price">الحساب: ${order.total} د.ع</span>
-                                <button class="btn-done" onclick="completeOrder('${key}')">تم التجهيز ✓</button>
-                            </div>
-                        `;
-                        container.appendChild(card);
-                    }
-                });
-                
-                // تشغيل صوت الجرس فوراً للمطبخ في حالة ورود طلب جديد فعلي بعد إقلاع الشاشة
-                if (!isFirstLoad && currentActiveCount > lastCount) {
-                    const sound = document.getElementById('notifSound');
-                    if(sound) {
-                        sound.play().catch(e => console.log("تنبيه أمني: المتصفح يطلب ضغط الكاشير أولاً لتفعيل التنبيه الصوتي"));
-                    }
-                }
-            }
-
-            // تحديث الإحصائيات الفورية على الشاشة
-            lastCount = currentActiveCount;
-            isFirstLoad = false;
-            document.getElementById('order-count').innerText = currentActiveCount;
-            
-            // في حالة عدم وجود أي طلبات نشطة في الوقت الحالي
-            if (currentActiveCount === 0) {
-                container.innerHTML = '<div class="no-orders">بانتظار استقبال طلبات الزبائن الفورية... ✨</div>';
-            }
-        });
-
-        // دالة إنهاء وتجهيز الطلب وتحويل حالته على السيرفر لإخفائه تلقائياً من المطبخ
-        function completeOrder(orderId) {
-            database.ref('orders/' + orderId).update({ status: "مكتمل" })
-                .catch(err => alert("حدث خطأ أثناء تحديث حالة الطلب: " + err));
-        }
-    </script>
+    function updateStatus(key, type) {
+        let updateData = {};
+        if (type === 'waiter') updateData.waiter_requested = false;
+        if (type === 'bill') updateData.bill_requested = false;
+        database.ref(`orders_system/${key}`).update(updateData);
+    }
+</script>
 </body>
 </html>
