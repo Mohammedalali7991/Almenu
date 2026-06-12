@@ -1,20 +1,19 @@
 {
-  "name": "Almenu App",
-  "short_name": "Almenu",
-  "description": "Smart digital menu system",
+  "name": "القائمة - نظام قوائم رقمي ذكي",
+  "short_name": "القائمة",
+  "description": "نظام إدارة وعرض قوائم الطعام الذكية لمطعم دجلة",
   "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#0d0d0d",
-  "theme_color": "#d4af37",
+  "background_color": "#121212",
+  "theme_color": "#c5a880",
   "orientation": "portrait",
-  "id": "index.html",
   "scope": "./",
   "icons": [
     {
       "src": "logo.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     }
   ]
 }
