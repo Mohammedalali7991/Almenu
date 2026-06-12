@@ -3,202 +3,130 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>شاشة المطبخ والكاشير المدمجة الذكية</title>
+    <title>شاشة الكاشير والطلبات الحية</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;500;700&display=swap" rel="stylesheet">
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-        body { background-color: #0d0d0d; color: #e0e0e0; padding: 15px; }
-        header { text-align: center; padding: 15px; background: #141414; border-radius: 12px; border: 1px solid #d4af37; margin-bottom: 25px; }
-        header h1 { color: #d4af37; font-size: 22px; }
-
-        .live-grid { display: flex; flex-direction: column; gap: 15px; }
-        .table-card { background: #141414; border: 1px solid #222; border-radius: 14px; padding: 15px; position: relative; transition: 0.3s; }
-        
-        .table-card.flash-waiter { border-color: #e67e22; background: #1f140b; animation: blinker 1.5s infinite; }
-        .table-card.flash-bill { border-color: #2980b9; background: #0b141f; animation: blinker 1.5s infinite; }
-        
-        @keyframes blinker {
-            50% { border-color: #fff; box-shadow: 0 0 12px rgba(255,255,255,0.2); }
-        }
-
-        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #222; padding-bottom: 8px; }
-        .table-title { background: #d4af37; color: #0d0d0d; padding: 4px 12px; border-radius: 6px; font-weight: bold; font-size: 14px; }
-        .status-badge { background: #222; color: #aaa; padding: 4px 10px; border-radius: 5px; font-size: 12px; }
-        
-        .alert-bar { padding: 8px; border-radius: 6px; font-size: 13px; font-weight: bold; margin-bottom: 10px; text-align: center; }
-        
-        .item-row { font-size: 15px; margin-bottom: 6px; padding-right: 8px; border-right: 2px solid #d4af37; color: #fff; }
-        .notes-box { background: #1c1c1c; border-left: 3px solid #c0392b; padding: 8px; border-radius: 4px; font-size: 13px; margin-top: 10px; color: #ccc; }
-        
-        .total-price { font-weight: bold; color: #d4af37; margin-top: 12px; font-size: 16px; }
-        
-        .actions-bar { display: flex; gap: 8px; margin-top: 15px; flex-wrap: wrap; }
-        .btn-action { flex: 1; min-width: 100px; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; text-align: center; color: white; }
-        .btn-accept { background: #2980b9; }
-        .btn-ready { background: #27ae60; }
-        .btn-print { background: #7f8c8d; color: white; } /* زر الطباعة */
-        .btn-clear { background: #c0392b; }
-
-        /* إعدادات وتنسيق ورقة الفاتورة المطبوعة للماكينات الحرارية */
+        body { font-family: 'Cairo', sans-serif; background-color: #1e272e; color: #f5f6fa; padding-bottom: 30px; }
+        .cashier-header { background-color: #273c75; border-bottom: 3px solid #192a56; padding: 15px; border-radius: 0 0 16px 16px; }
+        .live-card { background-color: #2f3640; border: 1px solid #718093; border-radius: 14px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        @keyframes blinker { 50% { opacity: 0.4; } }
+        .blinker-waiter { border: 2px solid #ffdd59 !important; animation: blinker 1.5s linear infinite; }
+        .blinker-bill { border: 2px solid #ff5e57 !important; animation: blinker 1.2s linear infinite; }
+        .item-row { background: rgba(255,255,255,0.05); border-radius: 8px; padding: 6px 10px; margin-bottom: 6px; font-size: 0.95rem; }
+        #printArea { display: none; }
         @media print {
-            body { background: white; color: black; padding: 0; margin: 0; direction: rtl; }
-            .live-grid, header, .actions-bar, .status-badge, .alert-bar { display: none !important; }
-            .print-invoice-area { display: block !important; width: 80mm; padding: 10px; font-family: 'Courier New', monospace; }
-            .print-header { text-align: center; border-bottom: 1px dashed black; padding-bottom: 8px; margin-bottom: 8px; }
-            .print-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 5px; }
-            .print-footer { text-align: center; border-top: 1px dashed black; margin-top: 10px; padding-top: 8px; font-size: 12px; }
+            body * { visibility: hidden; background: white !important; color: black !important; }
+            #printArea, #printArea * { visibility: visible; }
+            #printArea { display: block !important; position: absolute; left: 0; top: 0; width: 100%; padding: 10px; direction: rtl; font-family: monospace; }
+            .print-header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 10px; }
+            .print-item { display: flex; justify-content: space-between; font-size: 14px; margin-top: 5px; }
         }
-        .print-invoice-area { display: none; }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>👨‍🍳 شاشة المطبخ والكاشير الموحدة حياً 🖥️</h1>
-        <p style="font-size:11px; color:#666; margin-top:4px;">استقبال الطلبات، تعديل الحالات، وطباعة الفواتير فورا</p>
-    </header>
+<div class="cashier-header text-center shadow">
+    <h4 class="fw-bold mb-1">🖥️ شاشة إدارة المبيعات والطلبات الفورية</h4>
+    <p class="text-white-50 small mb-0">مطعم دجلة - تحديث بث حي تلقائي</p>
+</div>
 
-    <div class="live-grid" id="mainContainer">
-        <p style="text-align:center; color:#555; padding:30px;">في انتظار نداءات أو طلبات حية من الصالة...</p>
+<div class="container-fluid px-3 mt-4">
+    <div id="live-grid" class="row g-3">
+        <div class="col-12 text-center py-5 text-muted">جاري الاتصال بقاعدة البيانات...</div>
     </div>
+</div>
 
-    <!-- حاوية خفية مخصصة لتهيئة شكل الطباعة فقط عند الضغط على الزر -->
-    <div id="printArea" class="print-invoice-area"></div>
+<div id="printArea"></div>
 
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyCEk80-ag9mv5JP9LRBZTq1_qiVKcwUQKQ",
-            authDomain: "almenu-system.firebaseapp.com",
-            databaseURL: "https://almenu-system-default-rtdb.firebaseio.com",
-            projectId: "almenu-system",
-            storageBucket: "almenu-system.firebasestorage.app",
-            messagingSenderId: "259548428040",
-            appId: "1:259548428040:web:8d156f73ed55cec3cadebd"
-        };
-        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
-        const database = firebase.database();
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyC6fFl4gN2N-W7oK3v70g_v3P932fM6bNY",
+        authDomain: "almenu-system.firebaseapp.com",
+        databaseURL: "https://almenu-system-default-rtdb.firebaseio.com",
+        projectId: "almenu-system",
+        storageBucket: "almenu-system.appspot.com",
+        messagingSenderId: "305206060548",
+        appId: "1:305206060548:web:b1d79aa3ec2c2cc2ebbb9d"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
 
-        // جلب البيانات الحية من السيرفر وعرضها في كروت الطاولات
-        database.ref('orders_system').on('value', (snapshot) => {
-            const container = document.getElementById('mainContainer');
-            container.innerHTML = '';
-            const data = snapshot.val();
+    database.ref('orders_system').on('value', (snapshot) => {
+        const container = document.getElementById('live-grid');
+        const data = snapshot.val();
+        if (!data) { container.innerHTML = `<div class="col-12 text-center py-5 text-white-50">✨ لا يوجد طلبات نشطة حالياً.</div>`; return; }
+        container.innerHTML = '';
 
-            if (!data) {
-                container.innerHTML = '<p style="text-align:center; color:#555; padding:30px;">في انتظار نداءات أو طلبات حية من الصالة...</p>';
-                return;
-            }
+        for (const key in data) {
+            const order = data[key];
+            let cardClass = "live-card";
+            let statusBadge = `<span class="badge bg-success">⏳ قيد التحضير</span>`;
 
-            for (const key in data) {
-                const order = data[key];
-                let cardClass = 'table-card';
-                let alertHtml = '';
+            if (order.waiter_requested) { cardClass += " blinker-waiter"; statusBadge = `<span class="badge bg-warning text-dark">🔔 نداء ويتر</span>`; }
+            else if (order.bill_requested) { cardClass += " blinker-bill"; statusBadge = `<span class="badge bg-danger">🧾 طلب الحساب</span>`; }
 
-                if (order.waiter_requested) {
-                    cardClass += ' flash-waiter';
-                    alertHtml = '<div class="alert-bar" style="background:#e67e22; color:white;">🛎️ زبون الطاولة ينادي النادل!</div>';
-                } else if (order.bill_requested) {
-                    cardClass += ' flash-bill';
-                    alertHtml = '<div class="alert-bar" style="background:#2980b9; color:white;">🧾 الزبون يطلب الحساب المالي الفاتورة!</div>';
-                }
-
-                let itemsHtml = '';
-                if(order.items) {
-                    order.items.forEach(i => {
-                        itemsHtml += `<div class="item-row">${i.name} × العدد: ${i.quantity}</div>`;
-                    });
-                } else {
-                    itemsHtml = '<div style="color:#555; font-size:13px;">(إشعار خدمة سريع فقط)</div>';
-                }
-
-                let notesHtml = order.notes ? `<div class="notes-box"><b>📝 ملاحظة الزبون:</b> ${order.notes}</div>` : '';
-
-                const card = document.createElement('div');
-                card.className = cardClass;
-                card.innerHTML = `
-                    <div class="card-header">
-                        <span class="table-title">طاولة ${order.table}</span>
-                        <span class="status-badge">${order.status ? order.status.replace(/_/g, ' ') : 'طلب جديد'}</span>
+            let itemsHtml = "";
+            if (order.items) {
+                itemsHtml = Object.values(order.items).map(item => `
+                    <div class="d-flex justify-content-between item-row">
+                        <span>${item.name}</span><span class="badge bg-light text-dark">x${item.quantity}</span>
                     </div>
-                    ${alertHtml}
-                    <div>${itemsHtml}</div>
-                    ${notesHtml}
-                    <div class="total-price">إجمالي الحساب: ${order.acc_total ? order.acc_total.toLocaleString() : 0} د.ع</div>
-                    
-                    <div class="actions-bar">
-                        <button class="btn-action btn-accept" onclick="updateStatus('${key}', 'قيد_التحضير_في_المطبخ')">👨‍🍳 تحضير</button>
-                        <button class="btn-action btn-ready" onclick="updateStatus('${key}', 'الطلب_جاهز_للتوصيل')">🚀 جاهز</button>
-                        <button class="btn-action btn-print" onclick="printInvoice('${key}')">🖨️ طباعة الفاتورة</button>
-                        <button class="btn-action btn-clear" onclick="clearTable('${key}')">🧹 محاسبة وتصفير</button>
+                `).join('');
+            } else { itemsHtml = `<div class="text-white-50 small text-center py-2">نداء خدمة مباشر</div>`; }
+
+            const col = document.createElement('div');
+            col.className = "col-12 col-md-6 col-lg-4";
+            col.innerHTML = `
+                <div class="${cardClass}">
+                    <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                        <h5 class="fw-bold mb-0 text-info">طاولة # ${key}</h5>${statusBadge}
                     </div>
-                `;
-                container.appendChild(card);
-            }
+                    <div class="mb-3">${itemsHtml}</div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="small text-white-50">الحساب:</span>
+                        <span class="fs-5 fw-bold text-success">${Number(order.total_price || 0).toLocaleString()} د.ع</span>
+                    </div>
+                    <div class="row g-2 mt-2 border-top pt-2">
+                        <div class="col-6"><button class="btn btn-sm btn-warning w-100 text-dark fw-bold" onclick="updateStatus('${key}', 'waiter')">تلبية النداء</button></div>
+                        <div class="col-6"><button class="btn btn-sm btn-primary w-100 fw-bold" onclick="printInvoice('${key}')">🖨️ طباعة</button></div>
+                        <div class="col-12"><button class="btn btn-sm btn-outline-danger w-100 mt-1" onclick="clearTable('${key}')">🧹 تصفير الطاولة</button></div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(col);
+        }
+    });
+
+    function updateStatus(key, type) {
+        let updateData = {};
+        if (type === 'waiter') updateData.waiter_requested = false;
+        if (type === 'bill') updateData.bill_requested = false;
+        database.ref(`orders_system/${key}`).update(updateData);
+    }
+
+    function printInvoice(key) {
+        database.ref(`orders_system/${key}`).once('value', (snapshot) => {
+            const order = snapshot.val();
+            if (!order) return;
+            let lines = Object.values(order.items || {}).map(i => `
+                <div class="print-item"><span>${i.name} (x${i.quantity})</span><span>${(i.price * i.quantity).toLocaleString()} د.ع</span></div>
+            `).join('');
+
+            document.getElementById('printArea').innerHTML = `
+                <div class="print-header"><h4>🌟 مطعم دجلة 🌟</h4><h5>طاولة رقم: ${key}</h5></div>
+                <div>${lines}</div><hr>
+                <div class="d-flex justify-content-between fw-bold"><span>المجموع:</span><span>${Number(order.total_price || 0).toLocaleString()} د.ع</span></div>
+            `;
+            window.print();
+            updateStatus(key, 'bill');
         });
+    }
 
-        function updateStatus(key, status) {
-            database.ref(`orders_system/${key}`).update({
-                status: status,
-                waiter_requested: false,
-                bill_requested: false
-            });
-        }
-
-        // دالة إنشاء الفاتورة الحرارية وإطلاق أمر الطباعة الفوري للماكينة
-        function printInvoice(key) {
-            database.ref(`orders_system/${key}`).once('value', (snapshot) => {
-                const order = snapshot.val();
-                if(!order || !order.items) { alert("لا توجد أطباق مسجلة في هذه الطاولة لطباعتها!"); return; }
-
-                const printArea = document.getElementById('printArea');
-                let itemsLines = '';
-                
-                order.items.forEach(item => {
-                    itemsLines += `
-                        <div class="print-row">
-                            <span>${item.name} (×${item.quantity})</span>
-                            <span>${(item.price * item.quantity).toLocaleString()} د.ع</span>
-                        </div>
-                    `;
-                });
-
-                let dateStr = new Date().toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit' });
-
-                // بناء الهيكل الكلاسيكي الاحترافي للفاتورة الحرارية ورق 80مم
-                printArea.innerHTML = `
-                    <div class="print-header">
-                        <h2>مطعمنا الفاخر 🍽️</h2>
-                        <p>فاتورة حساب الطاولة الذكية</p>
-                        <p><b>رقم الطاولة: ${order.table}</b></p>
-                        <p>الوقت: ${dateStr}</p>
-                    </div>
-                    <div>
-                        ${itemsLines}
-                    </div>
-                    ${order.notes ? `<div style="font-size:12px; margin-top:5px; border-top:1px dashed #000; padding-top:4px;"><b>ملاحظة:</b> ${order.notes}</div>` : ''}
-                    <div class="print-header" style="border-top: 1px dashed black; margin-top:8px;"></div>
-                    <div class="print-row" style="font-weight: bold; font-size:16px;">
-                        <span>المجموع النهائي:</span>
-                        <span>${order.acc_total ? order.acc_total.toLocaleString() : 0} د.ع</span>
-                    </div>
-                    <div class="print-footer">
-                        <p>أهلاً وسهلاً بكم .. نورتونا ✨</p>
-                        <p>نظام Almenu الذكي لإدارة المطاعم</p>
-                    </div>
-                `;
-
-                // استدعاء أمر الطباعة المدمج في النظام ليرتبط بطابعتك فوراً
-                window.print();
-            });
-        }
-
-        function clearTable(key) {
-            if (confirm("هل تريد مسح الطلب وتصفير الطاولة للزبون التالي؟")) {
-                database.ref(`orders_system/${key}`).remove();
-            }
-        }
-    </script>
+    function clearTable(key) { if (confirm(`تصفير طاولة رقم ${key}؟`)) database.ref(`orders_system/${key}`).remove(); }
+</script>
 </body>
 </html>
