@@ -2,25 +2,40 @@ const CACHE_NAME = 'almenu-cache-v1';
 const ASSETS = [
   './',
   './index.html',
+  './admin.html',
+  './cashier.html',
+  './dashboard.html',
+  './app.js',
   './manifest.json',
   './logo.png'
 ];
 
-// تثبيت التطبيق وحفظ الملفات الأساسية
-self.addEventListener('install', (e) => {
-  e.waitUntil(
+self.addEventListener('install', (event) => {
+  event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(ASSETS);
     })
   );
 });
 
-// تشغيل التطبيق وجلب البيانات حتى لو كان الإنترنت ضعيفاً
-self.addEventListener('fetch', (e) => {
-  e.respondWith(
-    caches.match(e.request).then((response) => {
-      return response || fetch(e.request);
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cache) => {
+          if (cache !== CACHE_NAME) {
+            return caches.delete(cache);
+          }
+        })
+      );
     })
   );
 });
 
+self.addEventListener('fetch', (event) => {
+  event.respondWith(
+    caches.match(event.request).then((cachedResponse) => {
+      return cachedResponse || fetch(event.request);
+    })
+  );
+});
