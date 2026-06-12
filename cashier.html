@@ -9,10 +9,9 @@
     <style>
         body { font-family: 'Cairo', sans-serif; background-color: #1e272e; color: #f5f6fa; padding-bottom: 30px; }
         .cashier-header { background-color: #273c75; border-bottom: 3px solid #192a56; padding: 15px; border-radius: 0 0 16px 16px; }
-        .live-card { background-color: #2f3640; border: 1px solid #718093; border-radius: 14px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-        @keyframes blinker { 50% { opacity: 0.4; } }
-        .blinker-waiter { border: 2px solid #ffdd59 !important; animation: blinker 1.5s linear infinite; }
-        .blinker-bill { border: 2px solid #ff5e57 !important; animation: blinker 1.2s linear infinite; }
+        .live-card { background-color: #2f3640; border: 1px solid #718093; border-radius: 14px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: all 0.3s; }
+        @keyframes blinker { 50% { opacity: 0.5; border-color: #ffdd59; } }
+        .blinker-active { animation: blinker 1.5s linear infinite; background-color: #3d4654; }
         .item-row { background: rgba(255,255,255,0.05); border-radius: 8px; padding: 6px 10px; margin-bottom: 6px; font-size: 0.95rem; }
         #printArea { display: none; }
         @media print {
@@ -63,56 +62,87 @@
 
         for (const key in data) {
             const order = data[key];
+            let isOnlyService = !order.items; // التحقق هل هو نداء نادل فقط بدون وجبات
             let cardClass = "live-card";
             let statusBadge = `<span class="badge bg-success">⏳ قيد التحضير</span>`;
+            let footerHtml = "";
 
-            if (order.waiter_requested) { cardClass += " blinker-waiter"; statusBadge = `<span class="badge bg-warning text-dark">🔔 نداء ويتر</span>`; }
-            else if (order.bill_requested) { cardClass += " blinker-bill"; statusBadge = `<span class="badge bg-danger">🧾 طلب الحساب</span>`; }
+            if (order.waiter_requested) { 
+                cardClass += " blinker-active"; 
+                statusBadge = `<span class="badge bg-warning text-dark">🔔 نداء الويتر</span>`; 
+            } else if (order.bill_requested) { 
+                cardClass += " blinker-active"; 
+                statusBadge = `<span class="badge bg-danger">🧾 طلب الحساب</span>`; 
+            }
 
-            let itemsHtml = "";
-            if (order.items) {
-                itemsHtml = Object.values(order.items).map(item => `
+            // بناء المحتوى السفلي بناءً على نوع الطلب لمنع تداخل أزرار الطباعة والمبالغ الصفرية
+            if (isOnlyService) {
+                footerHtml = `
+                    <div class="alert alert-warning text-center py-2 mb-2 small text-dark fw-bold">
+                         ${order.waiter_requested ? "🛑 نداء خدمة مباشر بدون طلب طعام" : "💰 طلب الحساب المباشر"}
+                    </div>
+                    <div class="col-12">
+                        <button class="btn btn-warning w-100 text-dark fw-bold py-2 shadow-sm" onclick="respondToWaiter('${key}')">
+                            🤝 تلبية النداء (النادل في طريقه إليك)
+                        </button>
+                    </div>
+                    <div class="col-12 mt-2">
+                        <button class="btn btn-sm btn-outline-secondary w-100" onclick="clearTable('${key}')">إغلاق وتصفير</button>
+                    </div>
+                `;
+            } else {
+                let itemsHtml = Object.values(order.items).map(item => `
                     <div class="d-flex justify-content-between item-row">
                         <span>${item.name}</span><span class="badge bg-light text-dark">x${item.quantity}</span>
                     </div>
                 `).join('');
-            } else { itemsHtml = `<div class="text-white-50 small text-center py-2">نداء خدمة مباشر</div>`; }
+
+                footerHtml = `
+                    <div class="mb-3">${itemsHtml}</div>
+                    <div class="d-flex justify-content-between align-items-center mb-2 px-1">
+                        <span class="small text-white-50">إجمالي الحساب:</span>
+                        <span class="fs-5 fw-bold text-success">${Number(order.total_price || 0).toLocaleString()} د.ع</span>
+                    </div>
+                    <div class="row g-2 mt-2 border-top pt-2 border-secondary">
+                        ${order.waiter_requested ? `<div class="col-12 mb-1"><button class="btn btn-sm btn-warning w-100 text-dark fw-bold" onclick="updateStatus('${key}', 'waiter')">تلبية نداء الويتر المدمج</button></div>` : ''}
+                        <div class="col-6"><button class="btn btn-sm btn-primary w-100 fw-bold py-2" onclick="printInvoice('${key}')">🖨️ طباعة الفاتورة</button></div>
+                        <div class="col-6"><button class="btn btn-sm btn-danger w-100 fw-bold py-2" onclick="clearTable('${key}')">🧹 إنهاء وتصفير</button></div>
+                    </div>
+                `;
+            }
 
             const col = document.createElement('div');
             col.className = "col-12 col-md-6 col-lg-4";
             col.innerHTML = `
                 <div class="${cardClass}">
-                    <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                    <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2 border-secondary">
                         <h5 class="fw-bold mb-0 text-info">طاولة # ${key}</h5>${statusBadge}
                     </div>
-                    <div class="mb-3">${itemsHtml}</div>
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="small text-white-50">الحساب:</span>
-                        <span class="fs-5 fw-bold text-success">${Number(order.total_price || 0).toLocaleString()} د.ع</span>
-                    </div>
-                    <div class="row g-2 mt-2 border-top pt-2">
-                        <div class="col-6"><button class="btn btn-sm btn-warning w-100 text-dark fw-bold" onclick="updateStatus('${key}', 'waiter')">تلبية النداء</button></div>
-                        <div class="col-6"><button class="btn btn-sm btn-primary w-100 fw-bold" onclick="printInvoice('${key}')">🖨️ طباعة</button></div>
-                        <div class="col-12"><button class="btn btn-sm btn-outline-danger w-100 mt-1" onclick="clearTable('${key}')">🧹 تصفير الطاولة</button></div>
-                    </div>
+                    <div class="row g-2">${footerHtml}</div>
                 </div>
             `;
             container.appendChild(col);
         }
     });
 
+    function respondToWaiter(key) {
+        database.ref(`orders_system/${key}`).update({
+            waiter_status_message: "النادل في طريقه إليك الآن 🏃‍♂️",
+            waiter_requested: false
+        }).then(() => { alert(`تم إرسال إشعار لطاولة ${key}`); });
+    }
+
     function updateStatus(key, type) {
         let updateData = {};
         if (type === 'waiter') updateData.waiter_requested = false;
-        if (type === 'bill') updateData.bill_requested = false;
         database.ref(`orders_system/${key}`).update(updateData);
     }
 
     function printInvoice(key) {
         database.ref(`orders_system/${key}`).once('value', (snapshot) => {
             const order = snapshot.val();
-            if (!order) return;
-            let lines = Object.values(order.items || {}).map(i => `
+            if (!order || !order.items) return;
+            let lines = Object.values(order.items).map(i => `
                 <div class="print-item"><span>${i.name} (x${i.quantity})</span><span>${(i.price * i.quantity).toLocaleString()} د.ع</span></div>
             `).join('');
 
@@ -122,7 +152,6 @@
                 <div class="d-flex justify-content-between fw-bold"><span>المجموع:</span><span>${Number(order.total_price || 0).toLocaleString()} د.ع</span></div>
             `;
             window.print();
-            updateStatus(key, 'bill');
         });
     }
 
