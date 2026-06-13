@@ -1,24 +1,23 @@
-// نظام إدارة المطاعم العالمي المتكامل - الإصدار الاحترافي 2026
+// نظام إدارة مطعمنا الفاخر - الإصدار المطور المستقر 2026
 let items = [];
 let categories = [];
 let expenses = [];
 let orders = {};
-let loyaltyPoints = {}; // ميزة عالمية جديدة: نقاط ولاء الزبائن
 const database = firebase.database();
 
-// معرض الصور الفخم الافتراضي للأطباق
+// مصفوفة الصور الافتراضية الرسمية للأطباق
 const foodGallery = [
     { title: "سلطة ومقبلات", url: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&auto=format&fit=crop" },
     { title: "مشاوي وكباب", url: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&auto=format&fit=crop" },
     { title: "بيتزا إيطالية", url: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&auto=format&fit=crop" },
-    { title: "برغر فخم", url: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&auto=format&fit=crop" },
-    { title: "شاورما وقص", url: "https://images.unsplash.com/photo-1633424233228-56dfc1e195cf?w=400&auto=format&fit=crop" },
+    { title: "برغر", url: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&auto=format&fit=crop" },
+    { title: "شاورما وگص", url: "https://images.unsplash.com/photo-1633424233228-56dfc1e195cf?w=400&auto=format&fit=crop" },
     { title: "حلويات شرقية", url: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?w=400&auto=format&fit=crop" },
-    { title: "عصائر فريش", url: "https://images.unsplash.com/photo-1536935338788-846bb9981813?w=400&auto=format&fit=crop" }
+    { title: "مشروبات وعصائر", url: "https://images.unsplash.com/photo-1536935338788-846bb9981813?w=400&auto=format&fit=crop" }
 ];
 
 function initSystem() {
-    // 1. مزامنة المنيو والمخازن حياً
+    // 1. مزامنة بيانات المنيو والأقسام
     database.ref('menu_data').on('value', (snapshot) => {
         const data = snapshot.val();
         if (data) {
@@ -34,7 +33,7 @@ function initSystem() {
         updateFinancialsUI();
     });
 
-    // 3. مزامنة الطلبات الشاملة وحسابات الأرباح
+    // 3. مزامنة فواتير الطلبات وحساب الخزينة
     database.ref('orders_system').on('value', (snapshot) => {
         orders = snapshot.val() || {};
         updateFinancialsUI();
@@ -43,7 +42,7 @@ function initSystem() {
     });
 }
 
-// تحديث واجهة الإدارة والجرد
+// تحديث واجهة لوحة الإدارة والجرد
 function updateAdminUI() {
     const select = document.getElementById('itemCat');
     if (select) select.innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('');
@@ -58,11 +57,11 @@ function updateAdminUI() {
     const tableBody = document.getElementById('admin-table-items');
     if (tableBody) {
         if (items.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="6" class="text-muted py-4">📭 لا توجد أصناف في المنيو حالياً. أضف طبقك الأول!</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="6" class="text-muted py-4">لا توجد أصناف في القائمة حالياً.</td></tr>`;
             return;
         }
         tableBody.innerHTML = items.map((item, index) => `
-            <tr class="${!item.available || item.stock <= 5 ? 'table-danger-custom' : ''}">
+            <tr class="${!item.available || item.stock <= 0 ? 'table-danger-custom' : ''}">
                 <td><img src="${item.img || foodGallery[0].url}" class="table-item-img"></td>
                 <td class="fw-bold text-dark">${item.name}</td>
                 <td><span class="badge bg-soft-primary">${item.cat}</span></td>
@@ -73,7 +72,7 @@ function updateAdminUI() {
                 <td>
                     <div class="btn-group gap-1">
                         <button class="btn btn-sm ${item.available !== false && (item.stock || 0) > 0 ? 'btn-outline-warning' : 'btn-outline-success'}" onclick="toggleAvailability(${index})">
-                            ${item.available !== false && (item.stock || 0) > 0 ? "⏸️ إيقاف" : "▶️ تفعيل"}
+                            ${item.available !== false && (item.stock || 0) > 0 ? "⏸️ إيقاف وإعلان النفاذ" : "▶️ تفعيل وإتاحة الصنف"}
                         </button>
                         <button class="btn btn-sm btn-outline-danger" onclick="deleteItem(${index})"><i class="bi bi-trash"></i></button>
                     </div>
@@ -111,7 +110,7 @@ function addItem() {
         items.push({ name, price, cat, img: imgUrl, stock: stock, available: stock > 0 });
         database.ref('menu_data/items').set(items).then(() => {
             nameInput.value = ''; priceInput.value = ''; stockInput.value = '50';
-            alert("✅ تم إضافة الطبق بنجاح وتحديث نظام جرد المخازن التزامني!");
+            showCustomAlert("تم إضافة الصنف بنجاح وتحديث نظام القائمة المشترك.");
         });
     }
 }
@@ -123,9 +122,14 @@ function updateStockDirect(index, value) {
     database.ref('menu_data/items').set(items);
 }
 
+// زر التحكم بنفاذ وإتاحة الصنف من قبل الأدمن أو الكاشير
 function toggleAvailability(index) {
     items[index].available = !(items[index].available !== false);
-    if(!items[index].available) items[index].stock = 0;
+    if(!items[index].available) {
+        items[index].stock = 0;
+    } else {
+        items[index].stock = 50; // تعيين كمية افتراضية عند إعادة التفعيل
+    }
     database.ref('menu_data/items').set(items);
 }
 
@@ -135,11 +139,11 @@ function deleteItem(index) {
     }
 }
 
-// --- الإدارة المالية المتقدمة والمصاريف الحية ---
+// تسجيل المصاريف
 function addExpense() {
     const title = document.getElementById('expTitle').value.trim();
     const amount = Number(document.getElementById('expAmount').value) || 0;
-    if(!title || amount <= 0) { alert("يرجى ملء بيانات المصروف بشكل صحيح!"); return; }
+    if(!title || amount <= 0) { showCustomAlert("يرجى ملء بيانات المصروف بشكل صحيح!"); return; }
 
     const newExpense = { title, amount, date: new Date().toLocaleString('ar-IQ') };
     expenses.push(newExpense);
@@ -172,6 +176,18 @@ function updateFinancialsUI() {
     if(document.getElementById('stat-sales')) document.getElementById('stat-sales').innerText = totalSales.toLocaleString() + " د.ع";
     if(document.getElementById('stat-expenses')) document.getElementById('stat-expenses').innerText = totalExpenses.toLocaleString() + " د.ع";
     if(document.getElementById('stat-net')) document.getElementById('stat-net').innerText = netProfit.toLocaleString() + " د.ع";
+}
+
+// التنبيه المخصص النظيف لعدم إظهار اسم أو رابط الموقع
+function showCustomAlert(msg) {
+    const alertModalEl = document.getElementById('customAlertModal');
+    if (alertModalEl) {
+        document.getElementById('customAlertMsg').innerText = msg;
+        const myModal = new bootstrap.Modal(alertModalEl);
+        myModal.show();
+    } else {
+        alert(msg);
+    }
 }
 
 document.addEventListener('DOMContentLoaded', initSystem);
