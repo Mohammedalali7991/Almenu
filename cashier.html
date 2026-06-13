@@ -3,19 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>شاشة الكاشير والتحكم المركزي الفخم</title>
+    <title>شاشة الكاشير والتحكم المركزي - مطعم دجلة</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
-        body { font-family: 'Cairo', sans-serif; background-color: #0f111a; color: #e1e2e6; }
-        .panel-title { background: linear-gradient(90deg, #1f2235, #161824); padding: 12px 20px; border-radius: 12px; font-weight: 700; border-right: 5px solid #d4af37; }
-        .order-card-premium { background: #161824; border: 1px solid rgba(255,255,255,0.05); border-radius: 18px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); }
-        .table-cell-btn { width: 100%; padding: 18px; font-weight: bold; border-radius: 15px; border: none; text-align: center; color: white; transition: all 0.3s; }
-        .cell-empty { background: linear-gradient(135deg, #10ac84, #0ca07a); box-shadow: 0 4px 15px rgba(16,172,132,0.2); }
-        .cell-occupied { background: linear-gradient(135deg, #ff4757, #ee5253); box-shadow: 0 4px 15px rgba(255,71,87,0.3); animation: pulseGlow 2s infinite alternate; }
-        @keyframes pulseGlow { from { transform: scale(1); } to { transform: scale(1.02); } }
-        .bill-alert { background: linear-gradient(90deg, #ff9f43, #ff9f43); color: #111; font-weight: bold; border-radius: 10px; }
+        body { font-family: 'Cairo', sans-serif; background-color: #0d0e12; color: #d1d2d6; }
+        .panel-title { background: #16171c; padding: 12px 18px; border-radius: 10px; font-weight: 700; border-right: 4px solid #c5a880; }
+        .order-card-premium { background: #16171c; border: 1px solid rgba(255,255,255,0.03); border-radius: 12px; padding: 20px; }
+        .table-cell-btn { width: 100%; padding: 15px; font-weight: bold; border-radius: 10px; border: none; text-align: center; color: white; }
+        .cell-empty { background: #0f9d58; }
+        .cell-occupied { background: #db4437; }
+        .bill-alert { background: #f4b400; color: #111; font-weight: bold; border-radius: 8px; }
         #printArea { display: none; }
         @media print {
             body * { visibility: hidden; }
@@ -27,39 +26,39 @@
 </head>
 <body>
 
-<div class="navbar navbar-dark bg-dark px-4 py-3 border-bottom border-secondary shadow-lg">
-    <span class="navbar-brand fw-bold text-warning fs-4"><i class="bi bi-cpu-fill"></i> غرفة العمليات والتحكم بالكاشير والمطبخ (POS Console)</span>
-    <a href="admin.html" class="btn btn-outline-warning fw-bold rounded-pill"><i class="bi bi-graph-up-arrow"></i> الحسابات والجرد المالي</a>
+<div class="navbar navbar-dark bg-dark px-4 py-3 border-bottom border-secondary shadow-sm">
+    <span class="navbar-brand fw-bold text-warning fs-4"><i class="bi bi-cpu"></i> لوحة التحكم بالكاشير والمطبخ وصالة الطعام</span>
+    <a href="admin.html" class="btn btn-outline-light btn-sm rounded-pill"><i class="bi bi-graph-up"></i> الحسابات والجرد المالي</a>
 </div>
 
 <div class="container-fluid px-4 mt-4">
     <div class="mb-4">
-        <h5 class="panel-title text-white mb-3"><i class="bi bi-grid-3x3-gap-fill text-warning"></i> خريطة طاولات الصالة الحية والمراقبة الرقمية</h5>
+        <h5 class="panel-title text-white mb-3"><i class="bi bi-grid-3x3-gap text-warning"></i> خريطة مراقبة وإشغال طاولات الصالة</h5>
         <div class="row row-cols-2 row-cols-sm-3 row-cols-md-6 g-3" id="tables-map-grid"></div>
     </div>
 
     <div class="row g-4">
-        <div class="col-12 col-md-3">
-            <h5 class="panel-title text-warning mb-3"><i class="bi bi-bell-fill"></i> نداءات الخدمة الفورية</h5>
+        <div class="col-12 col-md-4">
+            <h5 class="panel-title text-warning mb-3"><i class="bi bi-bell"></i> لوحة استدعاء ونداء الخدمة الفورية (الويتر)</h5>
             <div id="services-container" class="d-flex flex-column gap-2 mb-4"></div>
 
-            <div class="bg-dark p-4 rounded-4 border border-secondary shadow">
-                <h6 class="fw-bold text-success mb-3"><i class="bi bi-bicycle"></i> حجز وإرسال طلب دليفري خارجي</h6>
-                <div class="mb-2"><input type="text" id="delivCustomer" class="form-control" placeholder="اسم الزبون التوصيل"></div>
-                <div class="mb-2"><input type="text" id="delivPhone" class="form-control" placeholder="رقم الموبايل"></div>
-                <div class="mb-2"><input type="text" id="delivAddress" class="form-control" placeholder="عنوان التوصيل السكني"></div>
-                <div class="mb-2"><input type="number" id="delivPrice" class="form-control" placeholder="المبلغ الصافي (د.ع)"></div>
-                <button onclick="addDeliveryOrder()" class="btn btn-success w-100 fw-bold py-2 rounded-3 mt-2"><i class="bi bi-send-check"></i> شحن لطيار التوصيل</button>
+            <div class="bg-dark p-4 rounded-3 border border-secondary shadow-sm">
+                <h6 class="fw-bold text-success mb-3"><i class="bi bi-bicycle"></i> حجز طلب توصيل (دليفري خارجي)</h6>
+                <div class="mb-2"><input type="text" id="delivCustomer" class="form-control form-control-sm" placeholder="اسم الزبون التوصيل"></div>
+                <div class="mb-2"><input type="text" id="delivPhone" class="form-control form-control-sm" placeholder="رقم الهاتف والموبايل"></div>
+                <div class="mb-2"><input type="text" id="delivAddress" class="form-control form-control-sm" placeholder="عنوان التوصيل والمنزل"></div>
+                <div class="mb-2"><input type="number" id="delivPrice" class="form-control form-control-sm" placeholder="المبلغ الصافي للفاتورة"></div>
+                <button onclick="addDeliveryOrder()" class="btn btn-success btn-sm w-100 fw-bold py-2 rounded-2 mt-1"><i class="bi bi-send-check"></i> شحن لطيار التوصيل</button>
             </div>
         </div>
 
         <div class="col-12 col-md-5">
-            <h5 class="panel-title text-success mb-3"><i class="bi bi-fire"></i> فواتير وطلبات طاولات الطعام الحالية</h5>
+            <h5 class="panel-title text-success mb-3"><i class="bi bi-fire"></i> فواتير المطبخ وطلبات الوجبات الحالية</h5>
             <div id="orders-container" class="d-flex flex-column gap-3"></div>
         </div>
 
-        <div class="col-12 col-md-4">
-            <h5 class="panel-title text-danger mb-3"><i class="bi bi-map-fill"></i> شاشة تتبع مسارات الدليفري النشطة</h5>
+        <div class="col-12 col-md-3">
+            <h5 class="panel-title text-danger mb-3"><i class="bi bi-map"></i> مسارات الدليفري وتوصيل الطلبات</h5>
             <div id="delivery-orders-container" class="d-flex flex-column gap-2"></div>
         </div>
     </div>
@@ -90,8 +89,7 @@
             const div = document.createElement('div'); div.className = "col";
             div.innerHTML = `
                 <button class="table-cell-btn ${isTableActive ? 'cell-occupied' : 'cell-empty'}" onclick="focusTable('${i}')">
-                    🍽️ طاولة #${i}
-                    <span class="d-block small text-white-50" style="font-size:0.7rem;">${isTableActive ? 'طلبات جارية' : 'شغور تام'}</span>
+                    مێز / طاولة #${i}
                 </button>
             `;
             grid.appendChild(div);
@@ -101,77 +99,106 @@
     function focusTable(num) {
         const target = document.getElementById('order-card-' + num);
         if(target) target.scrollIntoView({ behavior: 'smooth' });
-        else alert(`🔍 طاولة رقم ${num} فارغة ومتاحة لاستقبال الزبائن الجدد.`);
     }
 
+    // مزامنة وربط شاشات الخدمات المستقلة والفواتير الجارية باللغة العربية للمطبخ
     database.ref('orders_system').on('value', (snapshot) => {
         orders = snapshot.val() || {}; renderTablesMap();
-        const sContainer = document.getElementById('services-container');
         const oContainer = document.getElementById('orders-container');
         const dContainer = document.getElementById('delivery-orders-container');
 
-        sContainer.innerHTML = ''; oContainer.innerHTML = ''; dContainer.innerHTML = '';
-        let hasS = false, hasO = false, hasD = false;
+        oContainer.innerHTML = ''; dContainer.innerHTML = '';
+        let hasO = false, hasD = false;
 
         for (const key in orders) {
             const node = orders[key];
-            if ((node.waiter_requested || node.bill_requested) && node.status !== "completed") {
-                hasS = true; const div = document.createElement('div');
-                div.className = "p-3 mb-1 shadow rounded-3 " + (node.bill_requested ? 'bill-alert' : 'bg-warning text-dark fw-bold');
-                let txt = node.waiter_requested ? `🔔 طاولة #${key} تطلب الويتر` : `🧾 طاولة #${key} تطلب الحساب النهائي`;
-                let action = node.waiter_requested ? `clearService('${key}', 'waiter')` : `clearService('${key}', 'bill')`;
-                div.innerHTML = `<div class="d-flex justify-content-between align-items-center"><span>${txt}</span><button class="btn btn-sm btn-dark text-white fw-bold" onclick="${action}">تم تلبية الطلب</button></div>`;
-                sContainer.appendChild(div);
-            }
 
             if (key.startsWith('delivery_') && node.status !== "completed") {
                 hasD = true; const div = document.createElement('div'); div.className = "order-card-premium border-danger p-3 mb-2";
-                let btn = node.status === "pending" ? `<button class="btn btn-sm btn-warning w-100 fw-bold mt-2" onclick="changeOrderStatus('${key}', 'on_the_way')">🛵 خروج مع كابتن التوصيل</button>` : `<button class="btn btn-sm btn-success w-100 fw-bold mt-2" onclick="completeAndCloseOrder('${key}')">✅ تم التوصيل واستلام كاش الفاتورة</button>`;
-                div.innerHTML = `<div class="fw-bold text-danger"><i class="bi bi-bicycle"></i> طلب دليفري خارجي (${node.status==='pending'?'تجهيز بالمطبخ':'بالطريق'})</div><div class="small text-white-50 mt-1">العميل: ${node.customer} | هاتف: ${node.phone}</div><div class="small text-warning">العنوان: ${node.address}</div><div class="fw-bold text-success mt-1">الحساب: ${Number(node.total_price).toLocaleString()} د.ع</div>${btn}`;
+                let btn = node.status === "pending" ? `<button class="btn btn-sm btn-warning w-100 fw-bold mt-2" onclick="changeOrderStatus('${key}', 'on_the_way')">خرج مع الدليفري</button>` : `<button class="btn btn-sm btn-success w-100 fw-bold mt-2" onclick="completeAndCloseOrder('${key}')">تم التوصيل وقبض الكاش</button>`;
+                div.innerHTML = `<div class="fw-bold text-danger"><i class="bi bi-bicycle"></i> توصيل منزلي خارجي (${node.status==='pending'?'بالمطبخ':'بالطريق'})</div><div class="small text-white-50 mt-1">العميل: ${node.customer} | هاتف: ${node.phone}</div><div class="small text-warning">العنوان: ${node.address}</div><div class="fw-bold text-success mt-1">الحساب: ${Number(node.total_price).toLocaleString()} د.ع</div>${btn}`;
                 dContainer.appendChild(div);
             } else if (node.items && node.status !== "completed") {
                 hasO = true; const col = document.createElement('div'); col.className = "col-12"; col.id = "order-card-" + key;
                 let itemsHtml = Object.values(node.items).map(i => `<div class="d-flex justify-content-between border-bottom border-dark py-1 text-white-50 small"><span>${i.name}</span><span class="badge bg-secondary">x${i.quantity}</span></div>`).join('');
-                let sBtn = "", sText = "⏳ قيد المراجعة", bColor = "bg-secondary";
+                let sBtn = "", sText = "قيد المراجعة", bColor = "bg-secondary";
 
-                if (!node.status || node.status === "pending") sBtn = `<button class="btn btn-warning w-100 fw-bold py-2 text-dark" onclick="changeOrderStatus('${key}', 'preparing')">👨‍🍳 إرسال للمطبخ وبدء الطهي والتحضير</button>`;
-                else if (node.status === "preparing") { sText = "🔥 جاري الطهي بالفرن والمطبخ"; bColor = "bg-warning text-dark"; sBtn = `<button class="btn btn-info w-100 fw-bold text-white py-2" onclick="changeOrderStatus('${key}', 'on_the_way')">🏃‍♂️ تجهيز الوجبة فريش وإخراجها للطاولة</button>`; }
-                else if (node.status === "on_the_way") { sText = "🚀 الطلب على الطاولة حالياً للزبون"; bColor = "bg-success text-white"; sBtn = `<button class="btn btn-success w-100 fw-bold py-2 text-white" onclick="completeAndCloseOrder('${key}')">🔒 إتمام وقبض الفاتورة وإغلاق الطاولة بالخزينة</button>`; }
+                if (!node.status || node.status === "pending") sBtn = `<button class="btn btn-warning w-100 fw-bold py-2 text-dark" onclick="changeOrderStatus('${key}', 'preparing')">قبول الفاتورة وبدء الطهي والتحضير</button>`;
+                else if (node.status === "preparing") { sText = "جاري الطهي وإعداد الوجبة"; bColor = "bg-warning text-dark"; sBtn = `<button class="btn btn-info w-100 fw-bold text-white py-2" onclick="changeOrderStatus('${key}', 'on_the_way')">الوجبة جاهزة (إرسال للطاولة)</button>`; }
+                else if (node.status === "on_the_way") { sText = "الوجبة على الطاولة حالياً"; bColor = "bg-success text-white"; sBtn = `<button class="btn btn-success w-100 fw-bold py-2 text-white" onclick="completeAndCloseOrder('${key}')">تم الدفع نقداً - إغلاق وقفل الطاولة</button>`; }
 
-                col.innerHTML = `<div class="order-card-premium"><div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-secondary"><h5 class="fw-bold text-warning mb-0">طاولة رقم # ${key}</h5><span class="badge ${bColor}">${sText}</span></div><div class="mb-3">${itemsHtml}</div><div class="d-flex justify-content-between fw-bold text-success mb-3 fs-5"><span>الإجمالي الكلي:</span><span>${Number(node.total_price || 0).toLocaleString()} د.ع</span></div>${sBtn}<div class="mt-2"><button class="btn btn-sm btn-outline-light w-100" onclick="printOrder('${key}')"><i class="bi bi-printer-fill"></i> طباعة كشف الفاتورة الحرارية البون</button></div></div>`;
+                col.innerHTML = `<div class="order-card-premium"><div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-secondary"><h5 class="fw-bold text-warning mb-0">طاولة رقم # ${key}</h5><span class="badge ${bColor}">${sText}</span></div><div class="mb-3">${itemsHtml}</div><div class="d-flex justify-content-between fw-bold text-success mb-3 fs-5"><span>الإجمالي:</span><span>${Number(node.total_price || 0).toLocaleString()} د.ع</span></div>${sBtn}<div class="mt-2"><button class="btn btn-sm btn-outline-light w-100" onclick="printOrder('${key}')"><i class="bi bi-printer"></i> طباعة الفاتورة بون المطبخ</button></div></div>`;
                 oContainer.appendChild(col);
             }
         }
-        if(!hasS) sContainer.innerHTML = '<div class="text-white-50 text-center py-2">لا توجد إشعارات نداء نادل.</div>';
-        if(!hasO) oContainer.innerHTML = '<div class="text-white-50 text-center py-5 fs-5">الصالة فارغة تماماً، بانتظار مسح QR المنيو الذكي!</div>';
-        if(!hasD) dContainer.innerHTML = '<div class="text-white-50 text-center py-2">لا توجد مسارات توصيل جارية.</div>';
+        if(!hasO) oContainer.innerHTML = '<div class="text-white-50 text-center py-5 fs-5">لا توجد طلبات وجبات بالمطبخ حالياً.</div>';
+        if(!hasD) dContainer.innerHTML = '<div class="text-white-50 text-center py-2">لا توجد مسارات دليفري نشطة.</div>';
     });
+
+    // مراقبة شجرة نداءات الخدمة المستقلة بالكامل لسرعة وتلبية طلبات الويتر
+    database.ref('waiter_calls').on('value', (snapshot) => {
+        const calls = snapshot.val() || {};
+        const sContainer = document.getElementById('services-container');
+        sContainer.innerHTML = '';
+        let hasS = false;
+
+        for (const tableKey in calls) {
+            const callNode = calls[tableKey];
+            if (callNode && callNode.active) {
+                hasS = true;
+                const div = document.createElement('div');
+                const isBill = callNode.type === 'bill';
+                div.className = "p-3 mb-1 shadow rounded-3 " + (isBill ? 'bill-alert' : 'bg-warning text-dark fw-bold');
+                
+                let textInfo = isBill ? `🧾 طاولة #${tableKey} تطلب الحساب الكلي` : `🔔 طاولة #${tableKey} تطلب حضور النادل الفوري`;
+                
+                // زر تلبية النداء الذي يغير الحالة ويقيد إشعار منبثق عند الزبون
+                let actionBtn = callNode.status === 'accepted' 
+                    ? `<button class="btn btn-sm btn-dark text-white fw-bold" onclick="closeServiceCall('${tableKey}')">إنهاء الخدمة وتفريغ الطاولة</button>`
+                    : `<button class="btn btn-sm btn-outline-dark fw-bold" onclick="acceptServiceCall('${tableKey}')">تلبية النداء (الويتر في طريقه)</button>`;
+
+                if (callNode.status === 'accepted') {
+                    textInfo += " [جاري التلبية...]";
+                }
+
+                div.innerHTML = `<div class="d-flex justify-content-between align-items-center"><span>${textInfo}</span>${actionBtn}</div>`;
+                sContainer.appendChild(div);
+            }
+        }
+        if(!hasS) sContainer.innerHTML = '<div class="text-white-50 text-center py-2">لا توجد إشعارات أو نداءات خدمة معلقة.</div>';
+    });
+
+    function acceptServiceCall(table) {
+        database.ref(`waiter_calls/${table}`).update({ status: "accepted", toast_shown: false });
+    }
+
+    function closeServiceCall(table) {
+        database.ref(`waiter_calls/${table}`).remove();
+    }
 
     function addDeliveryOrder() {
         const cust = document.getElementById('delivCustomer').value.trim();
         const ph = document.getElementById('delivPhone').value.trim();
         const addr = document.getElementById('delivAddress').value.trim();
         const pr = Number(document.getElementById('delivPrice').value) || 0;
-        if(!cust || !ph || !addr || pr <= 0) { alert("🚨 يرجى ملء حقول الدليفري بالكامل!"); return; }
+        if(!cust || !ph || !addr || pr <= 0) { alert("يرجى ملء حقول الدليفري بالكامل!"); return; }
         const dId = 'delivery_' + Date.now();
-        database.ref(`orders_system/${dId}`).set({ customer: cust, phone: ph, address: addr, total_price: pr, status: "pending", items: { "طلب خارجي": { name: "طلب دليفري شامل", quantity: 1, price: pr } } }).then(() => {
+        database.ref(`orders_system/${dId}`).set({ customer: cust, phone: ph, address: addr, total_price: pr, status: "pending", items: { "طلب دليفري": { name: "طلب خارجي شامل", quantity: 1, price: pr } } }).then(() => {
             document.getElementById('delivCustomer').value = ''; document.getElementById('delivPhone').value = ''; document.getElementById('delivAddress').value = ''; document.getElementById('delivPrice').value = '';
         });
     }
 
     function changeOrderStatus(table, next) { database.ref(`orders_system/${table}`).update({ status: next }); }
-    function completeAndCloseOrder(table) { if(confirm("تأكيد استلام كاش الفاتورة كاملاً في الخزينة؟")) database.ref(`orders_system/${table}`).update({ status: "completed" }); }
-    function clearService(table, type) { let obj = {}; if(type==='waiter') obj.waiter_requested = false; if(type==='bill') obj.bill_requested = false; database.ref(`orders_system/${table}`).update(obj); }
+    function completeAndCloseOrder(table) { if(confirm("تأكيد استلام مبالغ الفاتورة كاملاً في الخزينة؟")) database.ref(`orders_system/${table}`).update({ status: "completed" }); }
 
     function printOrder(table) {
         database.ref(`orders_system/${table}`).once('value', (snapshot) => {
             const data = snapshot.val(); if(!data || !data.items) return;
             let rowsHtml = Object.values(data.items).map(i => `<div class="p-row"><span>${i.name} (x${i.quantity})</span><span>${(i.price * i.quantity).toLocaleString()} د.ع</span></div>`).join('');
-            document.getElementById('printArea').innerHTML = `<center><h3>⚜️ مطعم وعرصة دجلة الفاخر </h3><h5>فاتورة طاولة رقم: ${table}</h5></center><hr><div>${rowsHtml}</div><hr><div class="p-row" style="font-weight:bold;"><span>المجموع الإجمالي:</span><span>${Number(data.total_price).toLocaleString()} د.ع</span></div>`;
+            document.getElementById('printArea').innerHTML = `<center><h3>مطعم دجلة</h3><h5>كشف حساب طاولة رقم: ${table}</h5></center><hr><div>${rowsHtml}</div><hr><div class="p-row" style="font-weight:bold;"><span>المجموع النهائي:</span><span>${Number(data.total_price).toLocaleString()} د.ع</span></div>`;
             window.print();
         });
     }
 </script>
 </body>
 </html>
-
