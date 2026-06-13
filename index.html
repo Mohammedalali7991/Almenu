@@ -3,17 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منيو دجلة الذكي - تجربة فاخرة</title>
+    <title>قائمة طعام مطعم دجلة</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
         :root {
-            --bg-premium: #1a1a24;
-            --card-premium: #242432;
-            --gold-premium: #d4af37;
-            --text-light: #f5f6fa;
-            --neon-green: #00ff87;
+            --bg-premium: #131419;
+            --card-premium: #1c1d24;
+            --gold-premium: #c5a880;
+            --text-light: #f3f4f6;
         }
         body { 
             font-family: 'Cairo', sans-serif; 
@@ -22,12 +21,11 @@
             padding-bottom: 160px;
         }
         .brand-header {
-            background: linear-gradient(135deg, #111, var(--card-premium));
-            padding: 25px 15px;
+            background: #1c1d24;
+            padding: 30px 15px;
             text-align: center;
-            border-bottom: 3px solid var(--gold-premium);
-            border-radius: 0 0 30px 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border-bottom: 2px solid var(--gold-premium);
+            border-radius: 0 0 25px 25px;
         }
         .categories-scroll {
             overflow-x: auto;
@@ -36,81 +34,92 @@
         }
         .categories-scroll::-webkit-scrollbar { display: none; }
         .btn-menu-cat {
-            border-radius: 25px;
-            padding: 8px 22px;
-            font-weight: 700;
-            border: 2px solid rgba(212, 175, 55, 0.2);
+            border-radius: 20px;
+            padding: 8px 20px;
+            font-weight: 600;
+            border: 1px solid rgba(197, 168, 128, 0.2);
             background: var(--card-premium);
             color: var(--text-light);
             margin-left: 8px;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
         }
         .btn-menu-cat.active {
             background: var(--gold-premium);
-            color: #111;
+            color: #131419;
             border-color: var(--gold-premium);
-            box-shadow: 0 5px 15px rgba(214, 175, 55, 0.4);
         }
         .item-card {
             background: var(--card-premium);
-            border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.05);
-            transition: all 0.3s ease;
-            overflow: hidden;
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.03);
             position: relative;
         }
-        .item-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-        }
-        .item-disabled { opacity: 0.35; pointer-events: none; filter: grayscale(1); }
+        .item-disabled { opacity: 0.4; }
         .out-badge {
-            position: absolute; top: 15px; right: 15px;
-            background: #ff4757; color: white; padding: 4px 12px;
-            font-size: 0.75rem; border-radius: 10px; font-weight: bold;
+            position: absolute; top: 12px; left: 12px;
+            background: #e74c3c; color: white; padding: 3px 10px;
+            font-size: 0.7rem; border-radius: 8px; font-weight: bold;
         }
         .food-thumb {
-            width: 85px; height: 85px; object-fit: cover;
-            border-radius: 18px; border: 2px solid var(--gold-premium);
+            width: 80px; height: 80px; object-fit: cover;
+            border-radius: 12px; border: 1px solid var(--gold-premium);
         }
         .qty-btn {
-            width: 32px; height: 32px; border-radius: 50%;
-            border: none; background: var(--gold-premium); color: #111;
-            font-weight: bold; transition: all 0.2s;
+            width: 30px; height: 30px; border-radius: 50%;
+            border: none; background: var(--gold-premium); color: #131419;
+            font-weight: bold;
         }
-        .qty-btn:active { transform: scale(0.9); }
         .customer-bar {
             position: fixed; bottom: 0; left: 0; right: 0;
-            background: rgba(36, 36, 50, 0.95); backdrop-filter: blur(15px);
-            padding: 15px; border-top: 2px solid var(--gold-premium);
-            border-radius: 25px 25px 0 0; z-index: 1050;
-            box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
+            background: #1c1d24; padding: 15px; 
+            border-top: 2px solid var(--gold-premium);
+            border-radius: 20px 20px 0 0; z-index: 1050;
         }
         .group-title {
             font-weight: 700; color: var(--gold-premium);
-            border-right: 4px solid var(--gold-premium);
-            padding-right: 10px; margin-top: 25px; font-size: 1.2rem;
+            border-right: 3px solid var(--gold-premium);
+            padding-right: 8px; margin-top: 20px; font-size: 1.1rem;
+        }
+        /* نافذة الإشعار المنبثقة الفخمة المؤقتة للزبون */
+        .toast-notification {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background: #10ac84; color: white; padding: 12px 25px;
+            border-radius: 30px; z-index: 2000; font-weight: bold;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.4); display: none;
+            animation: fadeInOut 5s forwards;
+        }
+        @keyframes fadeInOut {
+            0% { opacity: 0; top: 0px; }
+            10% { opacity: 1; top: 20px; }
+            90% { opacity: 1; top: 20px; }
+            100% { opacity: 0; top: 0px; display: none; }
         }
     </style>
 </head>
 <body>
 
+<div id="toast-call-notification" class="toast-notification">🏃‍♂️ الويتر في طريقه إليك الآن!</div>
+
 <div class="brand-header">
     <div class="position-absolute top-0 start-0 m-3">
-        <button class="btn btn-sm btn-outline-warning py-1 px-3 rounded-pill" onclick="toggleLanguage()"><i class="bi bi-translate"></i> EN</button>
+        <div class="btn-group">
+            <button class="btn btn-sm btn-outline-secondary text-white py-1 px-2" onclick="setLanguage('AR')">عربي</button>
+            <button class="btn btn-sm btn-outline-secondary text-white py-1 px-2" onclick="setLanguage('EN')">EN</button>
+            <button class="btn btn-sm btn-outline-secondary text-white py-1 px-2" onclick="setLanguage('KU')">كردي</button>
+        </div>
     </div>
-    <h3 class="fw-bold mb-1" style="color: var(--gold-premium); font-letter-spacing: 1px;">⚜️ مطعم وعرصة دجلة الفاخر</h3>
-    <p class="small text-muted mb-0">أرقى النكهات المطبوخة بأيدي خبراء الطهي العالمي</p>
+    <h3 class="fw-bold mb-1" id="lbl-main-title" style="color: var(--gold-premium);">مطعم دجلة</h3>
+    <p class="small text-muted mb-0" id="lbl-main-sub">قائمة الأطباق والمأكولات الطازجة</p>
 </div>
 
 <div class="container py-3">
-    <div class="d-flex justify-content-between align-items-center bg-dark p-3 rounded-4 mb-3 border border-secondary shadow-sm">
-        <span class="fw-bold"><i class="bi bi-hash text-warning"></i> <span id="txt-table">طاولة</span>: <span id="table-number-display" class="text-warning">1</span></span>
-        <span id="order-status-banner" class="badge bg-danger p-2 fw-bold animate-pulse">⏳ لا يوجد طلب نشط</span>
+    <div class="d-flex justify-content-between align-items-center bg-dark p-3 rounded-3 mb-3 border border-secondary shadow-sm">
+        <span class="fw-bold"><span id="lbl-table-text">طاولة</span>: <span id="table-number-display" class="text-warning">1</span></span>
+        <span id="order-status-banner" class="badge bg-secondary p-2 fw-bold">لا يوجد طلب نشط</span>
     </div>
 
-    <div id="happy-hour-banner" class="alert alert-gradient text-center py-2 small fw-bold shadow-sm d-none" style="background: linear-gradient(45deg, #111, var(--card-premium)); border: 1px solid var(--neon-green); color: var(--neon-green);">
-        🔥 عروض السعادة حية الآن! خصم 20% على قائمة العصائر والحلويات الفاخرة!
+    <div id="waiter-status-box" class="alert alert-secondary text-center py-2 small fw-bold d-none" style="background: #1c1d24; border: 1px solid var(--gold-premium); color: var(--gold-premium);">
+        <i class="bi bi-info-circle-fill"></i> <span id="waiter-status-text">جاري إرسال إشعار للخدمة...</span>
     </div>
 
     <div class="categories-scroll" id="categories-container"></div>
@@ -118,20 +127,27 @@
     <div id="menu-grid" class="row g-3 mt-1"></div>
 </div>
 
-<div class="modal fade" id="upsellModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content bg-dark text-light border border-warning">
+<div class="modal fade" id="suggestionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-light border border-secondary">
             <div class="modal-header border-secondary py-2">
-                <h6 class="modal-title fw-bold text-warning"><i class="bi bi-stars"></i> إكمال الوجبة السحري</h6>
+                <h6 class="modal-title fw-bold text-danger" id="lbl-suggest-title">عذراً، نفدت كمية هذا الطبق حالياً</h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body text-center py-3">
-                <p class="small mb-3">هل ترغب بإضافة مقبلات فخمة وبطاطس كريسبي متبلة مع هذا الطبق؟</p>
-                <div class="d-grid gap-2">
-                    <button class="btn btn-sm btn-warning fw-bold" onclick="addUpsellItem('بطاطا كريسبي عملاقة ومقبلات', 2500)">🍟 إضافة بطاطا ومقبلات (+2,500 د.ع)</button>
-                    <button class="btn btn-sm btn-outline-light fw-bold" onclick="addUpsellItem('إضافة جبن شيدر ذائب', 1500)">🧀 إضافة جبن شيدر ذائب (+1,500 د.ع)</button>
-                </div>
+            <div class="modal-body py-3 text-center">
+                <p class="small text-white-50 mb-3" id="lbl-suggest-desc">ولكن يمكنك تجربة أحد أطباقنا البديلة الطازجة والمشابهة:</p>
+                <div id="suggested-items-box" class="d-flex flex-column gap-2"></div>
             </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="customAlertModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content bg-dark text-light border border-secondary text-center p-3">
+            <h6 class="fw-bold text-warning mb-2">مطعم دجلة</h6>
+            <p class="small mb-3" id="customAlertMsg"></p>
+            <button class="btn btn-sm btn-secondary w-100" data-bs-dismiss="modal">موافق</button>
         </div>
     </div>
 </div>
@@ -139,13 +155,13 @@
 <div class="customer-bar">
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <span class="fw-bold"><i class="bi bi-bag-heart text-warning"></i> <span id="txt-cart">السلة</span>: <span id="cart-count" class="text-warning">0</span> أصناف</span>
-            <span class="fw-bold fs-5">المجموع: <span id="cart-total" class="text-success">0</span> د.ع</span>
+            <span class="fw-bold"><span id="lbl-cart-text">السلة</span>: <span id="cart-count" class="text-warning">0</span> <span id="lbl-items-text">أصناف</span></span>
+            <span class="fw-bold fs-5"><span id="lbl-total-text">المجموع</span>: <span id="cart-total" class="text-success">0</span> د.ع</span>
         </div>
         <div class="row g-2">
-            <div class="col-3"><button onclick="requestService('waiter')" class="btn btn-warning w-100 py-2 fw-bold rounded-3 text-dark btn-click"><i class="bi bi-bell-fill"></i> نادل</button></div>
-            <div class="col-3"><button id="btn-request-bill" onclick="requestService('bill')" class="btn btn-danger w-100 py-2 fw-bold rounded-3 text-white btn-click" disabled><i class="bi bi-wallet2"></i> حساب</button></div>
-            <div class="col-6"><button onclick="sendOrderToFirebase()" class="btn btn-success w-100 py-2 fw-bold rounded-3 text-white shadow"><i class="bi bi-cloud-arrow-up-fill"></i> إرسال الطلب للمطبخ</button></div>
+            <div class="col-3"><button onclick="sendServiceCall('waiter')" class="btn btn-warning w-100 py-2 fw-bold text-dark"><i class="bi bi-bell"></i> <span id="lbl-btn-waiter">نادل</span></button></div>
+            <div class="col-3"><button id="btn-request-bill" onclick="sendServiceCall('bill')" class="btn btn-danger w-100 py-2 fw-bold text-white" disabled><i class="bi bi-wallet2"></i> <span id="lbl-btn-bill">حساب</span></button></div>
+            <div class="col-6"><button onclick="sendOrderToFirebase()" class="btn btn-success w-100 py-2 fw-bold text-white shadow"><i class="bi bi-send-check"></i> <span id="lbl-btn-send">إرسال الطلب</span></button></div>
         </div>
     </div>
 </div>
@@ -154,7 +170,6 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 <script>
-    // تكوين Firebase المتصل بقاعدة بيانات المنيو
     const firebaseConfig = {
         apiKey: "AIzaSyC6fFl4gN2N-W7oK3v70g_v3P932fM6bNY",
         authDomain: "almenu-system.firebaseapp.com",
@@ -172,46 +187,85 @@
     document.getElementById('table-number-display').innerText = tableNo;
 
     let localItems = [], localCategories = ['الكل'], activeCategory = 'الكل', cart = {};
-    let orderHasBeenServed = false; let currentTotalGlobal = 0; let isHappyHourActive = false; let currentLang = 'AR';
+    let currentLang = 'AR';
 
-    function checkHappyHour() {
-        const currentHour = new Date().getHours();
-        if (currentHour >= 16 && currentHour < 18) {
-            isHappyHourActive = true; document.getElementById('happy-hour-banner').classList.remove('d-none');
-        } else {
-            isHappyHourActive = false; document.getElementById('happy-hour-banner').classList.add('d-none');
-        }
+    // قاموس الترجمة للغات الثلاث (العربية، الإنجليزية، الكردية)
+    const dictionary = {
+        AR: { mainTitle: "مطعم دجلة", mainSub: "قائمة الأطباق والمأكولات الطازجة", table: "طاولة", noOrder: "لا يوجد طلب نشط", preparing: "جاري تحضير الوجبة بالمطبخ...", onWay: "الوجبة في طريقها لطاولتك فريش", pending: "بانتظار موافقة الكاشير...", cart: "السلة", items: "أصناف", total: "المجموع", waiter: "نادل", bill: "حساب", send: "إرسال الطلب", suggestTitle: "عذراً، نفدت كمية هذا الطبق حالياً", suggestDesc: "ولكن يمكنك تجربة أحد أطباقنا البديلة الطازجة والمشابهة:", outStock: "نفد من المخزن" },
+        EN: { mainTitle: "Dijla Restaurant", mainSub: "Fresh Dishes & Cuisine Menu", table: "Table", noOrder: "No active order", preparing: "Preparing meal in kitchen...", onWay: "Meal is on the way to your table!", pending: "Awaiting cashier approval...", cart: "Cart", items: "items", total: "Total", waiter: "Waiter", bill: "Bill", send: "Place Order", suggestTitle: "Sorry, this item is out of stock", suggestDesc: "But you can try one of our fresh alternatives:", outStock: "Out of Stock" },
+        KU: { mainTitle: "خواردنگەی دیجلە", mainSub: "لیستی خواردن و شیوە تازەکان", table: "مێز", noOrder: "هیچ داواکارییەک چالاک نییە", preparing: "خواردنەکە لە چێشتخانە ئامادە دەکرێت...", onWay: "خواردنەکە لەڕێگایە بۆ سەر مێزەکەت!", pending: "چاوەڕێی ڕەزامەندی کاشێرە...", cart: "سەبەتە", items: "بابەت", total: "کۆیی گشتی", waiter: "گارسۆن", bill: "حیساب", send: "ناردنی داواکاری", suggestTitle: "ببوورە، بڕی ئەم خواردنە تەواو بووە", suggestDesc: "بەڵام دەتوانیت یەکێک لەم جێگرەوانە تاقی بکەیتەوە:", outStock: "تەواو بووە" }
+    };
+
+    function setLanguage(lang) {
+        currentLang = lang;
+        const dict = dictionary[lang];
+        document.getElementById('lbl-main-title').innerText = dict.mainTitle;
+        document.getElementById('lbl-main-sub').innerText = dict.mainSub;
+        document.getElementById('lbl-table-text').innerText = dict.table;
+        document.getElementById('lbl-cart-text').innerText = dict.cart;
+        document.getElementById('lbl-items-text').innerText = dict.items;
+        document.getElementById('lbl-total-text').innerText = dict.total;
+        document.getElementById('lbl-btn-waiter').innerText = dict.waiter;
+        document.getElementById('lbl-btn-bill').innerText = dict.bill;
+        document.getElementById('lbl-btn-send').innerText = dict.send;
+        document.getElementById('lbl-suggest-title').innerText = dict.suggestTitle;
+        document.getElementById('lbl-suggest-desc').innerText = dict.suggestDesc;
+        renderClientMenu();
     }
 
+    // مزامنة المنيو العام وقراءة البيانات الحالية
     database.ref('menu_data').on('value', (snapshot) => {
         const data = snapshot.val();
         if (data) { localItems = data.items || []; localCategories = ['الكل', ...(data.categories || [])]; }
-        checkHappyHour(); renderClientMenu();
+        renderClientMenu();
     });
 
+    // مراقبة مسار الطلبات الخاص بالطاولة الحالية
     database.ref(`orders_system/${tableNo}`).on('value', (snapshot) => {
         const orderData = snapshot.val();
         const banner = document.getElementById('order-status-banner');
         const billBtn = document.getElementById('btn-request-bill');
+        const dict = dictionary[currentLang];
 
         if (!orderData || !orderData.items || orderData.status === "completed") {
-            banner.className = "badge bg-secondary p-2";
-            banner.innerText = currentLang === 'AR' ? "⏳ لا يوجد طلب نشط" : "⏳ No Active Order";
-            billBtn.disabled = true; orderHasBeenServed = false; return;
+            banner.className = "badge bg-secondary p-2"; banner.innerText = dict.noOrder;
+            billBtn.disabled = true; return;
         }
 
         if (orderData.status === "preparing") {
-            banner.className = "badge bg-warning text-dark p-2 animate-pulse";
-            banner.innerText = currentLang === 'AR' ? "👨‍🍳 جاري طهي وجبتك بالفرن..." : "👨‍🍳 Cooking your meal...";
-            billBtn.disabled = true; orderHasBeenServed = false;
+            banner.className = "badge bg-warning text-dark p-2"; banner.innerText = dict.preparing;
+            billBtn.disabled = true;
         } else if (orderData.status === "on_the_way") {
-            banner.className = "badge bg-success p-2 text-white";
-            banner.innerText = currentLang === 'AR' ? "🚀 الوجبة فريش على طاولتك الآن" : "🚀 Meal on your table!";
-            billBtn.disabled = false; orderHasBeenServed = true;
+            banner.className = "badge bg-success p-2 text-white"; banner.innerText = dict.onWay;
+            billBtn.disabled = false;
         } else {
-            banner.className = "badge bg-info p-2 text-white";
-            banner.innerText = currentLang === 'AR' ? "⏳ بانتظار تأكيد الكاشير..." : "⏳ Awaiting Approval...";
-            billBtn.disabled = true; orderHasBeenServed = false;
+            banner.className = "badge bg-info p-2 text-white"; banner.innerText = dict.pending;
+            billBtn.disabled = true;
+        }
+    });
+
+    // نظام المتابعة المستقل والمباشر لنداء النادل والرسائل المنبثقة للزبون
+    database.ref(`waiter_calls/${tableNo}`).on('value', (snapshot) => {
+        const callData = snapshot.val();
+        const statusBox = document.getElementById('waiter-status-box');
+        const statusText = document.getElementById('waiter-status-text');
+        const toastNotification = document.getElementById('toast-call-notification');
+
+        if (callData && callData.active) {
+            statusBox.classList.remove('d-none');
+            if (callData.status === "accepted") {
+                statusText.innerText = "الويتر في طريقه إليك 🏃‍♂️";
+                // إطلاق الرسالة المنبثقة الراقية لمدة 5 ثوانٍ فقط عند تلبية النداء
+                if (!callData.toast_shown) {
+                    toastNotification.style.display = 'block';
+                    database.ref(`waiter_calls/${tableNo}`).update({ toast_shown: true });
+                    setTimeout(() => { toastNotification.style.display = 'none'; }, 5000);
+                }
+            } else {
+                statusText.innerText = callData.type === 'waiter' ? "تم إرسال نداء للنادل وبانتظار التوجه إليك..." : "تم إرسال طلب الحساب الكلي للطاولة...";
+            }
+        } else {
+            statusBox.classList.add('d-none');
         }
     });
 
@@ -221,6 +275,7 @@
         `).join('');
 
         const grid = document.getElementById('menu-grid'); grid.innerHTML = '';
+        const dict = dictionary[currentLang];
 
         if (activeCategory === 'الكل') {
             const realCategories = localCategories.filter(c => c !== 'الكل');
@@ -229,38 +284,34 @@
                 if(catItems.length > 0) {
                     const titleDiv = document.createElement('div');
                     titleDiv.className = "col-12 group-title"; titleDiv.innerText = catName; grid.appendChild(titleDiv);
-                    catItems.forEach(item => grid.appendChild(createItemCard(item)));
+                    catItems.forEach(item => grid.appendChild(createItemCard(item, dict)));
                 }
             });
         } else {
             const filtered = localItems.filter(i => i.cat === activeCategory);
             if (filtered.length === 0) { grid.innerHTML = `<div class="col-12 text-center py-5 text-muted">لا توجد أطباق متوفرة هنا.</div>`; return; }
-            filtered.forEach(item => grid.appendChild(createItemCard(item)));
+            filtered.forEach(item => grid.appendChild(createItemCard(item, dict)));
         }
     }
 
-    function createItemCard(item) {
+    function createItemCard(item, dict) {
         const col = document.createElement('div'); col.className = "col-12 col-md-6";
         const isOutOfStock = item.available === false || (item.stock !== undefined && item.stock <= 0);
         const qty = cart[item.name] ? cart[item.name].quantity : 0;
         
-        let finalPrice = item.price; let isDiscounted = false;
-        if (isHappyHourActive && (item.cat === "عصائر ومشروبات" || item.cat === "حلويات")) { finalPrice = item.price * 0.8; isDiscounted = true; }
-
         col.innerHTML = `
             <div class="card item-card p-3 ${isOutOfStock ? 'item-disabled' : ''}">
-                ${isOutOfStock ? '<span class="out-badge">نفد من المخزن</span>' : ''}
+                ${isOutOfStock ? `<span class="out-badge">${dict.outStock}</span>` : ''}
                 <div class="d-flex align-items-center">
-                    <img src="${item.img || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200'}" class="food-thumb me-3 shadow-sm">
+                    <img src="${item.img || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200'}" class="food-thumb me-3">
                     <div class="flex-grow-1">
                         <h6 class="fw-bold mb-1 text-white">${item.name}</h6>
-                        <span class="text-warning fw-bold fs-6">${Number(finalPrice).toLocaleString()} د.ع</span>
-                        ${isDiscounted ? '<br><span class="badge bg-success" style="font-size:0.65rem;">خصم السعادة فعال</span>' : ''}
+                        <span class="text-warning fw-bold fs-6">${Number(item.price).toLocaleString()} د.ع</span>
                     </div>
                     <div class="d-flex align-items-center bg-dark p-1 rounded-pill border border-secondary shadow-inner">
-                        <button class="qty-btn" ${isOutOfStock ? 'disabled' : ''} onclick="updateCart('${item.name}', ${finalPrice}, -1, '${item.cat}')">-</button>
+                        <button class="qty-btn" onclick="updateCart('${item.name}', ${item.price}, -1, '${item.cat}', ${isOutOfStock})">-</button>
                         <span class="fw-bold mx-2 text-white" id="qty-${item.name}">${qty}</span>
-                        <button class="qty-btn" ${isOutOfStock ? 'disabled' : ''} onclick="updateCart('${item.name}', ${finalPrice}, 1, '${item.cat}')">+</button>
+                        <button class="qty-btn" onclick="updateCart('${item.name}', ${item.price}, 1, '${item.cat}', ${isOutOfStock})">+</button>
                     </div>
                 </div>
             </div>
@@ -270,32 +321,61 @@
 
     function switchCategory(cat) { activeCategory = cat; renderClientMenu(); }
 
-    function updateCart(name, price, change, cat) {
+    // التحكم بالسلة ومحرك اقتراحات الأطباق المشابهة والبديلة عند نفاذ الكمية
+    function updateCart(name, price, change, cat, isOutOfStock) {
+        if (isOutOfStock && change > 0) {
+            triggerAlternativeSuggestions(cat);
+            return;
+        }
+
         const originalItem = localItems.find(i => i.name === name);
         const maxStock = originalItem ? (originalItem.stock || 0) : 999;
-        if (!cart[name]) cart[name] = { name, price, quantity: 0 };
         
-        if (change > 0 && cart[name].quantity === 0 && (cat === "مشاوي وكباب" || cat === "برغر" || cat === "بيتزا إيطالية")) {
-            const upsellModal = new bootstrap.Modal(document.getElementById('upsellModal')); upsellModal.show();
+        if (!cart[name]) cart[name] = { name, price, quantity: 0 };
+        if (change > 0 && cart[name].quantity >= maxStock) {
+            triggerAlternativeSuggestions(cat);
+            return;
         }
-        if (change > 0 && cart[name].quantity >= maxStock) { alert("🚨 عذراً، تجاوزت الكمية المتاحة في المخزن حالياً!"); return; }
 
         cart[name].quantity += change; if (cart[name].quantity <= 0) delete cart[name];
         if(document.getElementById(`qty-${name}`)) document.getElementById(`qty-${name}`).innerText = cart[name] ? cart[name].quantity : 0;
         updateCartSummary();
     }
 
-    function addUpsellItem(uName, uPrice) {
-        if (!cart[uName]) cart[uName] = { name: uName, price: uPrice, quantity: 0 };
-        cart[uName].quantity += 1; updateCartSummary(); renderClientMenu();
-        bootstrap.Modal.getInstance(document.getElementById('upsellModal')).hide();
+    // محرك الاقتراحات الذكي للأطباق المشابهة من نفس فئة ومجموع الصنف النافذ تلقائياً
+    function triggerAlternativeSuggestions(categoryName) {
+        const suggestionsBox = document.getElementById('suggested-items-box');
+        suggestionsBox.innerHTML = '';
+        
+        // جلب الأطباق المتوفرة من نفس الفئة لاستعراضها كبديل
+        const alternatives = localItems.filter(i => i.cat === categoryName && i.available !== false && (i.stock || 0) > 0).slice(0, 3);
+        
+        if (alternatives.length > 0) {
+            alternatives.forEach(alt => {
+                const btn = document.createElement('button');
+                btn.className = "btn btn-outline-warning text-white py-2 w-100 fw-bold rounded-3 mb-1 text-end px-3";
+                btn.innerHTML = `<div class="d-flex justify-content-between"><span>🍽️ ${alt.name}</span><span class="text-success">${alt.price.toLocaleString()} د.ع</span></div>`;
+                btn.onclick = () => {
+                    updateCart(alt.name, alt.price, 1, alt.cat, false);
+                    renderClientMenu();
+                    bootstrap.Modal.getInstance(document.getElementById('suggestionModal')).hide();
+                };
+                suggestionsBox.appendChild(btn);
+            });
+        } else {
+            suggestionsBox.innerHTML = '<p class="small text-muted py-2">يرجى مراجعة وتصفح بقية أقسام المنيو لتذوق أطباقنا الأخرى المتوفرة.</p>';
+        }
+
+        const suggestModal = new bootstrap.Modal(document.getElementById('suggestionModal'));
+        suggestModal.show();
     }
 
     function updateCartSummary() {
         let count = 0; let total = 0; Object.values(cart).forEach(i => { count += i.quantity; total += (i.price * i.quantity); });
-        currentTotalGlobal = total; document.getElementById('cart-count').innerText = count; document.getElementById('cart-total').innerText = total.toLocaleString();
+        document.getElementById('cart-count').innerText = count; document.getElementById('cart-total').innerText = total.toLocaleString();
     }
 
+    // إرسال الفاتورة والطلب والاحتفاظ ببيان الطعام كاملاً باللغة العربية دائماً لإدارة المطبخ والكاشير
     function sendOrderToFirebase() {
         if (Object.keys(cart).length === 0) return;
         
@@ -309,24 +389,26 @@
         database.ref('menu_data/items').set(localItems);
 
         database.ref(`orders_system/${tableNo}`).set({
-            items: cart, total_price: currentTotalGlobal, status: "pending", waiter_requested: false, bill_requested: false
-        }).then(() => { alert("🚀 تم إرسال طلبك الفاخر بنجاح للمطبخ لتجهيزه!"); cart = {}; updateCartSummary(); renderClientMenu(); });
+            items: cart, total_price: Object.values(cart).reduce((sum, i) => sum + (i.price * i.quantity), 0), status: "pending"
+        }).then(() => { 
+            showCustomAlert("تم إرسال طلبك بنجاح وجاري البدء في تجهيز الوجبة."); 
+            cart = {}; updateCartSummary(); renderClientMenu(); 
+        });
     }
 
-    function requestService(type) {
-        let updateObj = {};
-        if (type === 'waiter') { updateObj.waiter_requested = true; alert("🔔 تم إرسال إشعار للنادل للتوجه إلى طاولتك."); }
-        if (type === 'bill') {
-            if(!orderHasBeenServed) { alert("🛡️ لا يمكنك طلب الحساب قبل استلام طعامك وتناوله أولاً!"); return; }
-            updateObj.bill_requested = true; alert("🧾 تم طلب الحساب المالي الكلي لطاولتك.");
-        }
-        database.ref(`orders_system/${tableNo}`).update(updateObj);
+    // إرسال نداء خدمة مستقل كلياً عن الطلبات وفواتير المطبخ للتحكم بالصالة
+    function sendServiceCall(callType) {
+        database.ref(`waiter_calls/${tableNo}`).set({
+            type: callType, active: true, status: "pending", toast_shown: false
+        }).then(() => {
+            showCustomAlert(callType === 'waiter' ? "تم إخطار النادل، وسوف يتوجه إليك في أقرب وقت." : "تم إرسال طلب الحساب والتدقيق المالي.");
+        });
     }
 
-    function toggleLanguage() {
-        currentLang = currentLang === 'AR' ? 'EN' : 'AR';
-        document.getElementById('txt-title').innerText = currentLang === 'EN' ? "⚜️ Dijla Premium Restaurant Menu" : "⚜️ مطعم وعرصة دجلة الفاخر";
-        renderClientMenu();
+    function showCustomAlert(msg) {
+        document.getElementById('customAlertMsg').innerText = msg;
+        const myModal = new bootstrap.Modal(document.getElementById('customAlertModal'));
+        myModal.show();
     }
 </script>
 </body>
