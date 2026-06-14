@@ -3,202 +3,262 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>شاشة الكاشير والتحكم المركزي - مطعم دجلة</title>
+    <title>شاشة التحكم المركزي والمطبخ الذكي</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
-        body { font-family: 'Cairo', sans-serif; background-color: #0d0e12; color: #d1d2d6; }
-        .panel-title { background: #16171c; padding: 12px 18px; border-radius: 10px; font-weight: 700; border-right: 4px solid #c5a880; }
-        .order-card-premium { background: #16171c; border: 1px solid rgba(255,255,255,0.03); border-radius: 12px; padding: 20px; }
-        .table-cell-btn { width: 100%; padding: 15px; font-weight: bold; border-radius: 10px; border: none; text-align: center; color: white; }
-        .cell-empty { background: #0f9d58; }
-        .cell-occupied { background: #db4437; }
-        .bill-alert { background: #f4b400; color: #111; font-weight: bold; border-radius: 8px; }
-        #printArea { display: none; }
-        @media print {
-            body * { visibility: hidden; }
-            #printArea, #printArea * { visibility: visible; }
-            #printArea { display: block !important; position: absolute; left: 0; top: 0; width: 100%; color: black; background: white; font-family: monospace; padding: 15px; direction: rtl; }
-            .p-row { display: flex; justify-content: space-between; }
-        }
+        body { font-family: 'Cairo', sans-serif; background-color: #0b0c0e; color: #e1e2e6; }
+        .section-header { background: #14151a; padding: 12px 16px; border-radius: 8px; font-weight: 700; border-right: 4px solid #c5a880; }
+        .kds-card { background: #14151a; border-radius: 12px; border: 1px solid rgba(255,255,255,0.02); }
+        .grid-cell-btn { width: 100%; padding: 14px; font-weight: bold; border-radius: 8px; border: none; color: white; transition: opacity 0.2s; }
+        .status-empty { background: #198754; }
+        .status-busy { background: #dc3545; }
+        .kds-sla-green { border-left: 5px solid #198754; }
+        .kds-sla-yellow { border-left: 5px solid #ffc107; }
+        .kds-sla-red { border-left: 5px solid #dc3545; animation: blinker 1.5s linear infinite; }
+        @keyframes blinker { 50% { opacity: 0.5; } }
+        .aggregate-badge { background: #2a2b36; color: #ffc107; font-weight: bold; padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; }
+        .notes-highlight-box { background: rgba(255, 193, 7, 0.1); border: 1px dashed #ffc107; color: #ffc107; border-radius: 6px; padding: 8px; font-size: 0.85rem; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="navbar navbar-dark bg-dark px-4 py-3 border-bottom border-secondary shadow-sm">
-    <span class="navbar-brand fw-bold text-warning fs-4"><i class="bi bi-cpu"></i> لوحة التحكم بالكاشير والمطبخ وصالة الطعام</span>
-    <a href="admin.html" class="btn btn-outline-light btn-sm rounded-pill"><i class="bi bi-graph-up"></i> الحسابات والجرد المالي</a>
+<div class="navbar navbar-expand-lg navbar-dark bg-dark px-4 py-3 border-bottom border-secondary shadow-sm">
+    <span class="navbar-brand fw-bold text-warning fs-4"><i class="bi bi-display"></i> منظومة المطبخ التكيفية وإدارة الصالة المركزية</span>
+    <div class="ms-auto d-flex align-items-center gap-2">
+        <select id="dom-role-selector" class="form-select form-select-sm bg-dark text-white border-secondary" style="width: 140px;" onchange="adjustRolePermissions(this.value)">
+            <option value="cashier">صلاحية الكاشير</option>
+            <option value="chef">صلاحية المطبخ</option>
+            <option value="admin">المالك / المدير</option>
+        </select>
+        <a href="admin.html" id="dom-admin-link" class="btn btn-outline-warning btn-sm d-none"><i class="bi bi-sliders"></i> إدارة المخزن والأسعار</a>
+    </div>
 </div>
 
 <div class="container-fluid px-4 mt-4">
     <div class="mb-4">
-        <h5 class="panel-title text-white mb-3"><i class="bi bi-grid-3x3-gap text-warning"></i> خريطة مراقبة وإشغال طاولات الصالة</h5>
-        <div class="row row-cols-2 row-cols-sm-3 row-cols-md-6 g-3" id="tables-map-grid"></div>
+        <h6 class="section-header text-white mb-3"><i class="bi bi-grid-3x3-gap text-warning"></i> خريطة إشغال ومراقبة طاولات الصالة</h6>
+        <div class="row row-cols-2 row-cols-sm-3 row-cols-md-6 g-3" id="dom-tables-grid"></div>
+    </div>
+
+    <div class="alert alert-dark border-secondary mb-4 p-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="fw-bold text-warning"><i class="bi bi-layers-half"></i> ذكاء التجميع التكيفي للمطبخ (إجمالي الوجبات المطلوبة حالياً):</span>
+        </div>
+        <div id="dom-aggregated-items" class="d-flex flex-wrap gap-2"></div>
     </div>
 
     <div class="row g-4">
         <div class="col-12 col-md-4">
-            <h5 class="panel-title text-warning mb-3"><i class="bi bi-bell"></i> لوحة استدعاء ونداء الخدمة الفورية (الويتر)</h5>
-            <div id="services-container" class="d-flex flex-column gap-2 mb-4"></div>
+            <h6 class="section-header text-warning mb-3"><i class="bi bi-bell"></i> لوحة استدعاء النادل والفواتير المعلقة</h6>
+            <div id="dom-calls-wrapper" class="d-flex flex-column gap-2 mb-4"></div>
 
-            <div class="bg-dark p-4 rounded-3 border border-secondary shadow-sm">
-                <h6 class="fw-bold text-success mb-3"><i class="bi bi-bicycle"></i> حجز طلب توصيل (دليفري خارجي)</h6>
-                <div class="mb-2"><input type="text" id="delivCustomer" class="form-control form-control-sm" placeholder="اسم الزبون التوصيل"></div>
-                <div class="mb-2"><input type="text" id="delivPhone" class="form-control form-control-sm" placeholder="رقم الهاتف والموبايل"></div>
-                <div class="mb-2"><input type="text" id="delivAddress" class="form-control form-control-sm" placeholder="عنوان التوصيل والمنزل"></div>
-                <div class="mb-2"><input type="number" id="delivPrice" class="form-control form-control-sm" placeholder="المبلغ الصافي للفاتورة"></div>
-                <button onclick="addDeliveryOrder()" class="btn btn-success btn-sm w-100 fw-bold py-2 rounded-2 mt-1"><i class="bi bi-send-check"></i> شحن لطيار التوصيل</button>
+            <div class="bg-dark p-3 rounded-3 border border-secondary shadow-sm card-secure-rbac" id="panel-delivery-input">
+                <h6 class="fw-bold text-success mb-3"><i class="bi bi-bicycle"></i> حجز وإرسال طلب خارجي (توصيل منازل)</h6>
+                <div class="mb-2"><input type="text" id="in-delivName" class="form-control form-control-sm" placeholder="اسم العميل"></div>
+                <div class="mb-2"><input type="text" id="in-delivPhone" class="form-control form-control-sm" placeholder="رقم الهاتف"></div>
+                <div class="mb-2"><input type="text" id="in-delivAddress" class="form-control form-control-sm" placeholder="عنوان التوصيل"></div>
+                <div class="mb-2"><input type="number" id="in-delivPrice" class="form-control form-control-sm" placeholder="القيمة الكلية للفاتورة"></div>
+                <button onclick="commitDeliveryOrder()" class="btn btn-success btn-sm w-100 fw-bold py-2"><i class="bi bi-send"></i> شحن لطيار الدليفري</button>
             </div>
         </div>
 
         <div class="col-12 col-md-5">
-            <h5 class="panel-title text-success mb-3"><i class="bi bi-fire"></i> فواتير المطبخ وطلبات الوجبات الحالية</h5>
-            <div id="orders-container" class="d-flex flex-column gap-3"></div>
+            <h6 class="section-header text-success mb-3"><i class="bi bi-fire"></i> فواتير المطبخ وتجهيز الطلبات الحية</h6>
+            <div id="dom-orders-wrapper" class="d-flex flex-column gap-3"></div>
         </div>
 
         <div class="col-12 col-md-3">
-            <h5 class="panel-title text-danger mb-3"><i class="bi bi-map"></i> مسارات الدليفري وتوصيل الطلبات</h5>
-            <div id="delivery-orders-container" class="d-flex flex-column gap-2"></div>
+            <h6 class="section-header text-danger mb-3"><i class="bi bi-map"></i> مسارات وطلبات الدليفري الخارجي</h6>
+            <div id="dom-delivery-wrapper" class="d-flex flex-column gap-2"></div>
         </div>
     </div>
 </div>
 
-<div id="printArea"></div>
-
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<script src="app.js"></script>
 <script>
     const firebaseConfig = {
         apiKey: "AIzaSyC6fFl4gN2N-W7oK3v70g_v3P932fM6bNY",
         authDomain: "almenu-system.firebaseapp.com",
         databaseURL: "https://almenu-system-default-rtdb.firebaseio.com",
-        projectId: "almenu-system",
-        storageBucket: "almenu-system.appspot.com",
-        messagingSenderId: "305206060548",
-        appId: "1:305206060548:web:b1d79aa3ec2c2cc2ebbb9d"
+        projectId: "almenu-system"
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-    let orders = {};
+    let ordersList = {};
 
-    function renderTablesMap() {
-        const grid = document.getElementById('tables-map-grid'); if(!grid) return; grid.innerHTML = '';
-        for(let i=1; i<=12; i++) {
-            const isTableActive = orders && orders[i] && orders[i].items && orders[i].status !== "completed";
-            const div = document.createElement('div'); div.className = "col";
-            div.innerHTML = `
-                <button class="table-cell-btn ${isTableActive ? 'cell-occupied' : 'cell-empty'}" onclick="focusTable('${i}')">
-                    مێز / طاولة #${i}
-                </button>
-            `;
-            grid.appendChild(div);
+    function adjustRolePermissions(role) {
+        AppState.userRole = role;
+        const adminLink = document.getElementById('dom-admin-link');
+        const deliveryInput = document.getElementById('panel-delivery-input');
+        if(role === 'admin' || role === 'cashier') {
+            if(role === 'admin') adminLink.classList.remove('d-none');
+            deliveryInput.classList.remove('d-none');
+        } else {
+            adminLink.classList.add('d-none'); deliveryInput.classList.add('d-none');
         }
+        renderCentralDashboard();
     }
 
-    function focusTable(num) {
-        const target = document.getElementById('order-card-' + num);
-        if(target) target.scrollIntoView({ behavior: 'smooth' });
-    }
+    firebase.database().ref('orders_system').on('value', (snapshot) => {
+        ordersList = snapshot.val() || {};
+        renderCentralDashboard();
+    });
 
-    // مزامنة وربط شاشات الخدمات المستقلة والفواتير الجارية باللغة العربية للمطبخ
-    database.ref('orders_system').on('value', (snapshot) => {
-        orders = snapshot.val() || {}; renderTablesMap();
-        const oContainer = document.getElementById('orders-container');
-        const dContainer = document.getElementById('delivery-orders-container');
+    // الاستماع لنداء الخدمة وتصحيح العبارات المباشرة لكي لا تظهر كلمات تقنية (حل الصورة 3 وصورة 1)
+    firebase.database().ref('waiter_calls').on('value', (snapshot) => {
+        const calls = snapshot.val() || {};
+        const wrapper = document.getElementById('dom-calls-wrapper');
+        wrapper.innerHTML = '';
+        let count = 0;
 
-        oContainer.innerHTML = ''; dContainer.innerHTML = '';
+        for(const tKey in calls) {
+            const node = calls[tKey];
+            if(node && node.active) {
+                count++;
+                const isB = node.type === 'bill';
+                const div = document.createElement('div');
+                div.className = `p-3 rounded-3 d-flex justify-content-between align-items-center fw-bold ${isB ? 'bg-danger text-white' : 'bg-warning text-dark'}`;
+                
+                // تصحيح الصياغة اللغوية والبرمجية بالكامل
+                let text = isB ? `🧾 طاولة رقم [ ${tKey} ] تطلب الحساب الكلي` : `🔔 طاولة رقم [ ${tKey} ] تطلب النادل لتلبية الخدمة`;
+                if(node.status === 'accepted') text = `🏃‍♂️ طاولة رقم [ ${tKey} ] (جاري التلبية الآن)`;
+
+                let actionBtn = node.status === 'accepted'
+                    ? `<button class="btn btn-sm btn-dark text-white" onclick="terminateServiceCall('${tKey}')">إغلاق وتصفية النظارة</button>`
+                    : `<button class="btn btn-sm btn-outline-dark fw-bold" onclick="approveServiceCall('${tKey}')">تلبية الطلب</button>`;
+
+                if(AppState.userRole === 'chef') actionBtn = '';
+
+                div.innerHTML = `<span>${text}</span>${actionBtn}`;
+                wrapper.appendChild(div);
+            }
+        }
+        if(count === 0) wrapper.innerHTML = `<div class="text-muted text-center py-2">لا توجد استدعاءات خدمة معلقة بالصالة.</div>`;
+    });
+
+    function renderCentralDashboard() {
+        const grid = document.getElementById('dom-tables-grid'); grid.innerHTML = '';
+        for(let i = 1; i <= 12; i++) {
+            const isActive = ordersList && ordersList[i] && ordersList[i].items && ordersList[i].status !== "completed";
+            const col = document.createElement('div'); col.className = "col";
+            col.innerHTML = `<button class="grid-cell-btn ${isActive ? 'status-busy' : 'status-empty'}" onclick="scrollToOrderCard('${i}')">طاولة #${i}</button>`;
+            grid.appendChild(col);
+        }
+
+        const oWrapper = document.getElementById('dom-orders-wrapper'); oWrapper.innerHTML = '';
+        const dWrapper = document.getElementById('dom-delivery-wrapper'); dWrapper.innerHTML = '';
+        
+        let aggMap = new Map();
         let hasO = false, hasD = false;
 
-        for (const key in orders) {
-            const node = orders[key];
+        for (const k in ordersList) {
+            const order = ordersList[k];
+            if(order.status === "completed") continue;
 
-            if (key.startsWith('delivery_') && node.status !== "completed") {
-                hasD = true; const div = document.createElement('div'); div.className = "order-card-premium border-danger p-3 mb-2";
-                let btn = node.status === "pending" ? `<button class="btn btn-sm btn-warning w-100 fw-bold mt-2" onclick="changeOrderStatus('${key}', 'on_the_way')">خرج مع الدليفري</button>` : `<button class="btn btn-sm btn-success w-100 fw-bold mt-2" onclick="completeAndCloseOrder('${key}')">تم التوصيل وقبض الكاش</button>`;
-                div.innerHTML = `<div class="fw-bold text-danger"><i class="bi bi-bicycle"></i> توصيل منزلي خارجي (${node.status==='pending'?'بالمطبخ':'بالطريق'})</div><div class="small text-white-50 mt-1">العميل: ${node.customer} | هاتف: ${node.phone}</div><div class="small text-warning">العنوان: ${node.address}</div><div class="fw-bold text-success mt-1">الحساب: ${Number(node.total_price).toLocaleString()} د.ع</div>${btn}`;
-                dContainer.appendChild(div);
-            } else if (node.items && node.status !== "completed") {
-                hasO = true; const col = document.createElement('div'); col.className = "col-12"; col.id = "order-card-" + key;
-                let itemsHtml = Object.values(node.items).map(i => `<div class="d-flex justify-content-between border-bottom border-dark py-1 text-white-50 small"><span>${i.name}</span><span class="badge bg-secondary">x${i.quantity}</span></div>`).join('');
-                let sBtn = "", sText = "قيد المراجعة", bColor = "bg-secondary";
+            if(k.startsWith('delivery_')) {
+                hasD = true;
+                const div = document.createElement('div'); div.className = "kds-card p-3 mb-2";
+                let btn = order.status === "pending" ? `<button class="btn btn-sm btn-warning w-100 fw-bold mt-2" onclick="updateStatus('${k}', 'on_the_way')">تسليم لطيار الدليفري</button>` : `<button class="btn btn-sm btn-success w-100 fw-bold mt-2" onclick="finalizeOrder('${k}')">تم التوصيل واستلام الأموال</button>`;
+                if(AppState.userRole === 'chef') btn = '';
 
-                if (!node.status || node.status === "pending") sBtn = `<button class="btn btn-warning w-100 fw-bold py-2 text-dark" onclick="changeOrderStatus('${key}', 'preparing')">قبول الفاتورة وبدء الطهي والتحضير</button>`;
-                else if (node.status === "preparing") { sText = "جاري الطهي وإعداد الوجبة"; bColor = "bg-warning text-dark"; sBtn = `<button class="btn btn-info w-100 fw-bold text-white py-2" onclick="changeOrderStatus('${key}', 'on_the_way')">الوجبة جاهزة (إرسال للطاولة)</button>`; }
-                else if (node.status === "on_the_way") { sText = "الوجبة على الطاولة حالياً"; bColor = "bg-success text-white"; sBtn = `<button class="btn btn-success w-100 fw-bold py-2 text-white" onclick="completeAndCloseOrder('${key}')">تم الدفع نقداً - إغلاق وقفل الطاولة</button>`; }
-
-                col.innerHTML = `<div class="order-card-premium"><div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-secondary"><h5 class="fw-bold text-warning mb-0">طاولة رقم # ${key}</h5><span class="badge ${bColor}">${sText}</span></div><div class="mb-3">${itemsHtml}</div><div class="d-flex justify-content-between fw-bold text-success mb-3 fs-5"><span>الإجمالي:</span><span>${Number(node.total_price || 0).toLocaleString()} د.ع</span></div>${sBtn}<div class="mt-2"><button class="btn btn-sm btn-outline-light w-100" onclick="printOrder('${key}')"><i class="bi bi-printer"></i> طباعة الفاتورة بون المطبخ</button></div></div>`;
-                oContainer.appendChild(col);
-            }
-        }
-        if(!hasO) oContainer.innerHTML = '<div class="text-white-50 text-center py-5 fs-5">لا توجد طلبات وجبات بالمطبخ حالياً.</div>';
-        if(!hasD) dContainer.innerHTML = '<div class="text-white-50 text-center py-2">لا توجد مسارات دليفري نشطة.</div>';
-    });
-
-    // مراقبة شجرة نداءات الخدمة المستقلة بالكامل لسرعة وتلبية طلبات الويتر
-    database.ref('waiter_calls').on('value', (snapshot) => {
-        const calls = snapshot.val() || {};
-        const sContainer = document.getElementById('services-container');
-        sContainer.innerHTML = '';
-        let hasS = false;
-
-        for (const tableKey in calls) {
-            const callNode = calls[tableKey];
-            if (callNode && callNode.active) {
-                hasS = true;
-                const div = document.createElement('div');
-                const isBill = callNode.type === 'bill';
-                div.className = "p-3 mb-1 shadow rounded-3 " + (isBill ? 'bill-alert' : 'bg-warning text-dark fw-bold');
-                
-                let textInfo = isBill ? `🧾 طاولة #${tableKey} تطلب الحساب الكلي` : `🔔 طاولة #${tableKey} تطلب حضور النادل الفوري`;
-                
-                // زر تلبية النداء الذي يغير الحالة ويقيد إشعار منبثق عند الزبون
-                let actionBtn = callNode.status === 'accepted' 
-                    ? `<button class="btn btn-sm btn-dark text-white fw-bold" onclick="closeServiceCall('${tableKey}')">إنهاء الخدمة وتفريغ الطاولة</button>`
-                    : `<button class="btn btn-sm btn-outline-dark fw-bold" onclick="acceptServiceCall('${tableKey}')">تلبية النداء (الويتر في طريقه)</button>`;
-
-                if (callNode.status === 'accepted') {
-                    textInfo += " [جاري التلبية...]";
+                div.innerHTML = `<div class="fw-bold text-danger"><i class="bi bi-bicycle"></i> طلب توصيل خارجي</div><div class="small mt-1 text-white-50">العميل: ${order.customer} | ${order.phone}</div><div class="small text-warning">العنوان: ${order.address}</div><div class="fw-bold text-success mt-1">${Number(order.total_price).toLocaleString()} د.ع</div>${btn}`;
+                dWrapper.appendChild(div);
+            } else if (order.items) {
+                hasO = true;
+                if(order.status === 'pending' || order.status === 'preparing') {
+                    Object.values(order.items).forEach(itm => {
+                        aggMap.set(itm.name, (aggMap.get(itm.name) || 0) + itm.quantity);
+                    });
                 }
 
-                div.innerHTML = `<div class="d-flex justify-content-between align-items-center"><span>${textInfo}</span>${actionBtn}</div>`;
-                sContainer.appendChild(div);
+                const col = document.createElement('div'); col.className = "col-12"; col.id = "card-order-" + k;
+                let itemsHtml = Object.values(order.items).map(i => `<div class="d-flex justify-content-between border-bottom border-dark py-1 text-white-50 small"><span>${i.name}</span><span class="badge bg-dark border border-secondary">x${i.quantity}</span></div>`).join('');
+                
+                // عرض الملاحظات الخاصة بالزبون أسفل الفاتورة مباشرة بمربع ملون ملفت لانتباه الشيف
+                let notesHtml = "";
+                if (order.order_notes && order.order_notes !== "لا توجد ملاحظات") {
+                    notesHtml = `<div class="notes-highlight-box mb-2"><i class="bi bi-exclamation-triangle-fill"></i> ملاحظة الزبون: ${order.order_notes}</div>`;
+                }
+
+                const minutesElapsed = Math.floor((Date.now() - (order.timestamp || Date.now())) / 60000);
+                let slaClass = "kds-sla-green";
+                if(minutesElapsed >= 10 && minutesElapsed < 20) slaClass = "kds-sla-yellow";
+                if(minutesElapsed >= 20) slaClass = "kds-sla-red";
+
+                let actionBtn = "", statusText = "قيد الانتظار", badgeBg = "bg-secondary";
+
+                if(order.status === 'pending') {
+                    actionBtn = `<button class="btn btn-warning w-100 fw-bold py-2 text-dark" onclick="updateStatus('${k}', 'preparing')">قبول الفاتورة وبدء الطهي والتحضير</button>`;
+                } else if(order.status === 'preparing') {
+                    statusText = "جاري الطهي وإعداد الوجبة"; badgeBg = "bg-warning text-dark";
+                    actionBtn = `<button class="btn btn-info w-100 fw-bold text-white py-2" onclick="updateStatus('${k}', 'on_the_way')">الوجبة جاهزة (إرسال للطاولة)</button>`;
+                } else if(order.status === 'on_the_way') {
+                    statusText = "الوجبة على الطاولة"; badgeBg = "bg-success";
+                    actionBtn = `<button class="btn btn-success w-100 fw-bold py-2 text-white" onclick="finalizeOrder('${k}')">تم الدفع نقداً - إغلاق وقفل الطاولة</button>`;
+                }
+
+                if(AppState.userRole === 'chef' && order.status === 'on_the_way') {
+                    actionBtn = `<div class="alert alert-success text-center py-1 small mb-0">بانتظار تحصيل مبالغ الكاشير</div>`;
+                }
+
+                col.innerHTML = `
+                    <div class="kds-card p-3 ${slaClass}">
+                        <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom border-secondary">
+                            <h6 class="fw-bold text-warning mb-0">طاولة رقم # ${k} <small class="text-muted font-monospace">(${minutesElapsed} د)</small></h6>
+                            <span class="badge ${badgeBg}">${statusText}</span>
+                        </div>
+                        <div class="mb-2">${itemsHtml}</div>
+                        ${notesHtml} 
+                        <div class="d-flex justify-content-between fw-bold text-success mb-2"><span>الإجمالي:</span><span>${Number(order.total_price).toLocaleString()} د.ع</span></div>
+                        ${actionBtn}
+                    </div>`;
+                oWrapper.appendChild(col);
             }
         }
-        if(!hasS) sContainer.innerHTML = '<div class="text-white-50 text-center py-2">لا توجد إشعارات أو نداءات خدمة معلقة.</div>';
-    });
 
-    function acceptServiceCall(table) {
-        database.ref(`waiter_calls/${table}`).update({ status: "accepted", toast_shown: false });
-    }
-
-    function closeServiceCall(table) {
-        database.ref(`waiter_calls/${table}`).remove();
-    }
-
-    function addDeliveryOrder() {
-        const cust = document.getElementById('delivCustomer').value.trim();
-        const ph = document.getElementById('delivPhone').value.trim();
-        const addr = document.getElementById('delivAddress').value.trim();
-        const pr = Number(document.getElementById('delivPrice').value) || 0;
-        if(!cust || !ph || !addr || pr <= 0) { alert("يرجى ملء حقول الدليفري بالكامل!"); return; }
-        const dId = 'delivery_' + Date.now();
-        database.ref(`orders_system/${dId}`).set({ customer: cust, phone: ph, address: addr, total_price: pr, status: "pending", items: { "طلب دليفري": { name: "طلب خارجي شامل", quantity: 1, price: pr } } }).then(() => {
-            document.getElementById('delivCustomer').value = ''; document.getElementById('delivPhone').value = ''; document.getElementById('delivAddress').value = ''; document.getElementById('delivPrice').value = '';
+        const aggContainer = document.getElementById('dom-aggregated-items'); aggContainer.innerHTML = '';
+        if(aggMap.size === 0) aggContainer.innerHTML = `<span class="text-muted small">لا توجد وجبات جاري طهيها حالياً.</span>`;
+        aggMap.forEach((qty, name) => {
+            aggContainer.insertAdjacentHTML('beforeend', `<span class="aggregate-badge"><i class="bi bi-box-seam"></i> ${name}: المطلوب (${qty}) حبة</span>`);
         });
+
+        if(!hasO) oWrapper.innerHTML = `<div class="text-muted text-center py-5 fs-6">لا توجد فواتير وجبات بالمطبخ حالياً.</div>`;
+        if(!hasD) dWrapper.innerHTML = `<div class="text-muted text-center py-3 small">لا توجد مسارات دليفري معلقة.</div>`;
     }
 
-    function changeOrderStatus(table, next) { database.ref(`orders_system/${table}`).update({ status: next }); }
-    function completeAndCloseOrder(table) { if(confirm("تأكيد استلام مبالغ الفاتورة كاملاً في الخزينة؟")) database.ref(`orders_system/${table}`).update({ status: "completed" }); }
+    function scrollToOrderCard(num) {
+        const target = document.getElementById('card-order-' + num);
+        if(target) target.scrollIntoView({ behavior: 'smooth' });
+    }
+    function updateStatus(key, nextStatus) { firebase.database().ref(`orders_system/${key}`).update({ status: nextStatus }); }
+    function finalizeOrder(key) {
+        if(AppState.userRole === 'chef') { showCustomAlert("خطأ في الصلاحيات: ليس لديك إذن بقفل الحساب المالي للفواتير!"); return; }
+        if(confirm("هل تم استلام كامل مبالغ الفاتورة كاش وجردها في الخزينة بنجاح؟")) {
+            firebase.database().ref(`orders_system/${key}`).update({ status: "completed" });
+        }
+    }
+    function approveServiceCall(table) { firebase.database().ref(`waiter_calls/${table}`).update({ status: "accepted", toast_shown: false }); }
+    function terminateServiceCall(table) { firebase.database().ref(`waiter_calls/${table}`).remove(); }
 
-    function printOrder(table) {
-        database.ref(`orders_system/${table}`).once('value', (snapshot) => {
-            const data = snapshot.val(); if(!data || !data.items) return;
-            let rowsHtml = Object.values(data.items).map(i => `<div class="p-row"><span>${i.name} (x${i.quantity})</span><span>${(i.price * i.quantity).toLocaleString()} د.ع</span></div>`).join('');
-            document.getElementById('printArea').innerHTML = `<center><h3>مطعم دجلة</h3><h5>كشف حساب طاولة رقم: ${table}</h5></center><hr><div>${rowsHtml}</div><hr><div class="p-row" style="font-weight:bold;"><span>المجموع النهائي:</span><span>${Number(data.total_price).toLocaleString()} د.ع</span></div>`;
-            window.print();
+    function commitDeliveryOrder() {
+        const cust = document.getElementById('in-delivName').value.trim();
+        const ph = document.getElementById('in-delivPhone').value.trim();
+        const addr = document.getElementById('in-delivAddress').value.trim();
+        const pr = Number(document.getElementById('in-delivPrice').value) || 0;
+        if(!cust || !ph || !addr || pr <= 0) { alert("يرجى إكمال بيانات حقول الدليفري بالكامل!"); return; }
+        const dId = 'delivery_' + Date.now();
+        firebase.database().ref(`orders_system/${dId}`).set({
+            customer: cust, phone: ph, address: addr, total_price: pr, status: "pending", timestamp: Date.now(),
+            items: { "طلب دليفري": { name: "طلب توصيل خارجي شامل", quantity: 1, price: pr } }
+        }).then(() => {
+            document.getElementById('in-delivName').value = ''; document.getElementById('in-delivPhone').value = '';
+            document.getElementById('in-delivAddress').value = ''; document.getElementById('in-delivPrice').value = '';
         });
     }
 </script>
 </body>
 </html>
+
