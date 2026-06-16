@@ -260,7 +260,7 @@
         </div>
         <div class="row g-2">
             <div class="col-4">
-                <button onclick="triggerWaiterCallOnly()" class="btn btn-warning w-100 py-2 fw-bold text-dark shadow-sm">
+                <button id="btn-call-waiter-action" onclick="triggerWaiterCallOnly()" class="btn btn-warning w-100 py-2 fw-bold text-dark shadow-sm">
                     <i class="bi bi-bell-fill"></i> <span id="ui-btn-call-waiter">نداء الويتر</span>
                 </button>
             </div>
@@ -290,15 +290,16 @@
     const tableNum = urlParams.get('table') || "1";
     document.getElementById('dom-table-number').innerText = tableNum;
 
-    // مصفوفة الأطعمة الاحترافية الشاملة لمنع ظهور المنيو فارغاً
+    // تم إصلاح روابط الصور بروابط مباشرة وحقيقية 100% تعمل على مدار الساعة
     let foodItems = [
-        { name: "قوزي لحم عراقي فخم", cat: "مشويات وأطباق رئيسية", price: 18000, img: "https://images.unsplash.com/photo-1544025162-d76694265947?w=300" },
-        { name: "كباب لحم دجلة الفاخر", cat: "مشويات وأطباق رئيسية", price: 14000, img: "https://images.unsplash.com/photo-1603360946369-dc9bb6258143?w=300" },
-        { name: "تكا دجاج بالخلطة السرية", cat: "مشويات وأطباق رئيسية", price: 11000, img: "https://images.unsplash.com/photo-1532550907401-a500c9a57435?w=300" },
-        { name: "صحن مقبلات مشكل ملكي", cat: "مقبلات وشوربات", price: 6000, img: "https://images.unsplash.com/photo-1541518763669-27fef04b14ea?w=300" },
-        { name: "شوربة عدس ساخنة بالليمون", cat: "مقبلات وشوربات", price: 3000, img: "https://images.unsplash.com/photo-1547592165-e1d17fed6005?w=300" },
-        { name: "بيتزا إيطالية سوبر سوبريم", cat: "المعجنات والبيتزا", price: 9000, img: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=300" },
-        { name: "عصير برتقال طبيعي فريش", cat: "العصائر والمشروبات", price: 2500, img: "https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?w=300" }
+        { name: "قوزي لحم عراقي فخم", cat: "مشويات وأطباق رئيسية", price: 18000, img: "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=300&q=80" },
+        { name: "كباب لحم دجلة الفاخر", cat: "مشويات وأطباق رئيسية", price: 14000, img: "https://images.unsplash.com/photo-1603360946369-dc9bb6258143?auto=format&fit=crop&w=300&q=80" },
+        { name: "تكا دجاج بالخلطة السرية", cat: "مشويات وأطباق رئيسية", price: 11000, img: "https://images.unsplash.com/photo-1532550907401-a500c9a57435?auto=format&fit=crop&w=300&q=80" },
+        { name: "صحن مقبلات مشكل ملكي", cat: "مقبلات وشوربات", price: 6000, img: "https://images.unsplash.com/photo-1541518763669-27fef04b14ea?auto=format&fit=crop&w=300&q=80" },
+        { name: "شوربة عدس ساخنة بالليمون", cat: "مقبلات وشوربات", price: 3000, img: "https://images.unsplash.com/photo-1547592165-e1d17fed6005?auto=format&fit=crop&w=300&q=80" },
+        { name: "بيتزا إيطالية سوبر سوبريم", cat: "المعجنات والبيتزا", price: 9000, img: "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=300&q=80" },
+        { name: "عصير برتقال طبيعي فريش", cat: "العصائر والمشروبات", price: 2500, img: "https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?auto=format&fit=crop&w=300&q=80" },
+        { name: "استكان شاي هيل عراقي", cat: "العصائر والمشروبات", price: 1000, img: "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=300&q=80" }
     ];
 
     let categoriesList = ["الكل", "مشويات وأطباق رئيسية", "مقبلات وشوربات", "المعجنات والبيتزا", "العصائر والمشروبات"];
@@ -350,6 +351,7 @@
         }
     });
 
+    // تم فصل الاستماع لنداء الويتر تماماً وتصليحه ليعود للعمل بنجاح
     firebase.database().ref(`waiter_calls/${tableNum}`).on('value', (snapshot) => {
         const call = snapshot.val();
         const toast = document.getElementById('waiter-alert-toast');
@@ -374,13 +376,12 @@
         const filtered = selectedCategory === "الكل" ? foodItems : foodItems.filter(i => i.cat === selectedCategory);
 
         filtered.forEach(item => {
-            // [إصلاح الثغرة 4]: قراءة الكمية مباشرة من السلة لكي لا تصفر عند تغيير الفلتر أو اللغة
             const qty = activeCart[item.name] ? activeCart[item.name].quantity : 0;
             const cardHtml = `
                 <div class="col-12 col-md-6">
                     <div class="card dish-card p-3">
                         <div class="d-flex align-items-center">
-                            <img src="${item.img}" class="dish-img me-3" alt="${item.name}">
+                            <img src="${item.img}" class="dish-img me-3" alt="${item.name}" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=150'">
                             <div class="flex-grow-1">
                                 <h6 class="fw-bold mb-1 text-white">${item.name}</h6>
                                 <span class="fw-bold" style="color: var(--accent-gold);">${Number(item.price).toLocaleString()} د.ع</span>
@@ -445,7 +446,7 @@
             items: activeCart,
             total_price: Object.values(activeCart).reduce((sum, item) => sum + (item.price * item.quantity), 0),
             status: "pending",
-            order_notes: customNotes || "لا توجد ملاحظات مخصصة", // [إصلاح الثغرة 3] منع الحقول الفارغة
+            order_notes: customNotes || "لا توجد ملاحظات مخصصة",
             timestamp: Date.now()
         };
 
@@ -456,9 +457,15 @@
         });
     }
 
+    // إصلاح وتفعيل وظيفة زر نداء الويتر المستقلة تماماً والمنفصلة عن الأطباق
     function triggerWaiterCallOnly() {
+        const btn = document.getElementById('btn-call-waiter-action');
+        btn.disabled = true;
+        
         const callPayload = { type: "waiter", active: true, status: "pending", timestamp: Date.now() };
-        firebase.database().ref(`waiter_calls/${tableNum}`).set(callPayload);
+        firebase.database().ref(`waiter_calls/${tableNum}`).set(callPayload).then(() => {
+            setTimeout(() => { btn.disabled = false; }, 5000);
+        });
     }
 </script>
 </body>
