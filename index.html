@@ -45,6 +45,14 @@
             margin-top: 10px;
         }
 
+        .delivery-option-box {
+            background: #1c1d26;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 15px;
+        }
+
         .lang-dropdown-container {
             position: absolute;
             top: 20px;
@@ -204,14 +212,26 @@
     <h3 class="fw-bold mb-1" id="ui-main-title" style="color: var(--accent-gold);">مطعمنا الفاخر</h3>
     <p class="small text-muted mb-2" id="ui-sub-title">نقدم لكم أشهى المأكولات الشرقية والغربية بأعلى معايير الجودة</p>
     
-    <div class="table-badge-box">
+    <div class="table-badge-box" id="dom-table-badge-wrapper">
         <span id="ui-lbl-table">طاولة</span> #<span id="dom-table-number">1</span>
     </div>
 </div>
 
 <div class="container py-3">
+    <!-- نظام اختيار نوع استلام الطلب لدعم نظام الدلفري الجديد -->
+    <div class="delivery-option-box text-center">
+        <label class="form-label d-block small fw-bold text-white-50 mb-2"><i class="bi bi-truck"></i> يرجى تحديد طريقة استلام الطلب:</label>
+        <div class="btn-group w-100" role="group">
+            <input type="radio" class="btn-check" name="orderTypeRadio" id="radio-dinein" checked onclick="toggleOrderTypeMode('dinein')">
+            <label class="btn btn-outline-warning fw-bold small" for="radio-dinein"><i class="bi bi-shop"></i> تناول في المطعم</label>
+
+            <input type="radio" class="btn-check" name="orderTypeRadio" id="radio-delivery" onclick="toggleOrderTypeMode('delivery')">
+            <label class="btn btn-outline-warning fw-bold small" for="radio-delivery"><i class="bi bi-house-door"></i> توصيل خارجي (دلفري)</label>
+        </div>
+    </div>
+
     <div class="d-flex justify-content-between align-items-center bg-dark p-3 rounded-3 mb-3 border border-secondary">
-        <span class="small fw-bold text-white-50"><i class="bi bi-info-circle text-warning"></i> حالة الميز:</span>
+        <span class="small fw-bold text-white-50"><i class="bi bi-info-circle text-warning"></i> حالة الميز / الطلب:</span>
         <span id="dom-client-status" class="badge bg-secondary py-2 px-3 fw-bold">لا توجد طلبات نشطة</span>
     </div>
 
@@ -219,6 +239,7 @@
     <div id="dom-food-grid" class="row g-3 mt-1"></div>
 </div>
 
+<!-- مودال مراجعة تفاصيل الفاتورة مدعوماً ببيانات الدلفري -->
 <div class="modal fade" id="reviewOrderModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content bg-dark text-light border border-secondary">
@@ -228,9 +249,27 @@
             </div>
             <div class="modal-body py-3">
                 <div id="dom-modal-items-list" class="mb-3 max-height-200 overflow-y-auto"></div>
+                
+                <!-- حقول إدخال بيانات التوصيل للدلفري (تظهر برمجياً عند الحاجة) -->
+                <div id="dom-delivery-form-fields" class="d-none border border-secondary p-3 rounded mb-3 bg-black">
+                    <h6 class="text-warning small fw-bold mb-3"><i class="bi bi-geo-alt-fill"></i> معلومات التوصيل المطلوبة:</h6>
+                    <div class="mb-2">
+                        <label class="form-label text-white-50 small">اسم المستلم الثنائي:</label>
+                        <input type="text" id="dom-delivery-name" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="مثال: أحمد علي">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label text-white-50 small">رقم الهاتف العراقي النشط:</label>
+                        <input type="tel" id="dom-delivery-phone" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="مثال: 07700000000">
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label text-white-50 small">عنوان التوصيل بالتفصيل:</label>
+                        <textarea id="dom-delivery-address" class="form-control form-control-sm bg-dark text-white border-secondary" rows="2" placeholder="المنطقة، المعالم القريبة، اسم الشارع..."></textarea>
+                    </div>
+                </div>
+
                 <div class="mb-1">
                     <label class="form-label small fw-bold text-white-50"><i class="bi bi-pencil-square"></i> هل لديك ملاحظات مخصصة للمطبخ؟</label>
-                    <textarea id="dom-client-notes-input" class="form-control bg-black text-white border-secondary small" rows="3" placeholder="مثال: شاي بدون سكر، اللحم استواء كامل، بدون بصل..."></textarea>
+                    <textarea id="dom-client-notes-input" class="form-control bg-black text-white border-secondary small" rows="2" placeholder="مثال: شاي بدون سكر، اللحم استواء كامل، بدون بصل..."></textarea>
                 </div>
             </div>
             <div class="modal-footer border-secondary">
@@ -290,7 +329,6 @@
     const tableNum = urlParams.get('table') || "1";
     document.getElementById('dom-table-number').innerText = tableNum;
 
-    // تم إصلاح روابط الصور بروابط مباشرة وحقيقية 100% تعمل على مدار الساعة
     let foodItems = [
         { name: "قوزي لحم عراقي فخم", cat: "مشويات وأطباق رئيسية", price: 18000, img: "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=300&q=80" },
         { name: "كباب لحم دجلة الفاخر", cat: "مشويات وأطباق رئيسية", price: 14000, img: "https://images.unsplash.com/photo-1603360946369-dc9bb6258143?auto=format&fit=crop&w=300&q=80" },
@@ -306,6 +344,7 @@
     let selectedCategory = "الكل";
     let activeCart = {};
     let currentLang = "AR";
+    let currentOrderMode = "dinein"; // المتغير المسؤول عن نمط الطلب الافتراضي
 
     const langDictionary = {
         AR: { mainTitle: "مطعمنا الفاخر", subTitle: "نقدم لكم أشهى المأكولات الشرقية والغربية بأعلى معايير الجودة", table: "طاولة", noOrder: "لا توجد طلبات نشطة", pending: "بانتظار موافقة الكاشير والمطبخ...", preparing: "جاري طهي وتحضير وجبتك الساخنة الآن...", onWay: "الوجبة في طريقها لطاولتك الآن فريش!" },
@@ -313,13 +352,32 @@
         KU: { mainTitle: "خواردنگەی ڕاستەقینەمان", subTitle: "پێشکەشکردنی باشترین خواردنەکانی ڕۆژهەڵاتی و ڕۆژئاوایی بە بەرزترین کوالێتی", table: "مێز", noOrder: "هیچ داواکارییەکی چالاک نییە", pending: "چاوەڕێی پەسەندکردنی کاشێر...", preparing: "خواردنەکەت لە چێشتخانە ئامادە دەکرێت...", onWay: "خواردنەکە لەڕێگایە بۆ سەر مێزەکەت!" }
     };
 
+    // دالة تبديل وضعية الطلب برمجياً (صالة / دلفري) وتحديث عناصر واجهة المستخدم
+    function toggleOrderTypeMode(mode) {
+        currentOrderMode = mode;
+        const waiterBtn = document.getElementById('btn-call-waiter-action');
+        const badgeWrapper = document.getElementById('dom-table-badge-wrapper');
+
+        if(mode === 'delivery') {
+            waiterBtn.disabled = true; // تعطيل زر نداء الويتر في وضع الدلفري
+            badgeWrapper.innerHTML = `<span class="text-warning fw-bold"><i class="bi bi-truck"></i> طلب خارجي (دلفري)</span>`;
+            document.getElementById('dom-delivery-form-fields').classList.remove('d-none');
+        } else {
+            waiterBtn.disabled = false; // تفعيل زر نداء الويتر في وضع الصالة
+            badgeWrapper.innerHTML = `<span id="ui-lbl-table">${langDictionary[currentLang].table}</span> #<span id="dom-table-number">${tableNum}</span>`;
+            document.getElementById('dom-delivery-form-fields').classList.add('d-none');
+        }
+    }
+
     function switchLanguage(langCode, langText) {
         currentLang = langCode;
         document.getElementById('active-lang-text').innerText = langText;
         const dict = langDictionary[langCode];
         document.getElementById('ui-main-title').innerText = dict.mainTitle;
         document.getElementById('ui-sub-title').innerText = dict.subTitle;
-        document.getElementById('ui-lbl-table').innerText = dict.table;
+        if (currentOrderMode === "dinein") {
+            document.getElementById('ui-lbl-table').innerText = dict.table;
+        }
         renderFoodMenu();
     }
 
@@ -351,7 +409,6 @@
         }
     });
 
-    // تم فصل الاستماع لنداء الويتر تماماً وتصليحه ليعود للعمل بنجاح
     firebase.database().ref(`waiter_calls/${tableNum}`).on('value', (snapshot) => {
         const call = snapshot.val();
         const toast = document.getElementById('waiter-alert-toast');
@@ -434,31 +491,75 @@
                 </div>
             `);
         });
+
+        // التحقق من نوع الطلب لتأكيد إظهار أو إخفاء حقول الدلفري عند فتح المودال
+        if(currentOrderMode === 'delivery') {
+            document.getElementById('dom-delivery-form-fields').classList.remove('d-none');
+        } else {
+            document.getElementById('dom-delivery-form-fields').classList.add('d-none');
+        }
+
         document.getElementById('dom-client-notes-input').value = '';
         new bootstrap.Modal(document.getElementById('reviewOrderModal')).show();
     }
 
     function submitFinalOrderToKitchen() {
-        bootstrap.Modal.getInstance(document.getElementById('reviewOrderModal')).hide();
         const customNotes = document.getElementById('dom-client-notes-input').value.trim();
-
+        
+        // بناء حزمة البيانات الافتراضية
         const finalOrderPayload = {
             items: activeCart,
             total_price: Object.values(activeCart).reduce((sum, item) => sum + (item.price * item.quantity), 0),
             status: "pending",
             order_notes: customNotes || "لا توجد ملاحظات مخصصة",
+            order_type: currentOrderMode, // صالة أو دلفري
             timestamp: Date.now()
         };
 
-        firebase.database().ref(`orders_system/${tableNum}`).set(finalOrderPayload).then(() => {
+        let targetFirebasePath = `orders_system/${tableNum}`;
+
+        // التحقق البرمجي الإضافي في حال كان نمط الطلب دلفري
+        if(currentOrderMode === 'delivery') {
+            const name = document.getElementById('dom-delivery-name').value.trim();
+            const phone = document.getElementById('dom-delivery-phone').value.trim();
+            const address = document.getElementById('dom-delivery-address').value.trim();
+
+            if(!name || !phone || !address) {
+                alert("يرجى ملء جميع حقول التوصيل (الاسم، الهاتف، والعنوان) لإرسال طلب الدلفري بنجاح.");
+                return;
+            }
+
+            // تضمين بيانات التوصيل داخل حزمة البيانات المرسلة
+            finalOrderPayload.delivery_details = {
+                client_name: name,
+                client_phone: phone,
+                client_address: address
+            };
+
+            // لضمان عدم تداخل طلبات الدلفري مع الطاولة رقم 1 النشطة بالصالة، نرفعها بـ ID فريد معتمد على الوقت
+            targetFirebasePath = `orders_system/Delivery-${Date.now()}`;
+        }
+
+        bootstrap.Modal.getInstance(document.getElementById('reviewOrderModal')).hide();
+
+        firebase.database().ref(targetFirebasePath).set(finalOrderPayload).then(() => {
+            alert("تم إرسال طلبك بنجاح وجاري المتابعة من قبل الكاشير والمطبخ!");
             activeCart = {};
             recalculateCartTotals();
             renderFoodMenu();
+            
+            // إعادة تصفية المدخلات بعد النجاح
+            if(currentOrderMode === 'delivery') {
+                document.getElementById('dom-delivery-name').value = '';
+                document.getElementById('dom-delivery-phone').value = '';
+                document.getElementById('dom-delivery-address').value = '';
+            }
         });
     }
 
-    // إصلاح وتفعيل وظيفة زر نداء الويتر المستقلة تماماً والمنفصلة عن الأطباق
     function triggerWaiterCallOnly() {
+        if(currentOrderMode === 'delivery') return; // حماية إضافية لمنع النداء الخارجي
+        
         const btn = document.getElementById('btn-call-waiter-action');
         btn.disabled = true;
         
