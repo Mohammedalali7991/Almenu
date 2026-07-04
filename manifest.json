@@ -2,13 +2,19 @@
   "name": "القائمة - نظام قوائم رقمي ذكي",
   "short_name": "القائمة",
   "description": "نظام إدارة وعرض قوائم الطعام الذكية لمطعم دجلة",
-  "start_url": "index.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#121212",
   "theme_color": "#c5a880",
   "orientation": "portrait",
   "scope": "./",
   "icons": [
+    {
+      "src": "logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
     {
       "src": "logo.png",
       "sizes": "512x512",
