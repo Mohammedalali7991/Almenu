@@ -32,6 +32,7 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <script>
+    // إعدادات الاتصال بقاعدة بيانات Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyC6fFl4gN2N-W7oK3v70g_v3P932fM6bNY",
         authDomain: "almenu-system.firebaseapp.com",
@@ -44,52 +45,113 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    database.ref('orders_system').on('value', (snapshot) => {
-        const container = document.getElementById('dashboard-grid');
-        const data = snapshot.val();
-        if (!data) { container.innerHTML = `<div class="col-12 text-center py-5 text-white-50">✨ لا توجد طاولات نشطة.</div>`; return; }
-        container.innerHTML = '';
+    // كائنات تخزين مؤقتة محلياً لدمج البيانات الحية القادمة من المسارين المستقلين
+    let localOrdersCache = {};
+    let localWaiterCallsCache = {};
 
-        for (const key in data) {
-            const order = data[key];
+    // دالة بناء وعرض لوحة التحكم ديناميكياً بعد دمج البيانات
+    function renderDashboard() {
+        const container = document.getElementById('dashboard-grid');
+        
+        // تجميع كافة أرقام الطاولات الفريدة الموجودة في كلا الفرعين
+        const allTableKeys = new Set([
+            ...Object.keys(localOrdersCache),
+            ...Object.keys(localWaiterCallsCache)
+        ]);
+
+        if (allTableKeys.size === 0) {
+            container.innerHTML = `<div class="col-12 text-center py-5 text-white-50">✨ لا توجد طاولات نشطة حالياً.</div>`;
+            return;
+        }
+
+        container.innerHTML = ''; // تنظيف الحاوية قبل الرسم الجديد
+
+        allTableKeys.forEach(tableId => {
+            const order = localOrdersCache[tableId];
+            const waiterCall = localWaiterCallsCache[tableId];
+
+            // تخطي الطاولات التي اكتملت طلباتها وليس لديها نداء نادل فعال
+            const isOrderActive = order && order.status !== "completed";
+            const isCallActive = waiterCall && (waiterCall.status === "pending" || waiterCall.status === "accepted");
+            
+            if (!isOrderActive && !isCallActive) return;
+
             let cardClass = "dash-card";
             let badge = `<span class="badge bg-success">⚙️ تحت الخدمة</span>`;
 
-            if (order.waiter_requested) { cardClass += " status-waiter-pulse"; badge = `<span class="badge bg-warning text-dark">🔔 نداء ويتر</span>`; }
-            else if (order.bill_requested) { cardClass += " status-bill-pulse"; badge = `<span class="badge bg-danger">🧾 طلب حساب</span>`; }
+            // التحقق البرمجي من حالة نداء الويتر المنفصل لتطبيق تأثير الوميض
+            if (waiterCall && waiterCall.status === "pending") {
+                cardClass += " status-waiter-pulse";
+                badge = `<span class="badge bg-warning text-dark">🔔 نداء ويتر معلق</span>`;
+            } else if (waiterCall && waiterCall.status === "accepted") {
+                badge = `<span class="badge bg-info text-dark">🏃‍♂️ جاري تلبية الويتر</span>`;
+            } else if (order && order.bill_requested) {
+                cardClass += " status-bill-pulse";
+                badge = `<span class="badge bg-danger">🧾 طلب حساب</span>`;
+            }
 
-            let itemsHtml = Object.values(order.items || {}).map(i => `
-                <div class="d-flex justify-content-between dash-item-row">
-                    <span class="text-white-50">${i.name}</span><span class="badge bg-primary">x${i.quantity}</span>
-                </div>
-            `).join('');
+            // بناء قائمة الأطباق البرمجية في حال وجود طلب فعال على الطاولة
+            let itemsHtml = "";
+            let totalPrice = 0;
+            if (isOrderActive) {
+                totalPrice = order.total_price || 0;
+                itemsHtml = Object.values(order.items || {}).map(i => `
+                    <div class="d-flex justify-content-between dash-item-row">
+                        <span class="text-white-50">${i.name}</span><span class="badge bg-primary">x${i.quantity}</span>
+                    </div>
+                `).join('');
+            }
 
             const col = document.createElement('div');
             col.className = "col-12 col-md-6 col-lg-4";
             col.innerHTML = `
                 <div class="${cardClass}">
                     <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2 border-secondary">
-                        <h5 class="fw-bold mb-0 text-warning">طاولة # ${key}</h5>${badge}
+                        <h5 class="fw-bold mb-0 text-warning">طاولة # ${tableId}</h5>${badge}
                     </div>
-                    <div class="mb-3">${itemsHtml || '<div class="text-muted small">نداء مباشر</div>'}</div>
+                    <div class="mb-3">${itemsHtml || '<div class="text-muted small">نداء خدمة مستقل (بدون طلب طعام)</div>'}</div>
                     <div class="p-2 rounded bg-dark d-flex justify-content-between align-items-center">
-                        <span class="small text-muted">الإجمالي:</span><span class="fw-bold text-success">${Number(order.total_price || 0).toLocaleString()} د.ع</span>
+                        <span class="small text-muted">الإجمالي:</span><span class="fw-bold text-success">${Number(totalPrice).toLocaleString()} د.ع</span>
                     </div>
                     <div class="row g-2 mt-2">
-                        <div class="col-6"><button class="btn btn-sm btn-outline-warning w-100" onclick="updateStatus('${key}', 'waiter')">تلبية الويتر</button></div>
-                        <div class="col-6"><button class="btn btn-sm btn-outline-danger w-100" onclick="updateStatus('${key}', 'bill')">تثبيط الحساب</button></div>
+                        <div class="col-6">
+                            <button class="btn btn-sm btn-outline-warning w-100" ${!isCallActive ? 'disabled' : ''} onclick="clearWaiterCall('${tableId}')">تلبية الويتر</button>
+                        </div>
+                        <div class="col-6">
+                            <button class="btn btn-sm btn-outline-danger w-100" ${(!isOrderActive || !order.bill_requested) ? 'disabled' : ''} onclick="clearBillRequest('${tableId}')">تثبيط الحساب</button>
+                        </div>
                     </div>
                 </div>
             `;
             container.appendChild(col);
+        });
+
+        // إذا تم تصفية كافة الطاولات ولم يتبقَ أي كارد نشط للعرض
+        if (container.children.length === 0) {
+            container.innerHTML = `<div class="col-12 text-center py-5 text-white-50">✨ لا توجد طاولات نشطة حالياً.</div>`;
         }
+    }
+
+    // المستمع الأول: مراقبة فرع طلبات النظام
+    database.ref('orders_system').on('value', (snapshot) => {
+        localOrdersCache = snapshot.val() || {};
+        renderDashboard();
     });
 
-    function updateStatus(key, type) {
-        let updateData = {};
-        if (type === 'waiter') updateData.waiter_requested = false;
-        if (type === 'bill') updateData.bill_requested = false;
-        database.ref(`orders_system/${key}`).update(updateData);
+    // المستمع الثاني: مراقبة فرع نداءات النادل المستقل
+    database.ref('waiter_calls').on('value', (snapshot) => {
+        localWaiterCallsCache = snapshot.val() || {};
+        renderDashboard();
+    });
+
+    // دالة معالجة زر تلبية الويتر (حذف النداء من فرعه المستقل في قاعدة البيانات)
+    function clearWaiterCall(tableId) {
+        database.ref(`waiter_calls/${tableId}`).remove();
+    }
+
+    // دالة معالجة زر تثبيط طلب الحساب الفاتورة داخل فرع الطلبات
+    function clearBillRequest(tableId) {
+        database.ref(`orders_system/${tableId}`).update({ bill_requested: false });
     }
 </script>
 </body>
