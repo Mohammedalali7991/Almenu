@@ -24,11 +24,13 @@
 <div class="container-fluid px-4 mt-4">
     <div class="row g-4">
         
+        <!-- لوحة نداء النادل الفورية -->
         <div class="col-12 col-md-4">
             <h6 class="section-bar text-warning mb-3"><i class="bi bi-bell-fill"></i> لوحة نداء الويتر الفورية</h6>
             <div id="dom-waiter-calls-list"></div>
         </div>
 
+        <!-- طلبات الطهي الحية بالمطبخ -->
         <div class="col-12 col-md-8">
             <h6 class="section-bar text-success mb-3"><i class="bi bi-fire"></i> طلبات الطهي الحية بالمطبخ</h6>
             <div id="dom-kitchen-orders-list" class="row g-3"></div>
@@ -37,9 +39,11 @@
     </div>
 </div>
 
+<!-- تضمين مكتبات Firebase الأساسية لإدارة قواعد البيانات الحية -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 <script>
+    // تكوين الاتصال بقاعدة بيانات النظام السحابية لـ مطعم دجلة
     const firebaseConfig = {
         apiKey: "AIzaSyC6fFl4gN2N-W7oK3v70g_v3P932fM6bNY",
         authDomain: "almenu-system.firebaseapp.com",
@@ -48,15 +52,22 @@
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 
+    // تهيئة كائن تشغيل الصوت للتنبيه الفوري الهادئ عند استقبال نداء جديد
+    const kitchenAlertAudio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-128.wav');
+
+    // الاستماع المباشر والحي لفرع نداءات النادل في قاعدة البيانات
     firebase.database().ref('waiter_calls').on('value', (snapshot) => {
         const calls = snapshot.val() || {};
         const container = document.getElementById('dom-waiter-calls-list');
-        container.innerHTML = '';
+        container.innerHTML = ''; // تنظيف القائمة قبل إعادة البناء الحية
         let hasCalls = false;
+        let playNotificationSound = false; // متغير للتحقق مما إذا كان هناك نداء جديد غير ملبى
 
         for(const tableId in calls) {
             const call = calls[tableId];
-            if(call && call.active) {
+            
+            // التحقق من وجود نداء وأن حالته إما معلقة (pending) أو تم قبولها (accepted)
+            if(call && (call.status === "pending" || call.status === "accepted")) {
                 hasCalls = true;
                 const card = document.createElement('div');
                 card.className = "waiter-call-card";
@@ -64,12 +75,17 @@
                 let callStatusText = `🔔 طاولة رقم [ ${tableId} ] تطلب حضور النادل فوراً`;
                 let btnHtml = `<button class="btn btn-warning btn-sm fw-bold w-100" onclick="acceptWaiterCall('${tableId}')"><i class="bi bi-check-lg"></i> تلبية الطلب</button>`;
                 
+                // إذا كان النداء بحالة pending، نقوم بتفعيل إشارة تشغيل الصوت للتنبيه
+                if(call.status === "pending") {
+                    playNotificationSound = true;
+                }
+                
+                // تحديث النصوص والأزرار إذا تم قبول الطلب وجاري إرسال الويتر بالطريق للزبون
                 if(call.status === "accepted") {
                     callStatusText = `🏃‍♂️ طاولة [ ${tableId} ] (جاري التلبية وإرسال الويتر)`;
-                    btnHtml = `<button class="btn btn-outline-secondary btn-sm w-100" disabled>تم إخطار الزبون بنجاح</button>`;
+                    btnHtml = `<button class="btn btn-success btn-sm w-100" onclick="finishWaiterCall('${tableId}')"><i class="bi bi-check-circle"></i> إنهاء النداء وإغلاقه</button>`;
                 }
 
-                // الكود يحتوي فقط على زر التلبية، وخالٍ تماماً من الحسابات والطباعة والتعقيد
                 card.innerHTML = `
                     <div class="fw-bold text-white mb-2" style="font-size:0.95rem;">${callStatusText}</div>
                     ${btnHtml}
@@ -77,13 +93,28 @@
                 container.appendChild(card);
             }
         }
-        if(!hasCalls) container.innerHTML = `<div class="text-muted text-center py-4 small">لا توجد استدعاءات خدمة معلقة.</div>`;
+        
+        // تشغيل التنبيه الصوتي الهادئ في المطبخ في حال وجود نداء جديد نشط
+        if(playNotificationSound) {
+            kitchenAlertAudio.play().catch(e => console.log("المتصفح يتطلب تفاعل المستخدم أولاً لتشغيل الصوت تلقائياً"));
+        }
+
+        if(!hasCalls) {
+            container.innerHTML = `<div class="text-muted text-center py-4 small">لا توجد استدعاءات خدمة معلقة.</div>`;
+        }
     });
 
+    // دالة قبول نداء النادل وتغيير حالته إلى accepted لإخطار الطاقم والزبون
     function acceptWaiterCall(tableId) {
         firebase.database().ref(`waiter_calls/${tableId}`).update({ status: "accepted" });
     }
 
+    // دالة إنهاء وإغلاق النداء بالكامل ومسحه بعد ذهاب النادل للطاولة بنجاح
+    function finishWaiterCall(tableId) {
+        firebase.database().ref(`waiter_calls/${tableId}`).remove();
+    }
+
+    // الاستماع المباشر والحي لطلبات الطعام والفواتير الخاصة بالمطبخ وصالة الطعام
     firebase.database().ref('orders_system').on('value', (snapshot) => {
         const orders = snapshot.val() || {};
         const container = document.getElementById('dom-kitchen-orders-list');
@@ -92,9 +123,10 @@
 
         for(const tableId in orders) {
             const order = orders[tableId];
-            if(!order || order.status === "completed") continue;
+            if(!order || order.status === "completed") continue; // تخطي الطلبات المكتملة والمغلقة مسبقاً
             hasOrders = true;
 
+            // بناء واجهة العناصر والأطباق داخل الفاتورة مع عرض كمياتها برمجياً
             let itemsListHtml = Object.values(order.items).map(i => `
                 <div class="d-flex justify-content-between border-bottom border-dark py-2 small text-light">
                     <span>🍲 ${i.name}</span>
@@ -102,6 +134,7 @@
                 </div>
             `).join('');
 
+            // عرض حقل الملاحظات المخصصة للزبون إن وجدت وبشرط ألا تكون فارغة
             let notesSectionHtml = "";
             if(order.order_notes && order.order_notes !== "لا توجد ملاحظات مخصصة") {
                 notesSectionHtml = `
@@ -111,6 +144,7 @@
                 `;
             }
 
+            // تحديد شكل وزر الإجراء البرمجي حسب حالة الطلب في المطبخ
             let actionButtonHtml = "";
             if(order.status === "pending") {
                 actionButtonHtml = `<button class="btn btn-primary w-100 fw-bold py-2" onclick="updateOrderStatus('${tableId}', 'preparing')">قبول الفاتورة وبدء الطهي</button>`;
@@ -146,10 +180,12 @@
         if(!hasOrders) container.innerHTML = `<div class="text-muted text-center py-5">لا توجد طلبات جارية بالمطبخ حالياً.</div>`;
     });
 
+    // دالة تحديث حالة الطلب الحالي (مثل: من انتظار إلى جاري التحضير)
     function updateOrderStatus(tableId, status) {
         firebase.database().ref(`orders_system/${tableId}`).update({ status: status });
     }
 
+    // دالة إغلاق الطاولة المكتملة وتصفية الفاتورة مالياً
     function closeOrderTable(tableId) {
         if(confirm("هل تم استلام المبلغ المالي وإغلاق الطاولة؟")) {
             firebase.database().ref(`orders_system/${tableId}`).update({ status: "completed" });
