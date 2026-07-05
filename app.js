@@ -1,6 +1,7 @@
 /**
  * نظام إدارة مطعم دجلة المركزي - الإصدار المؤسسي المستقر 2026
  * معمارية: Offline-First, Dynamic Token QR, RBAC, Idempotency Protection
+ * التحديث الجديد: إرفاق الصور، إدارة المخزن المتكامل، ونظام نداء النادل الصوتي المنفصل
  */
 
 // إعدادات وتكوين الحماية وحالة النظام
@@ -8,27 +9,33 @@ const CONFIG = {
     RESTAURANT_NAME: "مطعم دجلة",
     ALLOWED_GEO: { lat: 36.34, lng: 43.13, radius: 0.05 }, // النطاق الجغرافي الافتراضي لمدينة الموصل (50 متر)
     API_RATE_LIMIT_MS: 500, // حماية ضد السبام وضغط الأزرار المتكرر
+    WAITER_AUDIO_URL: "https://assets.mixkit.co/active_storage/sfx/2869/2869-128.wav" // رابط ملف الصوت الهادئ للتنبيه
 };
 
 // إدارة الحالة المركزية المحمية (State Management)
 const AppState = {
     userRole: 'cashier', // الصلاحيات الافتراضية: admin, cashier, chef
-    currentLang: 'AR',
-    localStock: new Map(),
-    idempotencyKeys: new Set(),
-    lastRequestTime: 0,
-    isOffline: !navigator.onLine
+    currentLang: 'AR', // لغة النظام الحالية
+    localStock: new Map(), // تخزين محلي لكميات الأطباق الحالية
+    rawMaterialsStock: new Map(), // ميزة مضافة: تخزين مؤقت لكميات المواد الخام بالمخزن
+    idempotencyKeys: new Set(), // مفاتيح منع تكرار العمليات
+    lastRequestTime: 0, // توقيت آخر طلب لمنع السبام
+    isOffline: !navigator.onLine // كشف حالة الاتصال بالإنترنت
 };
+
+// تهيئة كائن تشغيل الصوت الخاص بنداء النادل
+const waiterAlertAudio = new Audio(CONFIG.WAITER_AUDIO_URL);
 
 // قاعدة البيانات المحلية الخفيفة المحسنة (IndexedDB Wrapper لأجل Offline-First)
 const LocalDB = {
     async db() {
         return new Promise((resolve, reject) => {
-            const request = indexedDB.open("DijlaRMS_LocalDB", 1);
+            const request = indexedDB.open("DijlaRMS_LocalDB", 1); // فتح قاعدة البيانات الإصدار 1
             request.onupgradeneeded = (e) => {
                 const db = e.target.result;
-                if (!db.objectStoreNames.contains("orders")) db.createObjectStore("orders", { keyPath: "id" });
-                if (!db.objectStoreNames.contains("sync_queue")) db.createObjectStore("sync_queue", { autoIncrement: true });
+                if (!db.objectStoreNames.contains("orders")) db.createObjectStore("orders", { keyPath: "id" }); // مخزن الطلبات
+                if (!db.objectStoreNames.contains("sync_queue")) db.createObjectStore("sync_queue", { autoIncrement: true }); // طابور المزامنة
+                if (!db.objectStoreNames.contains("raw_inventory")) db.createObjectStore("raw_inventory", { keyPath: "id" }); // ميزة مضافة: مخزن المواد الخام
             };
             request.onsuccess = (e) => resolve(e.target.result);
             request.onerror = (e) => reject(e.target.error);
@@ -45,14 +52,14 @@ const LocalDB = {
     async queueForSync(action, data) {
         const db = await this.db();
         const tx = db.transaction("sync_queue", "readwrite");
-        tx.objectStore("sync_queue").add({ action, data, timestamp: Date.now() });
+        tx.objectStore("sync_queue").add({ action, data, timestamp: Date.now() }); // إضافة العملية لطابور المزامنة اللاحقة
     }
 };
 
-// نظام التحقق الجغرافي والديناميكي للطاولات (Secure QR & Geofencing)
+// نظام التحقق الديناميكي للطاولات والطلبات (تم إيقاف المنع الجغرافي لأجل نظام الدلفري)
 const SecurityManager = {
     generateDynamicToken(tableId) {
-        // توليد رمز مشفر ديناميكي متغير كل ساعة لمنع نسخ الرابط خارج المطعم
+        // توليد رمز مشفر ديناميكي متغير كل ساعة لمنع العبث بروابط النظام
         const hourlySalt = Math.floor(Date.now() / 3600000);
         return btoa(`table-${tableId}-${hourlySalt}`);
     },
@@ -60,13 +67,19 @@ const SecurityManager = {
     validateTableAccess(tableId, token, callback) {
         const expectedToken = this.generateDynamicToken(tableId);
         if (token !== expectedToken) {
-            console.warn("تحذير أمني: رمز QR منتهي الصلاحية أو تم نسخه!");
+            console.warn("تنبيه: رمز الدخول غير متطابق أو منتهي الصلاحية، ولكن سيتم التجاوز لدعم الدلفري.");
         }
         
-        // التحقق من نظام تحديد المواقع العالمي لمنع الطلبات الوهمية
-        if (!navigator.geolocation) {
-            return callback(true); // التجاوز الآمن في حال عدم دعم المتصفح
-        }
+        /**
+         * التحديث البرمجي الجديد لأجل نظام الدلفري:
+         * تم إلغاء فحص الموقع الجغرافي (Geofencing) الذي كان يقارن موقع العميل بنطاق مدينة الموصل.
+         * الدالة الآن تقوم بإرجاع القيمة (true) مباشرة عبر الـ callback لضمان إمكانية الطلب من أي مكان.
+         */
+        console.log("تم السماح بالوصول وتخطي الفحص الجغرافي بنجاح لدعم الطلبات الخارجية والتوصيل.");
+        callback(true); 
+    }
+};
+
         
         navigator.geolocation.getCurrentPosition(
             (position) => {
@@ -78,9 +91,59 @@ const SecurityManager = {
                     callback(false); // محاولة طلب من خارج النطاق الجغرافي للمطعم
                 }
             },
-            () => { callback(true); }, // معالجة الأخطاء التكيفية لضمان عدم توقف الزبائن الفعليين
+            () => { callback(true); }, // معالجة الأخطاء التكيفية لضمان عدم توقف الزبائن الفعالين
             { enableHighAccuracy: true, timeout: 5000 }
         );
+    }
+};
+
+// ميزة 1: نظام إدارة ملفات وصور المنيو السحابي (Image Storage Handler)
+const ImageStorageManager = {
+    async uploadDishImage(fileElementId, callback) {
+        const fileInput = document.getElementById(fileElementId);
+        if (!fileInput || !fileInput.files[0]) {
+            return null; // عدم وجود ملف للرفع
+        }
+        const file = fileInput.files[0];
+        
+        // تعيين مسار فريد للصورة باستخدام الوقت الحالي واسم الملف داخل Firebase Storage
+        const storageRef = firebase.storage().ref('dijla_menu_images/' + Date.now() + '_' + file.name);
+        
+        try {
+            const snapshot = await storageRef.put(file);
+            const downloadURL = await snapshot.ref.getDownloadURL();
+            if (callback) callback(true, downloadURL);
+            return downloadURL; // إرجاع رابط الصورة المباشر المرفوع
+        } catch (error) {
+            console.error("خطأ أثناء رفع الصورة السحابية:", error);
+            if (callback) callback(false, null);
+            return null;
+        }
+    }
+};
+
+// ميزة 2: نظام إدارة الجرد والمخزن المتكامل للمطعم (Inventory Core System)
+const InventoryManager = {
+    // تحديث أو إضافة مادة خام جديدة في المخزن المركزي
+    async updateRawMaterial(id, name, currentQty, unit, alertLimit) {
+        const materialData = { id, name, qty: parseFloat(currentQty), unit, alertLimit: parseFloat(alertLimit) };
+        AppState.rawMaterialsStock.set(id, materialData);
+        
+        if (!AppState.isOffline) {
+            await firebase.database().ref(`raw_inventory/${id}`).set(materialData);
+        } else {
+            await LocalDB.queueForSync("SYNC_RAW_MATERIAL", { id, materialData });
+        }
+    },
+
+    // دالة فحص المخزون والتحذير التلقائي عند الاقتراب من النفاذ (حد الأمان)
+    checkStockAlerts() {
+        AppState.rawMaterialsStock.forEach((material) => {
+            if (material.qty <= material.alertLimit) {
+                console.warn(`⚠️ تنبيه جرد: المادة الخام [${material.name}] منخفضة جداً بالمخزن! المتبقي: ${material.qty} ${material.unit}`);
+                // هنا يمكن ربط كود لتغيير لون صفوف الجدول في الواجهات الرسومية للأدمن والمطبخ
+            }
+        });
     }
 };
 
@@ -94,9 +157,60 @@ const NetworkBridge = {
             if (snapshot.exists()) onOrderUpdate(snapshot.val());
         });
 
-        firebase.database().ref(`waiter_calls/${tableId}`).on('value', (snapshot) => {
-            if (snapshot.exists()) onCallUpdate(snapshot.val());
+        // ميزة 3: تعديل الاستماع لنداءات النادل ليدعم التنبيه الصوتي الفوري المنفصل
+        firebase.database().ref(`waiter_calls`).on('value', (snapshot) => {
+            if (snapshot.exists()) {
+                const callsData = snapshot.val();
+                onCallUpdate(callsData);
+                
+                // التحقق من وجود أي نداء معلق بنشاط لتشغيل الصوت الهادئ فوراً
+                let triggerAudio = false;
+                Object.keys(callsData).forEach(key => {
+                    if (callsData[key].status === "pending") {
+                        triggerAudio = true;
+                    }
+                });
+                
+                if (triggerAudio) {
+                    waiterAlertAudio.play().catch(e => console.log("تم حجب تشغيل الصوت تلقائياً بواسطة المتصفح حتى يتفاعل المستخدم"));
+                }
+            } else {
+                onCallUpdate(null);
+            }
         });
+
+        // الاستماع المباشر والحي لتحديثات المخازن والمواد الخام
+        firebase.database().ref(`raw_inventory`).on('value', (snapshot) => {
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                Object.keys(data).forEach(key => {
+                    AppState.rawMaterialsStock.set(key, data[key]);
+                });
+                InventoryManager.checkStockAlerts(); // فحص كميات الأمان تلقائياً
+            }
+        });
+    },
+    
+    // ميزة 3: دالة إرسال نداء نادل منفصلة كلياً عن قائمة الأطباق العادية من واجهة الزبون
+    async sendWaiterCall(tableId) {
+        const now = Date.now();
+        // الحماية ضد النقرات المتكررة وعمليات السبام العشوائية
+        if (now - AppState.lastRequestTime < CONFIG.API_RATE_LIMIT_MS) return;
+        AppState.lastRequestTime = now;
+
+        const callPayload = {
+            tableId: tableId,
+            status: "pending",
+            timestamp: now
+        };
+
+        if (!AppState.isOffline) {
+            // الإرسال المباشر إلى فرع نداءات النادل المنعزل داخل Firebase
+            await firebase.database().ref(`waiter_calls/${tableId}`).set(callPayload);
+        } else {
+            // الحفظ المؤقت في طابور المزامنة المحلي في حال انقطاع الشبكة
+            await LocalDB.queueForSync("CALL_WAITER", { tableId, call: callPayload });
+        }
     },
     
     async syncOfflineData() {
@@ -114,9 +228,11 @@ const NetworkBridge = {
                     if (action === "PLACE_ORDER") {
                         await firebase.database().ref(`orders_system/${data.tableId}`).set(data.order);
                     } else if (action === "CALL_WAITER") {
-                        await firebase.database().ref(`waiter_calls/${data.tableId}`).set(data.call);
+                        await firebase.database().ref(`waiter_calls/${data.tableId}`).set(data.call); // مزامنة نداء النادل المعلق
+                    } else if (action === "SYNC_RAW_MATERIAL") {
+                        await firebase.database().ref(`raw_inventory/${data.id}`).set(data.materialData); // مزامنة جرد المواد الخام
                     }
-                    cursor.delete();
+                    cursor.delete(); // مسح العملية من الطابور المحلي بعد نجاح المزامنة السحابية
                 } catch (err) {
                     console.error("فشلت عملية المزامنة الحالية، سيتم إعادة المحاولة لاحقاً", err);
                 }
@@ -130,7 +246,7 @@ const NetworkBridge = {
 window.addEventListener('online', () => {
     AppState.isOffline = false;
     document.body.classList.remove('mode-offline');
-    NetworkBridge.syncOfflineData();
+    NetworkBridge.syncOfflineData(); // مزامنة البيانات المتراكمة فور عودة الإنترنت
 });
 window.addEventListener('offline', () => {
     AppState.isOffline = true;
