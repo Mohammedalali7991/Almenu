@@ -3,176 +3,188 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة الإدارة المالية الفخمة ونظام المخازن المتكامل</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <title>لوحة تحكم صاحب الملعب - Hattrick</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: 'Cairo', sans-serif; background-color: #f8f9fc; color: #333; }
-        .card-finance { background: #fff; border: none; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); }
-        .img-preset-option { width: 75px; height: 75px; object-fit: cover; border-radius: 15px; cursor: pointer; border: 3px solid transparent; margin: 5px; transition: all 0.3s ease; }
-        .img-preset-option.selected { border-color: #d4af37; transform: scale(1.05); box-shadow: 0 5px 15px rgba(212,175,55,0.3); }
-        .stat-card-custom { padding: 25px; border-radius: 18px; color: white; transition: all 0.3s; }
-        .stat-card-custom:hover { transform: translateY(-3px); }
-        .table-item-img { width: 50px; height: 50px; object-fit: cover; border-radius: 10px; }
-        .table-danger-custom { background-color: #ffeef0 !important; }
-        .bg-soft-primary { background-color: #e3fafc; color: #15aabf; font-weight: bold; }
-        .call-waiter-card { border-right: 5px solid #ff9f43; background-color: #fff3cd; }
+        body { font-family: sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; direction: rtl; }
+        .admin-container { max-width: 900px; margin: 0 auto; background: #white; }
+        .section-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        h3 { color: #2c3e50; margin-top: 0; border-bottom: 2px solid #2a5298; padding-bottom: 8px; }
+        .flex-group { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 15px; }
+        .form-control { flex: 1; min-width: 200px; }
+        label { font-weight: bold; display: block; margin-bottom: 5px; color: #34495e; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+        .days-selector { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0; }
+        .day-checkbox { background: #e1e8f5; padding: 8px 12px; border-radius: 20px; cursor: pointer; font-size: 14px; font-weight: bold; }
+        .day-checkbox input { display: none; }
+        .day-checkbox.active { background: #2a5298; color: white; }
+        .btn-action { padding: 12px 20px; background: #2a5298; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .grid-hours { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+        .hour-box { padding: 12px; border-radius: 8px; text-align: center; color: white; font-weight: bold; }
+        .request-item { background: #fff5f5; border-right: 5px solid #e74c3c; padding: 15px; margin-bottom: 10px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
+        .btn-approve { background: #2ecc71; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-reject { background: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="container py-4">
-    <!-- الهيدر -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h3 class="fw-bold mb-1 text-dark">📊 لوحة الإدارة الذكية وجرد الأطباق والمخازن</h3>
-            <p class="text-muted small mb-0">مراقبة حية وشاملة للأرباح، المصاريف، وكميات مخازن الأغذية المتوفرة بالمطبخ</p>
+<div class="admin-container">
+    <h2><i class="fa-solid fa-gears" style="color: #2a5298;"></i> لوحة إدارة الملعب والأسعار</h2>
+
+    <!-- 1. قسم إعدادات الأسعار والعملة وتحديد الأيام الحرة -->
+    <div class="section-card">
+        <h3><i class="fa-solid fa-money-bill-wave"></i> إعدادات الأسعار والعملة الافتراضية</h3>
+        <div class="flex-group">
+            <div class="form-control">
+                <label>اختر العملة للملعب:</label>
+                <select id="currencySelect">
+                    <option value="IQD">الدينار العراقي (د.ع)</option>
+                    <option value="USD">الدولار الأمريكي ($)</option>
+                </select>
+            </div>
+            <div class="form-control">
+                <label>السعر العام لجميع الساعات:</label>
+                <input type="number" id="generalPrice" placeholder="مثال: 30000">
+            </div>
         </div>
-        <a href="cashier.html" class="btn btn-dark fw-bold rounded-pill shadow-sm"><i class="bi bi-cpu-fill"></i> شاشة كاشير الصالة</a>
+
+        <label>حدد الأيام المراد تطبيق هذا السعر عليها (اختيار حر):</label>
+        <div class="days-selector">
+            <label class="day-checkbox"><input type="checkbox" value="السبت"> السبت</label>
+            <label class="day-checkbox"><input type="checkbox" value="الأحد"> الأحد</label>
+            <label class="day-checkbox"><input type="checkbox" value="الاثنين"> الاثنين</label>
+            <label class="day-checkbox"><input type="checkbox" value="الثلاثاء"> الثلاثاء</label>
+            <label class="day-checkbox"><input type="checkbox" value="الأربعاء"> الأربعاء</label>
+            <label class="day-checkbox"><input type="checkbox" value="الخميس"> الخميس</label>
+            <label class="day-checkbox"><input type="checkbox" value="الجمعة"> الجمعة</label>
+        </div>
+        <button class="btn-action" id="btnSavePricing"><i class="fa-solid fa-floppy-disk"></i> حفظ وتطبيق الأسعار العامة</button>
     </div>
 
-    <!-- شاشة تنبيهات نداء النادل المنفصلة مع الصوت الهادئ -->
-    <div class="card card-finance p-4 mb-4 bg-light border-warning">
-        <h5 class="fw-bold text-warning mb-3"><i class="bi bi-bell-fill"></i> شاشة مراقبة نداءات النادل الحية (خاص بالكاشير والمطبخ)</h5>
-        <div id="waiter-notifications-container" class="row g-2">
-            <div class="text-muted small">لا توجد نداءات نشطة حالياً من الطاولات.</div>
-        </div>
-    </div>
+    <!-- 2. جدول الـ 24 ساعة والإلغاء اليدوي وتعديل ذروة الساعات يدوي حر -->
+    <div class="section-card">
+        <h3><i class="fa-solid fa-calendar-days"></i> جدول الساعات الـ 24 المباشر والتحكم بالذروة</h3>
+        <label>عرض وتعديل جدول يوم:</label>
+        <select id="adminDaySelect" style="margin-bottom: 20px; padding: 10px;">
+            <option value="السبت">السبت</option>
+            <option value="الأحد">الأحد</option>
+            <option value="الاثنين">الاثنين</option>
+            <option value="الثلاثاء">الثلاثاء</option>
+            <option value="الأربعاء">الأربعاء</option>
+            <option value="الخميس">الخميس</option>
+            <option value="الجمعة">الجمعة</option>
+        </select>
 
-    <!-- كروت الإحصائيات -->
-    <div class="row g-3 mb-4">
-        <div class="col-12 col-md-4">
-            <div class="stat-card-custom shadow-sm bg-success" style="background: linear-gradient(135deg, #2ed573, #26af5f);">
-                <h6 class="small fw-bold text-white-50"><i class="bi bi-wallet-fill"></i> إجمالي المبيعات المغلقة الناجحة</h6>
-                <h2 class="fw-bold mb-0 mt-1" id="stat-sales">0 د.ع</h2>
-            </div>
-        </div>
-        <div class="col-12 col-md-4">
-            <div class="stat-card-custom shadow-sm bg-danger" style="background: linear-gradient(135deg, #ff4757, #ff2a3b);">
-                <h6 class="small fw-bold text-white-50"><i class="bi bi-calculator-fill"></i> إجمالي سحوبات المصاريف والمشتريات</h6>
-                <h2 class="fw-bold mb-0 mt-1" id="stat-expenses">0 د.c</h2>
-            </div>
-        </div>
-        <div class="col-12 col-md-4">
-            <div class="stat-card-custom shadow-sm bg-primary" style="background: linear-gradient(135deg, #1e90ff, #0070e0);">
-                <h6 class="small fw-bold text-white-50"><i class="bi bi-cash-coin"></i> صافي الأرباح الصافية داخل الصندوق</h6>
-                <h2 class="fw-bold mb-0 mt-1" id="stat-net">0 د.ع</h2>
-            </div>
-        </div>
-    </div>
-
-    <!-- إدارة الأقسام والمنيو -->
-    <div class="card card-finance p-4 mb-4">
-        <div class="mb-4 border-bottom pb-4">
-            <h5 class="fw-bold text-dark mb-3"><i class="bi bi-tags-fill text-success"></i> إضافة وتحديث أقسام القائمة</h5>
-            <div class="row g-2">
-                <div class="col-9 col-md-10"><input type="text" id="newCat" class="form-control" placeholder="مثال: وجبات الإفطار، أطباق غربية"></div>
-                <div class="col-3 col-md-2"><button onclick="addCategory()" class="btn btn-success w-100 fw-bold">إضافة القسم</button></div>
-            </div>
-        </div>
-
-        <div class="mb-4 border-bottom pb-4">
-            <h5 class="fw-bold text-dark mb-3"><i class="bi bi-plus-circle-fill text-primary"></i> ضخ صنف جديد في منيو الزبائن السحابي</h5>
-            <div class="row g-3">
-                <div class="col-12 col-md-3"><label class="form-label small fw-bold">اسم طبق الطعام</label><input type="text" id="itemName" class="form-control" placeholder="مثال: قوزي على تمن"></div>
-                <div class="col-12 col-sm-4 col-md-3"><label class="form-label small fw-bold">اختر القسم</label><select id="itemCat" class="form-select"></select></div>
-                <div class="col-12 col-sm-4 col-md-3"><label class="form-label small fw-bold">السعر للزبون (د.ع)</label><input type="number" id="itemPrice" class="form-control" placeholder="المبلغ الكلي"></div>
-                <div class="col-12 col-sm-4 col-md-3"><label class="form-label small fw-bold">الكمية المتاحة بالمخزن الحالي</label><input type="number" id="itemStock" class="form-control" value="50"></div>
-                
-                <!-- ميزة 1: رفع صورة مخصصة أو اختيار صورة جاهزة -->
-                <div class="col-12">
-                    <label class="form-label small fw-bold text-dark d-block mb-2">📸 ارفع صورة مخصصة للطبق أو اختر صورة جاهزة:</label>
-                    <div class="row g-2 align-items-center mb-3">
-                        <div class="col-12 col-md-6">
-                            <input type="file" id="itemImageFile" class="form-control" accept="image/*" onchange="uploadCustomImage(this)">
-                            <div id="uploadStatus" class="form-text text-muted small mt-1">يمكنك رفع ملف صورة مباشرة إلى سيرفر Firebase.</div>
-                        </div>
-                    </div>
-                    <div class="d-flex flex-wrap p-2 border rounded bg-light" id="preset-images-container"></div>
-                    <input type="hidden" id="itemImgSelected" value="">
-                </div>
-                <div class="col-12 mt-3"><button onclick="addItem()" class="btn btn-primary w-100 py-2 fw-bold shadow-sm">🚀 نشر وضخ في منيو زبائن المطعم حياً</button></div>
-            </div>
-        </div>
-
-        <!-- جدول الأطباق الحالي -->
-        <div>
-            <h5 class="fw-bold text-dark mb-3"><i class="bi bi-clipboard2-data-fill text-danger"></i> جدول كميات وجرد الأطباق والتوفر الحي للمطبخ</h5>
-            <div class="table-responsive rounded-3 border">
-                <table class="table table-hover align-middle mb-0 text-center">
-                    <thead class="table-light">
-                        <tr><th>صورة الطبق</th><th>اسم الطبق</th><th>القسم التابع</th><th>السعر الحالي</th><th>الكمية بالمخزن</th><th>إدارة الحالة</th></tr>
-                    </thead>
-                    <tbody id="admin-table-items"></tbody>
-                </table>
-            </div>
+        <div class="grid-hours" id="adminHoursGrid">
+            <!-- سيتم توليد الـ 24 ساعة مع حقول التعديل اليدوي للأسعار برمجياً هنا -->
         </div>
     </div>
 
-    <!-- ميزة 2: قسم إدارة المخازن الشامل (المواد الخام والمكونات الأساسية) -->
-    <div class="card card-finance p-4 mb-4 border-primary">
-        <h4 class="fw-bold mb-3 text-primary"><i class="bi bi-box-seam-fill"></i> نظام إدارة المخزن الشامل (المواد الخام والمكونات)</h4>
-        <p class="text-muted small">إدارة وتتبع كميات المواد الأولية في المستودع مثل (اللحوم، الأرز، الزيوت) لتفادي النقص غير المتوقع.</p>
-        
-        <div class="row g-3 mb-4 bg-light p-3 rounded-3 border">
-            <div class="col-12 col-md-3"><label class="form-label small fw-bold">اسم المادة الخام</label><input type="text" id="rawName" class="form-control" placeholder="مثال: لحم غنم طازج"></div>
-            <div class="col-12 col-sm-4 col-md-3"><label class="form-label small fw-bold">الكمية الحالية</label><input type="number" id="rawQty" class="form-control" placeholder="مثال: 100"></div>
-            <div class="col-12 col-sm-4 col-md-3"><label class="form-label small fw-bold">وحدة القياس</label><select id="rawUnit" class="form-select"><option>كيلوغرام</option><option>لتر</option><option>صندوق</option><option>كيس</option><option>قطعة</option></select></div>
-            <div class="col-12 col-sm-4 col-md-3"><label class="form-label small fw-bold">حد التنبيه بالأمان (الحد الأدنى)</label><input type="number" id="rawAlert" class="form-control" value="10"></div>
-            <div class="col-12 text-end mt-3"><button onclick="addRawMaterial()" class="btn btn-primary fw-bold px-4"><i class="bi bi-plus-circle"></i> إضافة مادة للمخزن</button></div>
-        </div>
-
-        <div class="table-responsive rounded-3 border">
-            <table class="table table-hover text-center align-middle mb-0">
-                <thead class="table-light">
-                    <tr><th>اسم المادة الخام</th><th>الكمية المتوفرة</th><th>وحدة القياس</th><th>حد الأمان</th><th>حالة المخزن</th><th>إجراءات</th></tr>
-                </thead>
-                <tbody id="table-raw-materials">
-                    <!-- تُعرض المواد هنا برمجياً -->
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- قسم تسجيل وتوثيق المصاريف التشغيلية -->
-    <div class="card card-finance p-4">
-        <h4 class="fw-bold mb-4 text-danger"><i class="bi bi-dash-circle-fill"></i> نظام تسجيل وتوثيق المصاريف التشغيلية للمطعم</h4>
-        <div class="row g-3 mb-4">
-            <div class="col-12 col-md-6"><label class="form-label small fw-bold">بيان وسبب سحب المصروف</label><input type="text" id="expTitle" class="form-control" placeholder="مثال: شراء كيس رز بسمتي أو أجور غاز المطبخ"></div>
-            <div class="col-12 col-md-4"><label class="form-label small fw-bold">المبلغ المستقطع (د.ع)</label><input type="number" id="expAmount" class="form-control" placeholder="المبلغ"></div>
-            <div class="col-12 col-md-2 d-flex align-items-end"><button onclick="addExpense()" class="btn btn-danger w-100 fw-bold py-2"><i class="bi bi-patch-minus"></i> توثيق المصروف</button></div>
-        </div>
-        <div class="table-responsive rounded-3 border">
-            <table class="table table-striped text-center align-middle mb-0">
-                <thead class="table-light">
-                    <tr><th>بيان تفاصيل المصروف</th><th>المبلغ المستقطع</th><th>التاريخ والوقت الفعلي للسحب</th></tr>
-                </thead>
-                <tbody id="table-expenses-body"></tbody>
-            </table>
+    <!-- 3. قسم إشعارات طلبات إلغاء الاشتراك المعلقة من اللاعبين -->
+    <div class="section-card">
+        <h3><i class="fa-solid fa-bell"></i> طلبات إلغاء الحجز المعلقة (إشعارات اللاعبين)</h3>
+        <div id="cancellationRequestsList">
+            <p style="text-align: center; color: #7f8c8d;">لا توجد طلبات إلغاء معلقة حالياً.</p>
         </div>
     </div>
 </div>
 
-<!-- تضمين مكتبات Firebase المطلوبة (بما فيها الـ Storage لإرفاق الصور) -->
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
-<script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyC6fFl4gN2N-W7oK3v70g_v3P932fM6bNY",
-        authDomain: "almenu-system.firebaseapp.com",
-        databaseURL: "https://almenu-system-default-rtdb.firebaseio.com",
-        projectId: "almenu-system",
-        storageBucket: "almenu-system.appspot.com",
-        messagingSenderId: "305206060548",
-        appId: "1:305206060548:web:b1d79aa3ec2c2cc2ebbb9d"
-    };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+<script type="module">
+    import { doc, getDoc, updateDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { db, configureStadiumPricing, handleCancellationRequest } from './app.js';
 
-    // كائن تشغيل الصوت للتنبيه عند نداء النادل
-    const softAlertAudio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-128.wav');
+    const stadiumId = "field_1";
+
+    // تفعيل المظهر التفاعلي لخانات اختيار الأيام الحرة
+    document.querySelectorAll('.day-checkbox input').forEach(chk => {
+        chk.addEventListener('change', (e) => {
+            e.target.parentElement.classList.toggle('active', e.target.checked);
+        });
+    });
+
+    // حفظ الأسعار العامة للأيام المحددة
+    document.getElementById('btnSavePricing').addEventListener('click', async () => {
+        const currency = document.getElementById('currencySelect').value;
+        const price = parseInt(document.getElementById('generalPrice').value);
+        const checkedDays = Array.from(document.querySelectorAll('.day-checkbox input:checked')).map(el => el.value);
+
+        if (!price || checkedDays.length === 0) return alert("يرجى إدخال السعر واختيار يوم واحد على الأقل!");
+
+        const res = await configureStadiumPricing(stadiumId, checkedDays, price);
+        if(res.success) {
+            alert("تم حفظ وتحديث الأسعار للأيام المحددة!");
+            loadAdminHoursGrid();
+        }
+    });
+
+    // جلب وعرض جدول الساعات الـ 24 للأدمن مع إمكانية الإلغاء وتعديل الأسعار يدوياً
+    async function loadAdminHoursGrid() {
+        const day = document.getElementById('adminDaySelect').value;
+        const grid = document.getElementById('adminHoursGrid');
+        grid.innerHTML = "جاري التحميل...";
+
+        const pricingRef = doc(db, "stadiums", stadiumId, "pricing", day);
+        const snap = await getDoc(pricingRef);
+        grid.innerHTML = "";
+
+        for (let h = 0; h < 24; h++) {
+            let hourData = { price: 30000, isBooked: false, type: "" };
+            if (snap.exists() && snap.data()[`hour_${h}`]) {
+                hourData = snap.data()[`hour_${h}`];
+            }
+
+            const box = document.createElement('div');
+            box.className = "hour-box";
+            box.style.backgroundColor = hourData.isBooked ? "#e74c3c" : "#2ecc71";
+
+            const timeLabel = `${h % 12 === 0 ? 12 : h % 12}:00 ${h >= 12 ? 'مساءً' : 'صباحاً'}`;
+            
+            box.innerHTML = `
+                <div>${timeLabel}</div>
+                <div style="font-size: 12px; margin: 5px 0;">${hourData.isBooked ? 'محجوز ('+hourData.type+')' : 'متاح'}</div>
+                <input type="number" value="${hourData.price}" id="input_price_${h}" style="width:70px; text-align:center; padding:2px; font-size:12px; border-radius:4px; border:none; margin-bottom:5px;">
+                <button onclick="updateSingleHourPrice(${h}, '${day}')" style="background:#fff; color:#333; border:none; padding:3px; font-size:10px; border-radius:3px; cursor:pointer; font-weight:bold; width:100%;">تعديل حر</button>
+            `;
+
+            // إذا كانت الساعة محجوزة، نتيح للأدمن الضغط المباشر للإلغاء الفوري
+            if (hourData.isBooked) {
+                const cancelBtn = document.createElement('button');
+                cancelBtn.textContent = "إلغاء الحجز فورا";
+                cancelBtn.style.cssText = "background:#333; color:#fff; border:none; font-size:10px; margin-top:5px; padding:3px; width:100%; cursor:pointer; border-radius:3px;";
+                cancelBtn.onclick = () => forceCancelBooking(day, h);
+                box.appendChild(cancelBtn);
+            }
+
+            grid.appendChild(box);
+        }
+    }
+
+    // دالة برمجية لتعديل سعر ساعة معينة يدوياً (مثل أوقات الذروة زيادة 5000)
+    window.updateSingleHourPrice = async function(hour, day) {
+        const newPrice = parseInt(document.getElementById(`input_price_${hour}`).value);
+        const pricingRef = doc(db, "stadiums", stadiumId, "pricing", day);
+        const updateData = {};
+        updateData[`hour_${hour}.price`] = newPrice;
+        await updateDoc(pricingRef, updateData);
+        alert(`تم تعديل سعر الساعة ${hour} يدوياً إلى ${newPrice}`);
+        loadAdminHoursGrid();
+    }
+
+    // دالة برمجية للإلغاء الفوري واليدوي للحجوزات من قبل صاحب الملعب
+    window.forceCancelBooking = async function(day, hour) {
+        if (!confirm("هل أنت متأكد من إلغاء هذا الحجز بالكامل وإعادة الساعة متاحة؟")) return;
+        const pricingRef = doc(db, "stadiums", stadiumId, "pricing", day);
+        const updateData = {};
+        updateData[`hour_${hour}.isBooked`] = false;
+        updateData[`hour_${hour}.bookedBy`] = null;
+        await updateDoc(pricingRef, updateData);
+        alert("تم إلغاء الحجز وإعادة الساعة باللون الأخضر للجميع!");
+        loadAdminHoursGrid();
+    }
+
+    // استدعاء وتحديث الجدول عند تغيير خيار اليوم
+    document.getElementById('adminDaySelect').addEventListener('change', loadAdminHoursGrid);
+    loadAdminHoursGrid();
 </script>
-<script src="app.js"></script>
 </body>
 </html>
